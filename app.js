@@ -1,13 +1,24 @@
-
+// game exploration / recommendation engine
+// registration
+//  - e-mail, password, confirm password
+//  - redirect to a page with a mini survey to find out
+//    what type of games user likes to play
+//  - not necessary to complete the survey in order to use the site
+//  - displays thumnails of recommended games on a user's profile
+//  - /games displays all available games as a paginated list
+//  - each game detail page should have similar games that user might like
+//    (customers who have purchased this item also purchased X)
+//  - buy game / add to cart functionality
+//
 /**
  * Module dependencies.
  */
 
-var express = require('express')
-  , routes = require('./routes')
-  , user = require('./routes/user')
-  , http = require('http')
-  , path = require('path');
+var express = require('express'),
+    routes = require('./routes'),
+    user = require('./routes/user'),
+    http = require('http'),
+    path = require('path');
 
 var app = express();
 
@@ -28,7 +39,10 @@ app.configure('development', function(){
 });
 
 app.get('/', routes.index);
+app.get('/games', index);
+app.get('/games/:id', routes.index);
 app.get('/users', user.list);
+app.get('/users/:username', index);
 
 http.createServer(app).listen(app.get('port'), function(){
   console.log("Express server listening on port " + app.get('port'));
