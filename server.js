@@ -14,7 +14,7 @@
  * Module dependencies.
  */
 var express = require('express'),
-  //hash = require('./pass').hash;
+  hash = require('./pass').hash,
   http = require('http'),
   path = require('path');
 
