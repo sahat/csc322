@@ -18,18 +18,15 @@ app.configure(function(){
     app.use(express.static(path.join(__dirname, 'public')));
 });
 
-
-
-
 app.configure('development', function(){
     app.use(express.errorHandler());
 });
 
 app.get('/', function(req, res) {
-    res.render('index', {title: 'ORANGECUBE'});
+    res.render('index', { heading: 'N7 Online Store', lead: 'The leading next generation video games recommendation engine' });
 });
 app.get('/login', function(req, res) {
-    res.render('login');
+  res.render('Login', { heading: 'Login', lead: 'Use the login form if you are an existing user, or create a new account' });
 });
 //app.get('/games', index);
 //app.get('/games/:id', routes.index);

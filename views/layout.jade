@@ -1,61 +1,65 @@
-!!! 5
+doctype 5
 html(lang='en')
 head
-    meta(charset='utf-8')
-    title= Rata Sum - Online Store
-    meta(name='viewport', content='width=device-width, initial-scale=1.0')
-    meta(name='description', content='')
-    meta(name='author', content='')
+  meta(charset='utf-8')
+  title N7
+  meta(name='viewport', content='width=device-width, initial-scale=1.0')
+  meta(name='description', content='CSC322 Project')
+  meta(name='author', content='CCNY')
+  link(href='/css/bootstrap.css', rel='stylesheet')
+  link(href='/css/docs.css', rel='stylesheet')
+  link(href='/css/bootstrap-responsive.css', rel='stylesheet')
+body
+  .navbar.navbar-inverse.navbar-fixed-top
+    .navbar-inner
+      .container
+        button.btn.btn-navbar(type='button', data-toggle='collapse', data-target='.nav-collapse')
+          span.icon-bar
+          span.icon-bar
+          span.icon-bar
+        .nav-collapse.collapse
+          ul.nav
+            li
+              a(href='/') Home
+            li
+              a(href='./getting-started.html') Get started
+            li.active
+              a(href='./scaffolding.html') Scaffolding
+            li
+              a(href='./base-css.html') Base CSS
+            li
+              a(href='./components.html') Components
+            li
+              a(href='./javascript.html') Javascript
+            li
+              a(href='./customize.html') Customize
+          ul.nav.pull-right
+            li
+              a(href='/login') Login or Register
+            li
 
-    link(href='/css/bootstrap.css', rel='stylesheet')
-    link(href='/css/docs.css', rel='stylesheet')
+  header#overview.jumbotron.subhead
+    .container
+      h1= heading
+        p.lead= lead
 
-    link(href='/css/bootstrap-responsive.css', rel='stylesheet')
-    //
-       Le HTML5 shim, for IE6-8 support of HTML5 elements 
-    //if lt IE 9
-      script(src='http://html5shim.googlecode.com/svn/trunk/html5.js')
-    //
-   body
-    .navbar.navbar-inverse.navbar-fixed-top
-      .navbar-inner
-        .container
-          button.btn.btn-navbar(type='button', data-toggle='collapse', data-target='.nav-collapse')
-            span.icon-bar
-            span.icon-bar
-            span.icon-bar
-          a.brand(href='./index.html') Bootstrap
-          .nav-collapse.collapse
-            ul.nav
-              li
-                a(href='./index.html') Home
-              li
-                a(href='./getting-started.html') Get started
-              li.active
-                a(href='./scaffolding.html') Scaffolding
-              li
-                a(href='./base-css.html') Base CSS
-              li
-                a(href='./components.html') Components
-              li
-                a(href='./javascript.html') Javascript
-              li
-                a(href='./customize.html') Customize
-
-
-
+  .container
     block content
 
-    script(src='/js/jquery.js')
-    script(src='/js/bootstrap-transition.js')
-    script(src='/js/bootstrap-alert.js')
-    script(src='/js/bootstrap-modal.js')
-    script(src='/js/bootstrap-dropdown.js')
-    script(src='/js/bootstrap-scrollspy.js')
-    script(src='/js/bootstrap-tab.js')
-    script(src='/js/bootstrap-tooltip.js')
-    script(src='/js/bootstrap-popover.js')
-    script(src='/js/bootstrap-button.js')
-    script(src='/js/bootstrap-collapse.js')
-    script(src='/js/bootstrap-carousel.js')
-    script(src='/js/bootstrap-typeahead.js')
+    hr
+    footer
+      p © CCNY 2012
+
+  script(src='/js/jquery.js')
+  script(src='/js/bootstrap-transition.js')
+  script(src='/js/bootstrap-alert.js')
+  script(src='/js/bootstrap-modal.js')
+  script(src='/js/bootstrap-dropdown.js')
+  script(src='/js/bootstrap-scrollspy.js')
+  script(src='/js/bootstrap-tab.js')
+  script(src='/js/bootstrap-tooltip.js')
+  script(src='/js/bootstrap-popover.js')
+  script(src='/js/bootstrap-button.js')
+  script(src='/js/bootstrap-collapse.js')
+  script(src='/js/bootstrap-carousel.js')
+  script(src='/js/bootstrap-typeahead.js')
