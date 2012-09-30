@@ -55,29 +55,20 @@ app.get '/register', (req, res) ->
     lead: 'Register with us to get your own personalized profile'
 
 app.post '/register', (req, res) ->
-
-  # Check if email address is already taken
+  # Query the database to see if email is available
   user = UserModel.findOne('email': 's2ahat@gmail.com', (err, user) ->
-    if err
-      console.log 'Error in MongoDB'
-    else
-      if user == null
-        console.log 'Email is available'
-      else
-        console.log 'Email is already in use'
-  )
-  # Everything is kosher at this point
-  user = new UserModel
-    email: req.body.userEmail
-    password: req.body.password
-  user.save (err) ->
-    unless err
-      console.log 'Saved to DB successfully!'
-      res.redirect '/login'
-    else
-      res.render 'Something wrong happened with MongoDB'
+    if !err
+      if user != null
+        res.render 'register', emailIsUnavailable: true # found a record, email is in use, re-render the page with error
+      else                           # no records in DB, email is available
+        user = new UserModel         # create a new model instance
+        email: req.body.userEmail    # set email to the email input
+        password: req.body.password  # set password to the password input
 
-
+  # save the model instance to database
+  user.save (err)
+    if !err # if nothing went wrong save has been successful
+      res.redirect '/login' # redirect to the login page
 
 server = http.createServer(app).listen app.get('port'), ->
   console.log 'Express server listening on port ' + app.get('port')
@@ -86,13 +77,13 @@ io = socket.listen(server)
 
 io.sockets.on 'connection', (socket) ->
   socket.on 'emailFocusOut', (data) ->
+    # wrap into middleware to remove code duplication in here and app.post(/register)
     user = UserModel.findOne('email': data.userEmail, (err, user) ->
-      if err
-        console.log 'Error in MongoDB'
-      else
+      unless err
         if user == null
-          console.log 'Email is available'
+          socket.emit 'emailFocusOutResponse', 0
         else
-          console.log 'Email is already in use'
+          socket.emit 'emailFocusOutResponse', 1
+
+
     )
-    socket.emit 'emailFocusOutResponse', data

@@ -32,18 +32,19 @@ $('#registration').validate({
   }
 });
 
-
-
-
+/*
 var socket = io.connect('http://localhost');
-
-socket.on('news', function (data) {
-  console.log(data);
-  socket.emit('my other event', { my: 'data' });
-});
-
+// fire an event to the server
 $('#userEmail').focusout(function() {
   var value = $('#userEmail').val();
-  console.log(value);
   socket.emit('emailFocusOut', { userEmail: value });
 });
+// listen for event from the server
+socket.on('emailFocusOutResponse', function (data) {
+  if (data === 0)
+    console.log("Email available")
+  else {
+    $('#userEmail').parents('.control-group').addClass('error');)
+  }
+});
+*/
