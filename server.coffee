@@ -64,15 +64,16 @@ app.post '/register', (req, res) ->
         user = new UserModel         # create a new model instance
         email: req.body.userEmail    # set email to the email input
         password: req.body.password  # set password to the password input
-
+  )
   # save the model instance to database
-  user.save (err)
+  user.save (err) ->
     if !err # if nothing went wrong save has been successful
       res.redirect '/login' # redirect to the login page
 
 server = http.createServer(app).listen app.get('port'), ->
   console.log 'Express server listening on port ' + app.get('port')
 
+///
 io = socket.listen(server)
 
 io.sockets.on 'connection', (socket) ->
@@ -84,6 +85,5 @@ io.sockets.on 'connection', (socket) ->
           socket.emit 'emailFocusOutResponse', 0
         else
           socket.emit 'emailFocusOutResponse', 1
-
-
     )
+///
