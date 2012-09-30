@@ -1,0 +1,20 @@
+extends layout
+
+block content
+  form.form-horizontal(method='post')
+    legend Don't have an account? Register!
+    .control-group
+      label.control-label(for='inputEmail') Email
+      .controls
+        input#inputEmail(name='inputEmail', type='text', placeholder='Email')
+    .control-group
+      label.control-label(for='inputPassword') Password
+      .controls
+        input#inputPassword(type='password', placeholder='Password')
+    .control-group
+      label.control-label(for='inputPassword') Confirm Password
+      .controls
+        input#inputPassword(type='password', placeholder='Confirm')
+    .control-group
+      .controls
+        button.btn.btn-large(type='submit') Register

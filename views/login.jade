@@ -6,30 +6,12 @@ block content
     .control-group
       label.control-label(for='inputEmail') Email
       .controls
-        input#inputEmail(type='text', placeholder='Email')
+        input#inputEmail.input-large(type='text', placeholder='Email')
     .control-group
       label.control-label(for='inputPassword') Password
       .controls
         input#inputPassword(type='password', placeholder='Password')
+        span.help-block <a href="#">Forgot your password?</a>
     .control-group
       .controls
         button.btn.btn-large(type='submit') Sign in
-
-  form.form-horizontal
-      legend Don't have an account? Register!
-      .control-group
-        label.control-label(for='inputEmail') Email
-        .controls
-          input#inputEmail(type='text', placeholder='Email')
-      .control-group
-        label.control-label(for='inputPassword') Password
-        .controls
-          input#inputPassword(type='password', placeholder='Password')
-      .control-group
-              label.control-label(for='inputPassword') Confirm Password
-              .controls
-                input#inputPassword(type='password', placeholder='Confirm')
-      .control-group
-        .controls
-          button.btn.btn-large(type='submit') Register
-

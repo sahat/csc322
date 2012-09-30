@@ -22,13 +22,19 @@ app.configure('development', function(){
     app.use(express.errorHandler());
 });
 
-app.get('/', function(req, res) {
+app.get('/', function (req, res) {
     res.render('index', { heading: 'N7 Online Store', lead: 'The leading next generation video games recommendation engine' });
 });
-app.get('/login', function(req, res) {
-  res.render('Login', { heading: 'Login', lead: 'Use the login form if you are an existing user, or create a new account' });
+app.get('/login', function (req, res) {
+  res.render('login', { heading: 'Sign In', lead: 'Use the login form if you are an existing user' });
 });
-//app.get('/games', index);
+app.get('/register', function (req, res) {
+  res.render('register', { heading: 'Create Account', lead: 'Register with us to get your own personalized profile' });
+});
+app.post('/register', function (req, res) {
+  console.log("Email is " + req.body.inputEmail);
+  res.redirect('/');
+});
 //app.get('/games/:id', routes.index);
 //app.get('/users', user.list);
 //app.get('/users/:username', index);
