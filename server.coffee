@@ -1,8 +1,9 @@
+# Import required modules
 express = require('express')
 path = require('path')
 http = require('http')
 mongoose = require('mongoose')
-MongoStore = require('connect-mongo')(express);
+io = require('socket.io')
 
 db = mongoose.connect('mongodb://localhost/test')
 
@@ -31,7 +32,6 @@ app.configure ->
   app.use express.cookieParser('s3cr3t')
   app.use express.session
     secret: 's3cr3t'
-    store: new MongoStore(db: 'localhost')
   app.use express.methodOverride()
   app.use app.router
   app.use express.static(path.join(__dirname, 'public'))
@@ -55,13 +55,21 @@ app.get '/register', (req, res) ->
     lead: 'Register with us to get your own personalized profile'
 
 app.post '/register', (req, res) ->
+
+  # Check if email address is already taken
+  user = UserModel.findOne('email': 's2ahat@gmail.com', (err, user) ->
+    if err
+      console.log 'Error in MongoDB'
+    else
+      if user == null
+        console.log 'Email is available'
+      else
+        console.log 'Email is already in use'
+  )
+  # Everything is kosher at this point
   user = new UserModel
     email: req.body.userEmail
     password: req.body.password
-
-  req.session.email = req.body.userEmail
-  req.session.password = req.body.password
-
   user.save (err) ->
     unless err
       console.log 'Saved to DB successfully!'
@@ -69,6 +77,9 @@ app.post '/register', (req, res) ->
     else
       res.render 'Something wrong happened with MongoDB'
 
-http.createServer(app).listen app.get('port'), ->
+io.sockets.on 'connection', (socket) ->
+  socket.emit 'news', hello: 'world'
+
+server = http.createServer(app).listen app.get('port'), ->
   console.log 'Express server listening on port ' + app.get('port')
 
