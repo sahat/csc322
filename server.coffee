@@ -36,7 +36,8 @@ app.get '/register', (req, res) ->
     lead: 'Register with us to get your own personalized profile'
 
 app.post '/register', (req, res) ->
-  console.log 'Email is ' + req.body.inputEmail
+  console.log 'Email is ' + req.body.userEmail
+
   res.redirect '/'
 
 
