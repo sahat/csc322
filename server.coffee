@@ -84,5 +84,15 @@ server = http.createServer(app).listen app.get('port'), ->
 
 io = socket.listen(server)
 
-io.sockets.on 'emailFocusOut', (data) ->
-  console.log(data)
+io.sockets.on 'connection', (socket) ->
+  socket.on 'emailFocusOut', (data) ->
+    user = UserModel.findOne('email': data.userEmail, (err, user) ->
+      if err
+        console.log 'Error in MongoDB'
+      else
+        if user == null
+          console.log 'Email is available'
+        else
+          console.log 'Email is already in use'
+    )
+    socket.emit 'emailFocusOutResponse', data
