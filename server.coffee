@@ -3,7 +3,7 @@ express = require('express')
 path = require('path')
 http = require('http')
 mongoose = require('mongoose')
-io = require('socket.io')
+socket = require('socket.io')
 
 db = mongoose.connect('mongodb://localhost/test')
 
@@ -77,9 +77,12 @@ app.post '/register', (req, res) ->
     else
       res.render 'Something wrong happened with MongoDB'
 
-io.sockets.on 'connection', (socket) ->
-  socket.emit 'news', hello: 'world'
+
 
 server = http.createServer(app).listen app.get('port'), ->
   console.log 'Express server listening on port ' + app.get('port')
 
+io = socket.listen(server)
+
+io.sockets.on 'emailFocusOut', (data) ->
+  console.log(data)
