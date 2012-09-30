@@ -2,7 +2,7 @@ express = require('express')
 path = require('path')
 http = require('http')
 mongoose = require('mongoose')
-MongoStore = require('connect-mongo')
+MongoStore = require('connect-mongo')(express);
 
 db = mongoose.connect('mongodb://localhost/test')
 
@@ -28,8 +28,10 @@ app.configure ->
   app.use express.favicon()
   app.use express.logger('dev')
   app.use express.bodyParser()
-  app.use express.cookieParser()
-  app.use express.session()
+  app.use express.cookieParser('s3cr3t')
+  app.use express.session
+    secret: 's3cr3t'
+    store: new MongoStore(db: 'localhost')
   app.use express.methodOverride()
   app.use app.router
   app.use express.static(path.join(__dirname, 'public'))
@@ -57,16 +59,16 @@ app.post '/register', (req, res) ->
     email: req.body.userEmail
     password: req.body.password
 
+  req.session.email = req.body.userEmail
+  req.session.password = req.body.password
+
   user.save (err) ->
     unless err
       console.log 'Saved to DB successfully!'
+      res.redirect '/login'
+    else
+      res.render 'Something wrong happened with MongoDB'
 
-  res.redirect '/'
-
-
-#app.get('/games/:id', routes.index);
-#app.get('/users', user.list);
-#app.get('/users/:username', index);
 http.createServer(app).listen app.get('port'), ->
   console.log 'Express server listening on port ' + app.get('port')
 
