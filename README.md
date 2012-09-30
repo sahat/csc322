@@ -1,4 +1,4 @@
 Input validation on client-side and server-side
 ---
 
-![Registration](screenshots/register.png)
+![Registration](csc322/screenshots/register.png)
