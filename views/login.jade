@@ -4,6 +4,10 @@ block content
   form.form-horizontal
     legend Login
     .control-group
+      if registrationSuccessful
+        .alert.alert-success.fade.in
+          strong Congratulations!
+          |  Registration has been successful.
       label.control-label(for='inputEmail') Email
       .controls
         input#inputEmail.input-large(type='text', placeholder='Email')

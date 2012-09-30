@@ -1,14 +1,13 @@
 extends layout
 
 block content
-
   form#registration.form-horizontal(method='post')
     legend Don't have an account? Register!
-
     .control-group
       if emailIsUnavailable
-        .alert.alert-error
-          | Oh Snap. Email address is not available.
+        .alert.alert-error.fade.in
+          strong Oh snap.
+          |  Email address is not available.
       label.control-label(for='userEmail') Email
       .controls
         input#userEmail(name='userEmail', type='text', placeholder='Email')

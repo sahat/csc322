@@ -3,7 +3,7 @@ express = require('express')
 path = require('path')
 http = require('http')
 mongoose = require('mongoose')
-socket = require('socket.io')
+#socket = require('socket.io')
 
 db = mongoose.connect('mongodb://localhost/test')
 
@@ -48,31 +48,40 @@ app.get '/login', (req, res) ->
   res.render 'login',
     heading: 'Sign In'
     lead: 'Use the login form if you are an existing user'
+    registrationSuccessful: false
 
 app.get '/register', (req, res) ->
   res.render 'register',
     heading: 'Create Account'
     lead: 'Register with us to get your own personalized profile'
+    emailIsUnavailable: false
 
 app.post '/register', (req, res) ->
   # Query the database to see if email is available
-  user = UserModel.findOne('email': 's2ahat@gmail.com', (err, user) ->
+  user = UserModel.findOne('email': req.body.userEmail, (err, user) ->
     if !err
-      if user != null
-        res.render 'register', emailIsUnavailable: true # found a record, email is in use, re-render the page with error
-      else                           # no records in DB, email is available
-        user = new UserModel         # create a new model instance
-        email: req.body.userEmail    # set email to the email input
-        password: req.body.password  # set password to the password input
+      if user != null # there's a user with a given email already
+        res.render 'register',       # re-render the same page but with emailIsUnavalable set to true
+          heading: 'Create Account'
+          lead: 'Register with us to get your own personalized profile'
+          emailIsUnavailable: true # found a record, email is in use, re-render the page with error
   )
-  # save the model instance to database
-  user.save (err) ->
+
+  user = new UserModel         # create a new model instance
+    email: req.body.userEmail    # set email to the email input
+    password: req.body.password  # set password to the password input
+
+  user.save (err) ->  # save the model instance to database
     if !err # if nothing went wrong save has been successful
-      res.redirect '/login' # redirect to the login page
+      res.render 'login',
+        heading: 'Sign In'
+        lead: 'Use the login form if you are an existing user'
+        registrationSuccessful: true
 
 server = http.createServer(app).listen app.get('port'), ->
   console.log 'Express server listening on port ' + app.get('port')
 
+# at the moment i am not doing anything with socket.io
 ///
 io = socket.listen(server)
 
