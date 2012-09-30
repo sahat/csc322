@@ -2,6 +2,21 @@ express = require('express')
 path = require('path')
 http = require('http')
 mongoose = require('mongoose')
+MongoStore = require('connect-mongo')
+
+db = mongoose.connect('mongodb://localhost/test')
+
+UserSchema = new mongoose.Schema
+  email:
+    type: String
+    required: true
+    index:
+      unique: true
+  password:
+    type: String
+    required: true
+
+UserModel = mongoose.model('User', UserSchema)
 
 app = express()
 
@@ -13,6 +28,8 @@ app.configure ->
   app.use express.favicon()
   app.use express.logger('dev')
   app.use express.bodyParser()
+  app.use express.cookieParser()
+  app.use express.session()
   app.use express.methodOverride()
   app.use app.router
   app.use express.static(path.join(__dirname, 'public'))
@@ -36,7 +53,13 @@ app.get '/register', (req, res) ->
     lead: 'Register with us to get your own personalized profile'
 
 app.post '/register', (req, res) ->
-  console.log 'Email is ' + req.body.userEmail
+  user = new UserModel
+    email: req.body.userEmail
+    password: req.body.password
+
+  user.save (err) ->
+    unless err
+      console.log 'Saved to DB successfully!'
 
   res.redirect '/'
 
