@@ -35,7 +35,7 @@ body
             li
               a(href='./customize.html') Customize
           ul.nav.pull-right
-            if (user)
+            if (!user.email)
               li
                 a(href='/login') Sign In
               li
