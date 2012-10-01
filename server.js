@@ -2,6 +2,7 @@ var express = require('express');
 var path = require('path');
 var http = require('http');
 var mongoose = require('mongoose');
+var RedisStore = require('connect-redis')(express);
 //var socket = require('socket.io')
 
 var db = mongoose.connect('mongodb://localhost/test');
@@ -24,7 +25,7 @@ app.configure(function() {
   app.use(express.logger('dev'));
   app.use(express.bodyParser());
   app.use(express.cookieParser('s3cr3t'));
-  app.use(express.session({ secret: 's3cr3t' }));
+  app.use(express.session({ store: new RedisStore, secret: 's3cr3t' }));
   app.use(express.methodOverride());
   app.use(app.router);
   app.use(express.static(path.join(__dirname, 'public')));
