@@ -50,6 +50,9 @@ app.get('/logout', function(req, res) {
 });
 
 app.get('/login', function(req, res) {
+  if (req.session.user) {
+    res.redirect('/');
+  }
   res.render('login', {
     heading: 'Sign In',
     lead: 'Use the login form if you are an existing user',
@@ -84,6 +87,9 @@ app.post('/login', function (req, res) {
 });
 
 app.get('/register', function(req, res) {
+  if (req.session.user) {
+    res.redirect('/');
+  }
   res.render('register', {
     heading: 'Create Account',
     lead: 'Register with us to get your own personalized profile',
