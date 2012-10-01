@@ -2,8 +2,10 @@ var express = require('express');
 var path = require('path');
 var http = require('http');
 var mongoose = require('mongoose');
+//var bcrypt = require('bcrypt')
 var RedisStore = require('connect-redis')(express);
 //var socket = require('socket.io')
+//var moment = require('moment');
 
 var db = mongoose.connect('mongodb://localhost/test');
 
@@ -36,7 +38,8 @@ app.configure('development', function() {
 app.get('/', function(req, res) {
   res.render('index', {
     heading: 'N7 Online Store',
-    lead: 'The leading next generation video games recommendation engine'
+    lead: 'The leading next generation video games recommendation engine',
+    user: req.session.user
   });
 });
 
@@ -52,31 +55,26 @@ app.get('/login', function(req, res) {
     lead: 'Use the login form if you are an existing user',
     registrationSuccessful: false,
     userNotFound: false,
-    incorrectPassword: false
+    incorrectPassword: false,
+    user: req.session.user
   });
 });
 
 app.post('/login', function (req, res) {
   var user = UserModel.findOne({ 'email': req.body.userEmail }, function (err, user) {
     if (!user) {
-      res.render('login', {
-        heading: 'Sign In',
-        lead: 'Use the login form if you are an existing user',
-        registrationSuccessful: false,
-        userNotFound: true,
-        incorrectPassword: false
-      });
-    } else if (req.body.password !== user.password) {
-        res.render('login', {
-          heading: 'Sign In',
-          lead: 'Use the login form if you are an existing user',
-          registrationSuccessful: false,
-          userNotFound: false,
-          incorrectPassword: true
-        });
-    } else {
-      req.session.user = req.body.userEmail;
+      console.log('user not found');
       res.redirect('/');
+    } else {
+        console.log(user.password);
+        console.log(req.body.password);
+        if (req.body.password == user.password) {
+          req.session.user = user;
+          res.redirect('/');
+        }	else {
+            console.log('invalid password')
+            res.redirect('/login');
+          }
     }
   });
 });
@@ -118,18 +116,18 @@ var server = http.createServer(app).listen(app.get('port'), function() {
 });
 
 /*
-var io = socket.listen(server);
-io.sockets.on('connection', function (socket) {
-  socket.on('emailFocusOut', function (data) {
-    var user = UserModel.findOne({ 'email': data.userEmail }, function(err, user) {
-      if (!err) {
-        if (user === null) {
-          socket.emit('emailFocusOutResponse', 0);
-        } else {
-          socket.emit('emailFocusOutResponse', 1);
-        }
-      }
-    });
-  });
-});
-*/
+ var io = socket.listen(server);
+ io.sockets.on('connection', function (socket) {
+ socket.on('emailFocusOut', function (data) {
+ var user = UserModel.findOne({ 'email': data.userEmail }, function(err, user) {
+ if (!err) {
+ if (user === null) {
+ socket.emit('emailFocusOutResponse', 0);
+ } else {
+ socket.emit('emailFocusOutResponse', 1);
+ }
+ }
+ });
+ });
+ });
+ */

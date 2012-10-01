@@ -34,7 +34,7 @@ body
             li
               a(href='./customize.html') Customize
           ul.nav.pull-right
-            if (!message)
+            if (!user)
               li
                 a(href='/login') Sign In
               li
@@ -44,7 +44,7 @@ body
             else
               li
                 a(href='#')
-                  = message
+                  = user.email
               li
               li
                 a(href='/logout') Sign Out
