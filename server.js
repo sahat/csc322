@@ -16,21 +16,19 @@ var UserModel = mongoose.model('User', UserSchema);
 
 var app = express();
 
-app.configure(function() {
-  app.set('port', process.env.PORT || 3000);
-  app.set('views', __dirname + '/views');
-  app.set('view engine', 'jade');
-  app.locals.pretty = true;
-  app.use(express.favicon());
-  app.use(express.logger('dev'));
-  app.use(express.bodyParser());
-  app.use(express.cookieParser('s3cr3t'));
-  app.use(express.session({ store: new RedisStore, secret: 's3cr3t' }));
-  app.use(express.methodOverride());
-  app.use(app.router);
-  app.use(express.static(path.join(__dirname, 'public')));
-});
-
+app.set('port', process.env.PORT || 3000);
+app.set('views', __dirname + '/views');
+app.set('view engine', 'jade');
+app.locals.pretty = true;
+app.use(express.favicon());
+app.use(express.logger('dev'));
+app.use(express.bodyParser());
+app.use(express.cookieParser('s3cr3t'));
+app.use(express.session({ store: new RedisStore, secret: 's3cr3t' }));
+app.use(express.methodOverride());
+app.use(app.router);
+app.use(express.static(path.join(__dirname, 'public')));
+app.locals.message = "";
 app.configure('development', function() {
   app.use(express.errorHandler());
 });
@@ -42,11 +40,44 @@ app.get('/', function(req, res) {
   });
 });
 
+app.get('/logout', function(req, res) {
+  req.session.destroy(function(){
+    res.redirect('/');
+  });
+});
+
 app.get('/login', function(req, res) {
   res.render('login', {
     heading: 'Sign In',
     lead: 'Use the login form if you are an existing user',
-    registrationSuccessful: false
+    registrationSuccessful: false,
+    userNotFound: false,
+    incorrectPassword: false
+  });
+});
+
+app.post('/login', function (req, res) {
+  var user = UserModel.findOne({ 'email': req.body.userEmail }, function (err, user) {
+    if (!user) {
+      res.render('login', {
+        heading: 'Sign In',
+        lead: 'Use the login form if you are an existing user',
+        registrationSuccessful: false,
+        userNotFound: true,
+        incorrectPassword: false
+      });
+    } else if (req.body.password !== user.password) {
+        res.render('login', {
+          heading: 'Sign In',
+          lead: 'Use the login form if you are an existing user',
+          registrationSuccessful: false,
+          userNotFound: false,
+          incorrectPassword: true
+        });
+    } else {
+      req.session.user = req.body.userEmail;
+      res.redirect('/');
+    }
   });
 });
 
@@ -62,7 +93,7 @@ app.post('/register', function(req, res) {
   // Query the database to see if email is available
   var user = UserModel.findOne({ 'email': req.body.userEmail }, function(err, user) {
     if (!err) {
-      if (user !== null) { // There's a user with a given email already
+      if (user) { // There's a user with a given email already
         res.render('register', { // Re-render the same page but with emailIsUnavalable set to true
           heading: 'Create Account',
           lead: 'Register with us to get your own personalized profile',
@@ -77,11 +108,7 @@ app.post('/register', function(req, res) {
   });
   user.save(function(err) {        // Save the model instance to database
     if (!err) {                    // If nothing went wrong save has been successful
-      res.render('login', {
-        heading: 'Sign In',
-        lead: 'Use the login form if you are an existing user',
-        registrationSuccessful: true
-      });
+      res.redirect('/login');
     }
   });
 });

@@ -1,20 +1,28 @@
 extends layout
 
 block content
-  form.form-horizontal
+  form#login.form-horizontal(method='post')
     legend Login
     .control-group
+      if userNotFound
+        .alert.alert-error.fade.in
+          strong Ooops.
+          |  No such user in the database.
+      if incorrectPassword
+              .alert.alert-error.fade.in
+                strong Sorry.
+                |  The password you have entered is incorrect.
       if registrationSuccessful
         .alert.alert-success.fade.in
           strong Congratulations!
           |  Registration has been successful.
-      label.control-label(for='inputEmail') Email
+      label.control-label(for='userEmail') Email
       .controls
-        input#inputEmail.input-large(type='text', placeholder='Email')
+        input#userEmail.input-large(name='userEmail', type='text', placeholder='Email')
     .control-group
-      label.control-label(for='inputPassword') Password
+      label.control-label(for='password') Password
       .controls
-        input#inputPassword(type='password', placeholder='Password')
+        input#password(name='password', type='password', placeholder='Password')
         span.help-block <a href="#">Forgot your password?</a>
     .control-group
       .controls

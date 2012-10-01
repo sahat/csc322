@@ -32,6 +32,34 @@ $('#registration').validate({
   }
 });
 
+$('#login').validate({
+  rules: {
+    userEmail: { required: true, email: true },
+    password: { required: true }
+  },
+  messages: {
+    userEmail: {
+      required: "Enter your email address",
+      email: "Enter valid email address"
+    },
+    password: {
+      required: "Enter your password",
+    }
+  },
+  errorClass: "help-inline",
+  errorElement: "span",
+  highlight: function (element, errorClass, validClass) {
+    $(element)
+      .parents('.control-group')
+      .addClass('error');
+  },
+  unhighlight: function (element, errorClass, validClass) {
+    $(element)
+      .parents('.control-group')
+      .removeClass('error');
+  }
+});
+
 /*
 var socket = io.connect('http://localhost');
 // fire an event to the server

@@ -34,12 +34,21 @@ body
             li
               a(href='./customize.html') Customize
           ul.nav.pull-right
-            li
-              a(href='/login') Sign In
-            li
-            li
-              a(href='/register') Create Account
-            li
+            if (!message)
+              li
+                a(href='/login') Sign In
+              li
+              li
+                a(href='/register') Create Account
+              li
+            else
+              li
+                a(href='#')
+                  = message
+              li
+              li
+                a(href='/logout') Sign Out
+              li
 
   header#overview.jumbotron.subhead
     .container
