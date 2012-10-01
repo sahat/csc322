@@ -4,18 +4,8 @@ block content
   form#login.form-horizontal(method='post')
     legend Login
     .control-group
-      if userNotFound
-        .alert.alert-error.fade.in
-          strong Ooops.
-          |  No such user in the database.
-      if incorrectPassword
-              .alert.alert-error.fade.in
-                strong Sorry.
-                |  The password you have entered is incorrect.
-      if registrationSuccessful
-        .alert.alert-success.fade.in
-          strong Congratulations!
-          |  Registration has been successful.
+      if (message)
+        != message
       label.control-label(for='userEmail') Email
       .controls
         input#userEmail.input-large(name='userEmail', type='text', placeholder='Email')

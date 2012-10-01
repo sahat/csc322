@@ -5,7 +5,7 @@ var mongoose = require('mongoose');
 //var bcrypt = require('bcrypt')
 var RedisStore = require('connect-redis')(express);
 //var socket = require('socket.io')
-//var moment = require('moment');
+var moment = require('moment');
 
 var db = mongoose.connect('mongodb://localhost/test');
 
@@ -26,7 +26,7 @@ app.use(express.favicon());
 app.use(express.logger('dev'));
 app.use(express.bodyParser());
 app.use(express.cookieParser('s3cr3t'));
-app.use(express.session({ store: new RedisStore, secret: 's3cr3t' }));
+app.use(express.session({ secret: 's3cr3t' }));
 app.use(express.methodOverride());
 app.use(app.router);
 app.use(express.static(path.join(__dirname, 'public')));
@@ -56,15 +56,17 @@ app.get('/login', function(req, res) {
     registrationSuccessful: false,
     userNotFound: false,
     incorrectPassword: false,
-    user: req.session.user
+    user: req.session.user,
+    message: req.session.message
   });
 });
 
 app.post('/login', function (req, res) {
   var user = UserModel.findOne({ 'email': req.body.userEmail }, function (err, user) {
     if (!user) {
-      console.log('user not found');
-      res.redirect('/');
+      req.session.message = '<div class="alert alert-error fade in">' +
+        '<strong>Oops. </strong>' + 'No Such user in the database.' + '</div>';
+      res.redirect('/login');
     } else {
         console.log(user.password);
         console.log(req.body.password);
@@ -72,6 +74,8 @@ app.post('/login', function (req, res) {
           req.session.user = user;
           res.redirect('/');
         }	else {
+            req.session.message = '<div class="alert alert-error fade in">' +
+            '<strong>Sorry. </strong>' + 'The password is incorrect.' + '</div>';
             console.log('invalid password')
             res.redirect('/login');
           }
@@ -83,7 +87,7 @@ app.get('/register', function(req, res) {
   res.render('register', {
     heading: 'Create Account',
     lead: 'Register with us to get your own personalized profile',
-    emailIsUnavailable: false
+    message: req.session.message
   });
 });
 
@@ -92,10 +96,12 @@ app.post('/register', function(req, res) {
   var user = UserModel.findOne({ 'email': req.body.userEmail }, function(err, user) {
     if (!err) {
       if (user) { // There's a user with a given email already
+        req.session.message = '<div class="alert alert-error fade in">' +
+          '<strong>Oh snap. </strong>' + 'Email address is not available.' + '</div>';
         res.render('register', { // Re-render the same page but with emailIsUnavalable set to true
           heading: 'Create Account',
           lead: 'Register with us to get your own personalized profile',
-          emailIsUnavailable: true // Found a record, email is in use, re-render the page with error
+          message: req.session.message
         });
       }
     }
@@ -105,7 +111,10 @@ app.post('/register', function(req, res) {
     password: req.body.password    // Set password field to the password input
   });
   user.save(function(err) {        // Save the model instance to database
-    if (!err) {                    // If nothing went wrong save has been successful
+    if (!err) {
+      req.session.message = '<div class="alert alert-success fade in">' +
+        '<strong>Congratulations! </strong>' + 'Registration has been successful.' + '</div>';
+// If nothing went wrong save has been successful
       res.redirect('/login');
     }
   });

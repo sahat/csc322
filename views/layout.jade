@@ -1,3 +1,4 @@
+- user = typeof(user) != 'undefined' ? user : {}
 doctype 5
 html(lang='en')
 head
@@ -34,7 +35,7 @@ body
             li
               a(href='./customize.html') Customize
           ul.nav.pull-right
-            if (!user)
+            if (user)
               li
                 a(href='/login') Sign In
               li
