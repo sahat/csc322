@@ -2,9 +2,9 @@ var express = require('express');
 var path = require('path');
 var http = require('http');
 var mongoose = require('mongoose');
-//var bcrypt = require('bcrypt')
+var bcrypt = require('bcrypt')
 var RedisStore = require('connect-redis')(express);
-//var socket = require('socket.io')
+var socket = require('socket.io')
 var moment = require('moment');
 
 var db = mongoose.connect('mongodb://localhost/test');
@@ -30,7 +30,6 @@ app.use(express.session({ secret: 's3cr3t' }));
 app.use(express.methodOverride());
 app.use(app.router);
 app.use(express.static(path.join(__dirname, 'public')));
-app.locals.message = "";
 app.configure('development', function() {
   app.use(express.errorHandler());
 });
@@ -41,6 +40,29 @@ app.get('/', function(req, res) {
     lead: 'The leading next generation video games recommendation engine',
     user: req.session.user
   });
+});
+
+app.get('/users', function (req, res) {
+  if (req.session.user) {
+    res.redirect('/users/' + req.session.user.email);
+  } else {
+    res.redirect('/');
+  }
+});
+
+app.get('/users/:id', function (req, res) {
+  if (req.session.user) {
+    if (req.params.id !== req.session.user.email) {
+      res.redirect('/');
+    }
+    res.render('profile', {
+      heading: 'Profile',
+      lead: 'View purchase history, update account...'
+    });
+  } else {
+    res.redirect('/');
+  }
+
 });
 
 app.get('/logout', function(req, res) {
