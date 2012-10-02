@@ -3,12 +3,14 @@
   "version": "0.0.2",
   "private": true,
   "dependencies": {
-    "coffee-script": "1.3.3",
-    "express": "3.0.0rc5",
-    "mongoose": "3.1.2",
-    "mocha": "1.5.0",
-    "socket.io": "0.9.10",
-    "connect-redis": "1.4.4",
-    "jade": "*"
+    "bcrypt": ">= 0.5.x",
+    "express": ">= 3.0.0rc5",
+    "mongoose": ">= 3.1.2",
+    "socket.io": ">= 0.9.10",
+    "connect-redis": ">= 1.4.4",
+    "emailjs": ">= 0.3.x",
+    "moment": "*",
+    "jade": "*",
+    "jasmine-node": "*"
   }
 }

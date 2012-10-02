@@ -6,6 +6,7 @@ var bcrypt = require('bcrypt')
 var RedisStore = require('connect-redis')(express);
 var socket = require('socket.io')
 var moment = require('moment');
+// add jquery credit card validator
 
 var db = mongoose.connect('mongodb://localhost/test');
 
