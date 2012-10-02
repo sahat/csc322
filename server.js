@@ -3,7 +3,7 @@ var path = require('path');
 var http = require('http');
 var mongoose = require('mongoose');
 var bcrypt = require('bcrypt')
-var RedisStore = require('connect-redis')(express);
+//var RedisStore = require('connect-redis')(express);
 var socket = require('socket.io')
 var moment = require('moment');
 // add jquery credit card validator
@@ -11,14 +11,72 @@ var moment = require('moment');
 var db = mongoose.connect('mongodb://localhost/test');
 
 var UserSchema = new mongoose.Schema({
-  firstName: { type: String, required: true},
-  lastName: { type: String, required: true },
-  location: { type: String },
-  purchaseHistory: { type: Array },
-  ratedGames: { type: Array },
-  email: { type: String, required: true, index: { unique: true } },
-  password: { type: String, required: true }
+  firstName: {
+    type: String,
+    required: true
+  },
+  lastName: {
+    type: String,
+    required: true
+  },
+  location: {
+    type: String
+  },
+  purchaseHistory: {
+    type: Array
+  },
+  ratedGames: {
+    type: Array
+  },
+  email: {
+    type: String,
+    required: true,
+    index: {
+      unique: true
+    }
+  },
+  password: {
+    type: String,
+    required: true
+  }
 });
+
+// middleware that hashes a password before it is saved to DB
+UserSchema.pre('save', function(next) {
+  var user = this;
+
+  // only hash the password if it has been modified (or is new)
+  if (!user.isModified('password')) {
+    return next();
+  }
+
+  // generate a salt with 10 rounds
+  bcrypt.genSalt(10, function(err, salt) {
+    if (err) {
+      return next(err);
+    }
+
+    // hash the password along with our new salt
+    bcrypt.hash(user.password, salt, function(err, hash) {
+      if (err) {
+        return next(err);
+      }
+
+      // override the cleartext password with the hashed one
+      user.password = hash;
+      next();
+    });
+  });
+});
+
+UserSchema.methods.comparePassword = function(candidatePassword, callback) {
+  bcrypt.compare(candidatePassword, this.password, function(err, isMatch) {
+    if (err) {
+      return callback(err);
+    }
+    callback(null, isMatch);
+  });
+};
 
 var UserModel = mongoose.model('User', UserSchema);
 
@@ -40,7 +98,7 @@ app.configure('development', function() {
   app.use(express.errorHandler());
 });
 
-
+// Routes start here
 
 app.get('/', function(req, res) {
   res.render('index', {
@@ -105,6 +163,7 @@ app.get('/login', function(req, res) {
 
 app.post('/login', function (req, res) {
   var user = UserModel.findOne({ 'email': req.body.userEmail }, function (err, user) {
+
     if (!user) {
       req.session.message = '<div class="alert alert-error fade in">' +
         '<strong>Oops. </strong>' + 'No Such user in the database.' + '</div>';
@@ -112,6 +171,23 @@ app.post('/login', function (req, res) {
     } else {
         console.log(user.password);
         console.log(req.body.password);
+        user.comparePassword(req.body.password, function(err, isMatch) {
+          if (err) {
+            throw err;
+          }
+          if (isMatch) {
+            req.session.user = user;
+            res.redirect('/');
+          } else {
+            req.session.message = '<div class="alert alert-error fade in">' +
+              '<strong>Sorry. </strong>' + 'The password is incorrect.' + '</div>';
+            console.log('invalid password')
+            res.redirect('/login');
+          }
+
+          console.log(req.body.password, isMatch); // -> Password123: true
+        });
+      /*
         if (req.body.password == user.password) {
           req.session.user = user;
           res.redirect('/');
@@ -121,6 +197,7 @@ app.post('/login', function (req, res) {
             console.log('invalid password')
             res.redirect('/login');
           }
+          */
     }
   });
 });
@@ -129,6 +206,7 @@ app.get('/register', function(req, res) {
   if (req.session.user) {
     res.redirect('/');
   }
+
   res.render('register', {
     heading: 'Create Account',
     lead: 'Register with us to get your own personalized profile',
@@ -151,12 +229,14 @@ app.post('/register', function(req, res) {
       }
     }
   });
+
   user = new UserModel({           // Create a new Mongoose model instance
     firstName: req.body.firstName,
     lastName: req.body.lastName,
     email: req.body.userEmail,     // Set email field to the email input
     password: req.body.password    // Set password field to the password input
   });
+
   user.save(function(err) {        // Save the model instance to database
     if (!err) {
       req.session.message = '<div class="alert alert-success fade in">' +
