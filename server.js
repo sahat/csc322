@@ -159,7 +159,7 @@ app.post('/register', function(req, res) {
   user.save(function(err) {        // Save the model instance to database
     if (!err) {
       req.session.message = '<div class="alert alert-success fade in">' +
-        '<strong>Congratulations, ' + req.body.firstName + '!' + '</strong>' + 'Registration has been successful.' + '</div>';
+        '<strong>Congratulations, ' + req.body.firstName + '! ' + '</strong>' + 'Registration has been successful.' + '</div>';
 // If nothing went wrong save has been successful
       res.redirect('/login');
     }
