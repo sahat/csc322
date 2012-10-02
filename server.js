@@ -57,7 +57,8 @@ app.get('/users/:id', function (req, res) {
     }
     res.render('profile', {
       heading: 'Profile',
-      lead: 'View purchase history, update account...'
+      lead: 'View purchase history, update account...',
+      user: req.session.user
     });
   } else {
     res.redirect('/');
