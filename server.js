@@ -151,13 +151,15 @@ app.post('/register', function(req, res) {
     }
   });
   user = new UserModel({           // Create a new Mongoose model instance
+    firstName: req.body.firstName,
+    lastName: req.body.lastName,
     email: req.body.userEmail,     // Set email field to the email input
     password: req.body.password    // Set password field to the password input
   });
   user.save(function(err) {        // Save the model instance to database
     if (!err) {
       req.session.message = '<div class="alert alert-success fade in">' +
-        '<strong>Congratulations! </strong>' + 'Registration has been successful.' + '</div>';
+        '<strong>Congratulations, ' + req.body.firstName + '!' + '</strong>' + 'Registration has been successful.' + '</div>';
 // If nothing went wrong save has been successful
       res.redirect('/login');
     }
