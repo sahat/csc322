@@ -3,9 +3,18 @@ extends layout
 block content
   form#registration.form-horizontal(method='post')
     legend Don't have an account? Register!
+    if (message)
+      != message
     .control-group
-      if (message)
-        != message
+      label.control-label(for='firstName') First Name
+      .controls
+        input#firstName(name='firstName', type='text', placeholder='First Name')
+    .control-group
+          label.control-label(for='lastName') Last Name
+          .controls
+            input#lastName(name='lastName', type='text', placeholder='Last Name')
+    hr
+    .control-group
       label.control-label(for='userEmail') Email
       .controls
         input#userEmail(name='userEmail', type='text', placeholder='Email')

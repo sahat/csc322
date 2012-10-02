@@ -10,6 +10,11 @@ var moment = require('moment');
 var db = mongoose.connect('mongodb://localhost/test');
 
 var UserSchema = new mongoose.Schema({
+  firstName: { type: String, required: true},
+  lastName: { type: String, required: true },
+  location: { type: String },
+  purchaseHistory: { type: Array },
+  ratedGames: { type: Array },
   email: { type: String, required: true, index: { unique: true } },
   password: { type: String, required: true }
 });
@@ -34,10 +39,20 @@ app.configure('development', function() {
   app.use(express.errorHandler());
 });
 
+
+
 app.get('/', function(req, res) {
   res.render('index', {
     heading: 'N7 Online Store',
     lead: 'The leading next generation video games recommendation engine',
+    user: req.session.user
+  });
+});
+
+app.get('/games', function (req, res) {
+  res.render('games', {
+    heading: 'All Games',
+    lead: 'Game titles listed in alphabetical order',
     user: req.session.user
   });
 });

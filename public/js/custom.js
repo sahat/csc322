@@ -1,10 +1,18 @@
 $('#registration').validate({
   rules: {
+    firstName: { required: true },
+    lastName: { required: true},
     userEmail: { required: true, email: true },
     password: { required: true, minlength: 6 },
     confirm: { required: true, equalTo: '#password' }
   },
   messages: {
+    firstName: {
+      required: "Enter your first name"
+    },
+    lastName: {
+      required: "Enter your last name"
+    },
     userEmail: {
       required: "Enter your email address",
       email: "Enter valid email address"
@@ -76,3 +84,6 @@ socket.on('emailFocusOutResponse', function (data) {
   }
 });
 */
+$('#star').raty({
+  score: 4
+});
