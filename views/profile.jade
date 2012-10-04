@@ -22,24 +22,28 @@ block content
     .control-group
       label.control-label(for='password') Current Password
       .controls
-        input#password(name='password', type='password', placeholder='Password')
+        input#password(name='password', type='password', placeholder='Current Password')
     .control-group
       label.control-label(for='confirm') New Password
       .controls
-        input#confirm(name='confirm', type='password', placeholder='Confirm')
+        input#confirm(name='confirm', type='password', placeholder='New Password')
     .control-group
       label.control-label(for='password') Confirm Password
       .controls
-        input#password(name='password', type='password', placeholder='Password')
+        input#password(name='password', type='password', placeholder='Confirm Password')
     legend Billing Information
     .control-group
-      label.control-label(for='firstName') First Name
-      .controls
-        input#firstName(value=user.firstName, name='firstName', type='text', placeholder='First Name')
-    .control-group
-          label.control-label(for='lastName') Last Name
+          label.control-label(for='firstName') Card Type
           .controls
-            input#lastName(value=user.lastName, name='lastName', type='text', placeholder='Last Name')
+            input#firstName(value='', name='firstName', type='text', placeholder='Visa')
+    .control-group
+      label.control-label(for='firstName') Card Number
+      .controls
+        input#firstName(value='', name='firstName', type='text', placeholder='CC #')
+    .control-group
+          label.control-label(for='lastName') Expiration Date
+          .controls
+            input#lastName(value='', name='lastName', type='text', placeholder='Expiration')
     .control-group
       .controls
         button.btn.btn-large.btn-primary(type='submit') Update
