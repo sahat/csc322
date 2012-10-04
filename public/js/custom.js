@@ -51,7 +51,7 @@ $('#login').validate({
       email: "Enter valid email address"
     },
     password: {
-      required: "Enter your password",
+      required: "Enter your password"
     }
   },
   errorClass: "help-inline",
@@ -68,22 +68,16 @@ $('#login').validate({
   }
 });
 
-/*
-var socket = io.connect('http://localhost');
-// fire an event to the server
-$('#userEmail').focusout(function() {
-  var value = $('#userEmail').val();
-  socket.emit('emailFocusOut', { userEmail: value });
-});
-// listen for event from the server
-socket.on('emailFocusOutResponse', function (data) {
-  if (data === 0)
-    console.log("Email available")
-  else {
-    $('#userEmail').parents('.control-group').addClass('error');)
-  }
-});
-*/
 $('#star').raty({
   score: 4
 });
+
+// grawl notification and send email when purchased
+$('#b2').click(function() {
+  $(this).removeClass('btn-primary').text('Confirm Purchase').addClass('btn-success');
+  $(this).unbind('click');
+  $(this).click(function() {
+    $(this).removeClass('btn-success').html('<i class="icon-shopping-cart icon-white"></i> Purchased').addClass('btn-primary disabled');
+  });
+});
+

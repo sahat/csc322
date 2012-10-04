@@ -1,6 +1,45 @@
 extends layout
 
 block content
-  .row
-    .span4
-      h2= user.email
+  form#registration.form-horizontal(method='post')
+
+    if (message)
+      != message
+     legend Personal Information
+    .control-group
+      label.control-label(for='firstName') First Name
+      .controls
+        input#firstName(value=user.firstName, name='firstName', type='text', placeholder='First Name')
+    .control-group
+          label.control-label(for='lastName') Last Name
+          .controls
+            input#lastName(value=user.lastName, name='lastName', type='text', placeholder='Last Name')
+    legend Account Information
+    .control-group
+      label.control-label(for='userEmail') Email
+      .controls
+        input#userEmail(value=user.email, name='userEmail', type='text', placeholder='Email')
+    .control-group
+      label.control-label(for='password') Current Password
+      .controls
+        input#password(name='password', type='password', placeholder='Password')
+    .control-group
+      label.control-label(for='confirm') New Password
+      .controls
+        input#confirm(name='confirm', type='password', placeholder='Confirm')
+    .control-group
+      label.control-label(for='password') Confirm Password
+      .controls
+        input#password(name='password', type='password', placeholder='Password')
+    legend Billing Information
+    .control-group
+      label.control-label(for='firstName') First Name
+      .controls
+        input#firstName(value=user.firstName, name='firstName', type='text', placeholder='First Name')
+    .control-group
+          label.control-label(for='lastName') Last Name
+          .controls
+            input#lastName(value=user.lastName, name='lastName', type='text', placeholder='Last Name')
+    .control-group
+      .controls
+        button.btn.btn-large.btn-primary(type='submit') Update

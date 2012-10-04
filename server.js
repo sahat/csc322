@@ -4,7 +4,6 @@ var http = require('http');
 var mongoose = require('mongoose');
 var bcrypt = require('bcrypt')
 //var RedisStore = require('connect-redis')(express);
-var socket = require('socket.io')
 var moment = require('moment');
 // add jquery credit card validator
 
@@ -116,6 +115,19 @@ app.get('/games', function (req, res) {
   });
 });
 
+app.get('/games/:slug', function (req, res) {
+  res.render('detail', {
+    heading: 'Borderlands 2',
+    lead: '2K Games',
+    user: req.session.user
+  });
+  /*
+  1. findOne using slug
+  2. pass game's data to games/detail.jade
+  3. render page
+   */
+});
+
 app.get('/users', function (req, res) {
   if (req.session.user) {
     res.redirect('/users/' + req.session.user.email);
@@ -129,10 +141,29 @@ app.get('/users/:id', function (req, res) {
     if (req.params.id !== req.session.user.email) {
       res.redirect('/');
     }
+
+    UserModel.findOne({ 'email': req.session.user.email }, function(err, user) {
+      if (!err) {
+        if (user) { // There's a user with a given email already
+          console.log(user.firstName);
+          console.log(user.lastName);
+          res.render('profile', {
+            heading: 'Profile',
+            lead: 'View purchase history, update account...',
+            user: req.session.user,
+            message: req.session.message
+          });
+        }
+      }
+    });
+
+
+
     res.render('profile', {
       heading: 'Profile',
       lead: 'View purchase history, update account...',
-      user: req.session.user
+      user: req.session.user,
+      message: req.session.message
     });
   } else {
     res.redirect('/');
@@ -251,19 +282,3 @@ var server = http.createServer(app).listen(app.get('port'), function() {
   console.log('Express server listening on port ' + app.get('port'));
 });
 
-/*
- var io = socket.listen(server);
- io.sockets.on('connection', function (socket) {
- socket.on('emailFocusOut', function (data) {
- var user = UserModel.findOne({ 'email': data.userEmail }, function(err, user) {
- if (!err) {
- if (user === null) {
- socket.emit('emailFocusOutResponse', 0);
- } else {
- socket.emit('emailFocusOutResponse', 1);
- }
- }
- });
- });
- });
- */

@@ -9,8 +9,9 @@
     "socket.io": ">= 0.9.10",
     "connect-redis": ">= 1.4.4",
     "emailjs": ">= 0.3.x",
+    "should": "1.2.0",
     "moment": "*",
     "jade": "*",
-    "jasmine-node": "*"
+    "mocha": "*"
   }
 }
