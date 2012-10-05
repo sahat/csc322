@@ -1,5 +1,3 @@
-// implement email, search, tel, url text fields HTML5 with client-side validation
-// autofocus html5 on first field
 var express = require('express');
 var path = require('path');
 var http = require('http');
@@ -7,14 +5,6 @@ var mongoose = require('mongoose');
 var bcrypt = require('bcrypt')
 var RedisStore = require('connect-redis')(express);
 var moment = require('moment');
-// add jquery credit card validator
-//var crypto = require('crypto'); // for gravatar hashing
-
-//var hash = crypto.createHash('md5').update('sakhat@gmail.com').digest('hex');
-
-
-//console.log(hash);
-var db = mongoose.connect('mongodb://localhost/test');
 
 /*
   __  __                         ____  ____
@@ -24,6 +14,14 @@ var db = mongoose.connect('mongodb://localhost/test');
  |_|  |_|\___/|_| |_|\__, |\___/|____/|____/
                      |___/
  */
+
+// Establishes a connection with MongoDB database
+// localhost is db-host and test is db-name
+var db = mongoose.connect('mongodb://localhost/test');
+
+// In Mongoose everything is derived from Schema.
+// Here we create a schema called User with the following fields.
+// Each field requires a type and optional additional properties, e.g. unique field? required field?
 var User = new mongoose.Schema({
 
   firstName: {
@@ -75,6 +73,11 @@ var User = new mongoose.Schema({
 
 });
 
+// After we create a schema, the next step is to create a model based on that schema.
+// A model is a class with which we construct documents.
+// In this case, each document will be a user with properties and behaviors as declared in our schema.
+var User = mongoose.model('User', User);
+
 // middleware that hashes a password before it is saved to DB
 User.pre('save', function(next) {
   var user = this;
@@ -112,7 +115,14 @@ User.methods.comparePassword = function(candidatePassword, callback) {
   });
 };
 
-var User = mongoose.model('User', User);
+
+/*
+  ______     ______     ______   ______   __     __   __     ______     ______
+ /\  ___\   /\  ___\   /\__  _\ /\__  _\ /\ \   /\ "-.\ \   /\  ___\   /\  ___\
+ \ \___  \  \ \  __\   \/_/\ \/ \/_/\ \/ \ \ \  \ \ \-.  \  \ \ \__ \  \ \___  \
+ \/\_____\  \ \_____\    \ \_\    \ \_\  \ \_\  \ \_\\"\_\  \ \_____\  \/\_____\
+ \/_____/   \/_____/     \/_/     \/_/   \/_/   \/_/ \/_/   \/_____/   \/_____/
+ */
 
 var app = express();
 
@@ -132,7 +142,13 @@ app.configure('development', function() {
   app.use(express.errorHandler());
 });
 
-// Routes and Controllers
+/*
+  ____             _
+ |  _ \ ___  _   _| |_ ___  ___
+ | |_) / _ \| | | | __/ _ \/ __|
+ |  _ < (_) | |_| | ||  __/\__ \
+ |_| \_\___/ \__,_|\__\___||___/
+ */
 
 app.get('/', function(req, res) {
   res.render('index', {
@@ -386,4 +402,6 @@ app.post('/register', function(req, res) {
 var server = http.createServer(app).listen(app.get('port'), function() {
   console.log('Express server listening on port ' + app.get('port'));
 });
+
+// TODO: Implement email, search, tel, url text fields HTML5 with client-side validation autofocus html5 on first field
 
