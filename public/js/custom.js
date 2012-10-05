@@ -117,11 +117,9 @@ $('#login').validate({
   }
 });
 
-$('#star').raty({
-  score: 4
-});
-$('#myModal').modal();
+
 // grawl notification and send email when purchased
+
 $('#b2').click(function() {
   var game = this;
   $(game).removeClass('btn-primary').text('Confirm Purchase').addClass('btn-success');
@@ -131,14 +129,12 @@ $('#b2').click(function() {
       type: 'POST',
       url: '/buy',
       data: {
-        title: 'Borderlands 2'
+        title: $(game).attr('id')
       }
     }).done(function() {
         $(game).attr('disabled', 'true');
         $(game).removeClass('btn-success').html('<i class="icon-shopping-cart icon-white"></i> Purchased').addClass('btn-primary disabled');
-        window.location.href = '/';
       });
 
   });
 });
-

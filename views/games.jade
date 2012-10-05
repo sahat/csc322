@@ -1,6 +1,7 @@
 extends layout
 
 block content
+
   table.table
       thead
           tr
@@ -12,16 +13,10 @@ block content
             td
               a(href='#')
                 strong Borderlands 2
-              button#b2.btn.btn-primary.btn-mini
+              button.btn.btn-primary.btn-mini
                 i.icon-shopping-cart.icon-white
                 |  $59.99
-              div
-                i.icon-plus
-                i.icon-plus
-                i.icon-plus
-                i.icon-plus
-                i.icon-plus
-                span.badge.badge-inverse 8.51
+              div(id=gameid)
               div
                 small.muted Release Date: Sep. 18, 2012 | Genre: Sci-Fi First-Person Shooter
               p Borderlands 2 continues in its predecessors footsteps with four new characters, tons of new quests, and lots of shooting and looting.
@@ -35,6 +30,7 @@ block content
               button.btn.btn-primary.btn-mini.disabled
                 i.icon-shopping-cart.icon-white
                 |  Purchased
+
               div
                 i.icon-star
                 i.icon-star
@@ -57,7 +53,7 @@ block content
               button.btn.btn-primary.btn-mini
                 i.icon-shopping-cart.icon-white
                 |  $53.99
-              #star
+              #star2
               div
                 small.muted Release Date: Aug 28, 2012 | Genre: Fantasy Online Role-Playing
               p Guild Wars 2 is a fantasy massively multiplayer online role-playing game and is the sequel to the episodic Guild Wars game series.
@@ -78,3 +74,7 @@ block content
                   small.muted Release Date: Oct 27, 2009 | Genre: MOBA
                 p League of Legends combines elements of role-playing and strategy genres with addictive battle action that brings accessible, replayable and competitive gameplay into a whimsical universe that deepens with the player's commitment.
 
+  script(type='text/javascript')
+    $('##{gameid}').raty({
+      score: 1
+    });

@@ -80,6 +80,7 @@ var User = new mongoose.Schema({
   }
 
 });
+//  comments: [{ user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, body: String, date: Date }],
 
 // Express middleware that hashes a password before it is saved to database
 // The following function is invoked right when we called MongoDB save() method
@@ -180,7 +181,8 @@ app.get('/games', function (req, res) {
   res.render('games', {
     heading: 'All Games',
     lead: 'Game titles listed in alphabetical order',
-    user: req.session.user
+    user: req.session.user,
+    gameid: 'b2'
   });
 });
 
@@ -232,29 +234,26 @@ app.post('/users/:id', function (req, res) {
   console.log(req.body.cv2);
   console.log();
   User.update({'email': req.session.user.email }, {
-      firstName: req.body.firstName,
-      lastName: req.body.lastName,
-      email: req.body.userEmail,
-      password: password,
-      ccnumber: req.body.ccnumber,
-      expiration_date: req.body.expiration_date,
-      cv2: req.body.cv2
-  }, function () {
+    firstName: req.body.firstName,
+    lastName: req.body.lastName,
+    email: req.body.userEmail,
+    password: password,
+    ccnumber: req.body.ccnumber,
+    expiration_date: req.body.expiration_date,
+    cv2: req.body.cv2
+    }, function () {
+        User.findOne({ 'email': req.session.user.email }, function (err, user) {
+          if (err) return;
 
-    User.findOne({ 'email': req.session.user.email }, function (err, user) {
-      if (err) {
-        return;
-      }
-
-      req.session.user = user;
+          req.session.user = user;
 
 
-      res.render('profile', {
-        heading: 'Profile',
-        lead: 'View purchase history, update account...',
-        user: req.session.user,
-        message: req.session.message
-      });
+          res.render('profile', {
+            heading: 'Profile',
+            lead: 'View purchase history, update account...',
+            user: req.session.user,
+            message: req.session.message
+          });
     });
   });
 /*
