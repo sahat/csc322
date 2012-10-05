@@ -1,3 +1,11 @@
+/*
+  ___                            _
+ |_ _|_ __ ___  _ __   ___  _ __| |_
+  | || '_ ` _ \| '_ \ / _ \| '__| __|
+  | || | | | | | |_) | (_) | |  | |_
+ |___|_| |_| |_| .__/ \___/|_|   \__|
+               |_|
+ */
 var express = require('express');
 var path = require('path');
 var http = require('http');
@@ -73,12 +81,11 @@ var User = new mongoose.Schema({
 
 });
 
-// After we create a schema, the next step is to create a model based on that schema.
-// A model is a class with which we construct documents.
-// In this case, each document will be a user with properties and behaviors as declared in our schema.
-var User = mongoose.model('User', User);
-
-// middleware that hashes a password before it is saved to DB
+// Express middleware that hashes a password before it is saved to database
+// The following function is invoked right when we called MongoDB save() method
+// We can define middleware once and it will work everywhere that we use save() to save data to MongoDB
+// The purpose of this middleware is to hash the password before saving to database, because
+// we don't want to save password as plain text for security reasons
 User.pre('save', function(next) {
   var user = this;
 
@@ -106,6 +113,7 @@ User.pre('save', function(next) {
   });
 });
 
+// This middleware compares user's typed-in password during login with the password stored in database
 User.methods.comparePassword = function(candidatePassword, callback) {
   bcrypt.compare(candidatePassword, this.password, function(err, isMatch) {
     if (err) {
@@ -115,13 +123,18 @@ User.methods.comparePassword = function(candidatePassword, callback) {
   });
 };
 
+// After we create a schema, the next step is to create a model based on that schema.
+// A model is a class with which we construct documents.
+// In this case, each document will be a user with properties and behaviors as declared in our schema.
+var User = mongoose.model('User', User);
 
 /*
-  ______     ______     ______   ______   __     __   __     ______     ______
- /\  ___\   /\  ___\   /\__  _\ /\__  _\ /\ \   /\ "-.\ \   /\  ___\   /\  ___\
- \ \___  \  \ \  __\   \/_/\ \/ \/_/\ \/ \ \ \  \ \ \-.  \  \ \ \__ \  \ \___  \
- \/\_____\  \ \_____\    \ \_\    \ \_\  \ \_\  \ \_\\"\_\  \ \_____\  \/\_____\
- \/_____/   \/_____/     \/_/     \/_/   \/_/   \/_/ \/_/   \/_____/   \/_____/
+  ____       _   _   _
+ / ___|  ___| |_| |_(_)_ __   __ _ ___
+ \___ \ / _ \ __| __| | '_ \ / _` / __|
+  ___) |  __/ |_| |_| | | | | (_| \__ \
+ |____/ \___|\__|\__|_|_| |_|\__, |___/
+                             |___/
  */
 
 var app = express();
@@ -134,7 +147,7 @@ app.use(express.favicon());
 app.use(express.logger('dev'));
 app.use(express.bodyParser());
 app.use(express.cookieParser('s3cr3t'));
-app.use(express.session({ secret: 's3cr3t' }));
+app.use(express.session({ store: new RedisStore, secret: 's3cr3t' }));
 app.use(express.methodOverride());
 app.use(app.router);
 app.use(express.static(path.join(__dirname, 'public')));
@@ -209,7 +222,7 @@ app.post('/users/:id', function (req, res) {
       //lastName: req.body.lastName,
       //email: req.body.email,
       //password: req.body.password,
-      ccnumber: req.body.expiration_date,
+      ccnumber: req.body.ccnumber,
       expiration_date: req.body.expiration_date,
       cv2: req.body.cv2
   }, function () {
