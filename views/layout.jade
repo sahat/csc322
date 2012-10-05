@@ -42,7 +42,9 @@ body
             else
               li
                 a(href='/users/' + user.email)
-                  = user.email
+                  = user.firstName
+                  |&nbsp;
+                  = user.lastName
               li
                 a(href='/logout') Sign Out
 

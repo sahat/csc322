@@ -71,13 +71,25 @@ $('#login').validate({
 $('#star').raty({
   score: 4
 });
-
+$('#myModal').modal();
 // grawl notification and send email when purchased
 $('#b2').click(function() {
-  $(this).removeClass('btn-primary').text('Confirm Purchase').addClass('btn-success');
-  $(this).unbind('click');
-  $(this).click(function() {
-    $(this).removeClass('btn-success').html('<i class="icon-shopping-cart icon-white"></i> Purchased').addClass('btn-primary disabled');
+  var game = this;
+  $(game).removeClass('btn-primary').text('Confirm Purchase').addClass('btn-success');
+  $(game).unbind('click');
+  $(game).click(function() {
+    $.ajax({
+      type: 'POST',
+      url: '/buy',
+      data: {
+        title: 'Borderlands 2'
+      }
+    }).done(function() {
+        $(game).attr('disabled', 'true');
+        $(game).removeClass('btn-success').html('<i class="icon-shopping-cart icon-white"></i> Purchased').addClass('btn-primary disabled');
+        window.location.href = '/';
+      });
+
   });
 });
 

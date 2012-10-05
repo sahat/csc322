@@ -4,7 +4,8 @@ block content
   form#registration.form-horizontal(method='post')
 
     if (message)
-      != message
+      p
+        != message
      legend Personal Information
     .control-group
       label.control-label(for='firstName') First Name
@@ -33,17 +34,29 @@ block content
         input#password(name='password', type='password', placeholder='Confirm Password')
     legend Billing Information
     .control-group
-          label.control-label(for='firstName') Card Type
+          label.control-label(for='firstName') Supported Card Type
           .controls
-            input#firstName(value='', name='firstName', type='text', placeholder='Visa')
+            img(src='/img/american-express-curved-32px.png')
+            | &nbsp;
+            img(src='/img/visa-curved-32px.png')
+            | &nbsp;
+            img(src='/img/mastercard-curved-32px.png')
+            | &nbsp;
+            img(src='/img/discover-curved-32px.png')
+
     .control-group
-      label.control-label(for='firstName') Card Number
+      label.control-label(for='firstName') Credit Card Number
       .controls
-        input#firstName(value='', name='firstName', type='text', placeholder='CC #')
+        input#firstName(value='', name='firstName', type='text', placeholder='#')
     .control-group
-          label.control-label(for='lastName') Expiration Date
-          .controls
-            input#lastName(value='', name='lastName', type='text', placeholder='Expiration')
+      label.control-label(for='lastName') Expiration Date
+      .controls
+        input#lastName(value='', name='lastName', type='text', placeholder='mm/yy')
+    .control-group
+      label.control-label(for='lastName') CV2
+      .controls
+        input#lastName(value='', name='lastName', type='text', placeholder='3 or 4 digit security code')
+
     .control-group
       .controls
         button.btn.btn-large.btn-primary(type='submit') Update

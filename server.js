@@ -1,3 +1,5 @@
+// implement email, search, tel, url text fields HTML5 with client-side validation
+// autofocus html5 on first field
 var express = require('express');
 var path = require('path');
 var http = require('http');
@@ -6,7 +8,12 @@ var bcrypt = require('bcrypt')
 //var RedisStore = require('connect-redis')(express);
 var moment = require('moment');
 // add jquery credit card validator
+//var crypto = require('crypto'); // for gravatar hashing
 
+//var hash = crypto.createHash('md5').update('sakhat@gmail.com').digest('hex');
+
+
+//console.log(hash);
 var db = mongoose.connect('mongodb://localhost/test');
 
 var UserSchema = new mongoose.Schema({
@@ -105,6 +112,11 @@ app.get('/', function(req, res) {
     lead: 'The leading next generation video games recommendation engine',
     user: req.session.user
   });
+});
+
+app.post('/buy', function (req, res) {
+  console.log(req.body.title);
+  return res.redirect('/');
 });
 
 app.get('/games', function (req, res) {
