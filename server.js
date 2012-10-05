@@ -217,11 +217,25 @@ app.post('/users/:id', function (req, res) {
   //
   // I broke apart parameters over multiple lines because we are updating many fields and it wouldn't
   // fit in one line
+
+
+  // So we don't overwrite the existing password with a blank password if a user leaves password fields blank
+  if (!req.body.newpassword) {
+    var password = req.session.user.password;
+  }
+  console.log("Newer password" + password);
+  console.log(req.body.firstName);
+  console.log(req.body.lastName);
+  console.log(req.body.userEmail);
+  console.log(req.body.ccnumber);
+  console.log(req.body.expiration_date);
+  console.log(req.body.cv2);
+  console.log();
   User.update({'email': req.session.user.email }, {
-      //firstName: req.body.firstName,
-      //lastName: req.body.lastName,
-      //email: req.body.email,
-      //password: req.body.password,
+      firstName: req.body.firstName,
+      lastName: req.body.lastName,
+      email: req.body.userEmail,
+      password: password,
       ccnumber: req.body.ccnumber,
       expiration_date: req.body.expiration_date,
       cv2: req.body.cv2
