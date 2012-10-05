@@ -16,24 +16,31 @@ var moment = require('moment');
 //console.log(hash);
 var db = mongoose.connect('mongodb://localhost/test');
 
-var UserSchema = new mongoose.Schema({
+// Mongoose database schema for users
+var User = new mongoose.Schema({
+
   firstName: {
     type: String,
     required: true
   },
+
   lastName: {
     type: String,
     required: true
   },
+
   location: {
     type: String
   },
+
   purchaseHistory: {
     type: Array
   },
+
   ratedGames: {
     type: Array
   },
+
   email: {
     type: String,
     required: true,
@@ -41,14 +48,28 @@ var UserSchema = new mongoose.Schema({
       unique: true
     }
   },
+
   password: {
     type: String,
     required: true
+  },
+
+  ccnumber: {
+    type: Number
+  },
+
+  cv2: {
+    type: Number
+  },
+
+  expiration_date: {
+    type: String
   }
+
 });
 
 // middleware that hashes a password before it is saved to DB
-UserSchema.pre('save', function(next) {
+User.pre('save', function(next) {
   var user = this;
 
   // only hash the password if it has been modified (or is new)
@@ -75,7 +96,7 @@ UserSchema.pre('save', function(next) {
   });
 });
 
-UserSchema.methods.comparePassword = function(candidatePassword, callback) {
+User.methods.comparePassword = function(candidatePassword, callback) {
   bcrypt.compare(candidatePassword, this.password, function(err, isMatch) {
     if (err) {
       return callback(err);
@@ -84,7 +105,7 @@ UserSchema.methods.comparePassword = function(candidatePassword, callback) {
   });
 };
 
-var UserModel = mongoose.model('User', UserSchema);
+var User = mongoose.model('User', User);
 
 var app = express();
 
@@ -104,7 +125,7 @@ app.configure('development', function() {
   app.use(express.errorHandler());
 });
 
-// Routes start here
+// Routes and Controllers
 
 app.get('/', function(req, res) {
   res.render('index', {
@@ -147,6 +168,54 @@ app.get('/users', function (req, res) {
     res.redirect('/');
   }
 });
+app.post('/users/:id', function (req, res) {
+
+  // Updates an instance of a user model in the database
+  // First parameter is finding the user we want to update, in this case find based on user's email
+  // Second parameter with $set specifies which fields we want to update
+  // Last parameter is a callback function that will execute once MongoDB updates specified fields
+  // Again we use a callback function because we don't know how long the update process will take
+  // and is therefore has to be done asynchronously so we don't block the main execution thread
+  User.update({ 'email': req.session.user.email }, {
+    $set: {
+      firstName: req.body.firstName,
+      lastName: req.body.lastName,
+      email: req.body.email,
+      password: req.body.password,
+      ccnumber: req.body.ccnumber,
+      expiration_date: req.body.expiration_date,
+      cv2: req.body.cv2
+
+    }}, function () {
+    console.log('User model has been updated');
+  });
+/*
+  var user = User.findOne({ 'email': req.session.user.email }, function (err, user) {
+    if (err) {
+      return;
+    }
+
+    if (user) {
+      user.update({           // Create a new Mongoose model instance
+        user.firstName: req.body.firstName,
+        lastName: req.body.lastName,
+        email: req.body.userEmail,     // Set email field to the email input
+        password: req.body.password,   // Set password field to the password input
+        ccnumber: req.body.ccnumber,
+        cv2: req.body.cv2,
+        expiration_date: req.body.expiration_date
+      });
+      */
+      /*
+      user.save(function(err) {        // Save the model instance to database
+        if (!err) {
+          res.redirect('/users/' + req.session.user.email);
+        }
+      });
+      */
+   // }
+  //});
+});
 
 app.get('/users/:id', function (req, res) {
   if (req.session.user) {
@@ -154,7 +223,7 @@ app.get('/users/:id', function (req, res) {
       res.redirect('/');
     }
 
-    UserModel.findOne({ 'email': req.session.user.email }, function(err, user) {
+    User.findOne({ 'email': req.session.user.email }, function(err, user) {
       if (!err) {
         if (user) { // There's a user with a given email already
           console.log(user.firstName);
@@ -205,7 +274,7 @@ app.get('/login', function(req, res) {
 });
 
 app.post('/login', function (req, res) {
-  var user = UserModel.findOne({ 'email': req.body.userEmail }, function (err, user) {
+  var user = User.findOne({ 'email': req.body.userEmail }, function (err, user) {
 
     if (!user) {
       req.session.message = '<div class="alert alert-error fade in">' +
@@ -259,7 +328,7 @@ app.get('/register', function(req, res) {
 
 app.post('/register', function(req, res) {
   // Query the database to see if email is available
-  var user = UserModel.findOne({ 'email': req.body.userEmail }, function(err, user) {
+  var user = User.findOne({ 'email': req.body.userEmail }, function(err, user) {
     if (!err) {
       if (user) { // There's a user with a given email already
         req.session.message = '<div class="alert alert-error fade in">' +
@@ -273,7 +342,7 @@ app.post('/register', function(req, res) {
     }
   });
 
-  user = new UserModel({           // Create a new Mongoose model instance
+  user = new User({           // Create a new Mongoose model instance
     firstName: req.body.firstName,
     lastName: req.body.lastName,
     email: req.body.userEmail,     // Set email field to the email input

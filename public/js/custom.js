@@ -1,10 +1,39 @@
 $('#registration').validate({
   rules: {
-    firstName: { required: true },
-    lastName: { required: true},
-    userEmail: { required: true, email: true },
-    password: { required: true, minlength: 6 },
-    confirm: { required: true, equalTo: '#password' }
+    firstName: {
+      required: true
+    },
+    lastName: {
+      required: true
+    },
+    userEmail: {
+      required: true,
+      email: true
+    },
+    password: {
+      required: true,
+      minlength: 6
+    },
+    confirm: {
+      required: true,
+      equalTo: '#password'
+    },
+    newpassword: {
+      minlength: 6
+    },
+    newconfirm: {
+      equalTo: '#newpassword'
+    },
+    ccnumber: {
+      creditcard: true
+    },
+    cv2: {
+      maxlength: 4,
+      digits: true
+    },
+    expiration_date: {
+      maxlength: 5
+    }
   },
   messages: {
     firstName: {
@@ -24,7 +53,27 @@ $('#registration').validate({
     confirm: {
       required: "Enter confirm password",
       equalTo: "Password and Confirm Password must match"
+    },
+    newpassword: {
+      minlength: "Password must be minimum 6 characters"
+    },
+    newconfirm: {
+      equalTo: "Password and Confirm Password must match"
+    },
+    ccnumber: {
+      required: "Enter a credit card number",
+      creditcard: "Enter a valid credit card number"
+    },
+    cv2: {
+      required: "Enter a CV2 number",
+      maxlength: "Cannot be greater than 4 digits",
+      digits: "Enter a valid CV2 number"
+    },
+    expiration_date: {
+      required: "Enter an expiration date (mm/yy)",
+      maxlength: "Cannot be greater than 5 character"
     }
+
   },
   errorClass: "help-inline",
   errorElement: "span",
