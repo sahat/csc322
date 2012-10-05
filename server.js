@@ -5,7 +5,7 @@ var path = require('path');
 var http = require('http');
 var mongoose = require('mongoose');
 var bcrypt = require('bcrypt')
-//var RedisStore = require('connect-redis')(express);
+var RedisStore = require('connect-redis')(express);
 var moment = require('moment');
 // add jquery credit card validator
 //var crypto = require('crypto'); // for gravatar hashing
@@ -16,7 +16,14 @@ var moment = require('moment');
 //console.log(hash);
 var db = mongoose.connect('mongodb://localhost/test');
 
-// Mongoose database schema for users
+/*
+  __  __                         ____  ____
+ |  \/  | ___  _ __   __ _  ___ |  _ \| __ )
+ | |\/| |/ _ \| '_ \ / _` |/ _ \| | | |  _ \
+ | |  | | (_) | | | | (_| | (_) | |_| | |_) |
+ |_|  |_|\___/|_| |_|\__, |\___/|____/|____/
+                     |___/
+ */
 var User = new mongoose.Schema({
 
   firstName: {
@@ -55,11 +62,11 @@ var User = new mongoose.Schema({
   },
 
   ccnumber: {
-    type: Number
+    type: String
   },
 
   cv2: {
-    type: Number
+    type: String
   },
 
   expiration_date: {
@@ -182,22 +189,29 @@ app.post('/users/:id', function (req, res) {
   // I broke apart parameters over multiple lines because we are updating many fields and it wouldn't
   // fit in one line
   User.update({'email': req.session.user.email }, {
-    $set: {
-      firstName: req.body.firstName,
-      lastName: req.body.lastName,
-      email: req.body.email,
+      //firstName: req.body.firstName,
+      //lastName: req.body.lastName,
+      //email: req.body.email,
       //password: req.body.password,
-      ccnumber: req.body.ccnumber,
+      ccnumber: req.body.expiration_date,
       expiration_date: req.body.expiration_date,
       cv2: req.body.cv2
-    }
   }, function () {
-    console.log('User model has been updated');
-    res.render('profile', {
-      heading: 'Profile',
-      lead: 'View purchase history, update account...',
-      user: req.session.user,
-      message: req.session.message
+
+    User.findOne({ 'email': req.session.user.email }, function (err, user) {
+      if (err) {
+        return;
+      }
+
+      req.session.user = user;
+
+
+      res.render('profile', {
+        heading: 'Profile',
+        lead: 'View purchase history, update account...',
+        user: req.session.user,
+        message: req.session.message
+      });
     });
   });
 /*
@@ -237,8 +251,7 @@ app.get('/users/:id', function (req, res) {
     User.findOne({ 'email': req.session.user.email }, function(err, user) {
       if (!err) {
         if (user) { // There's a user with a given email already
-          console.log(user.firstName);
-          console.log(user.lastName);
+          console.log(user);
           res.render('profile', {
             heading: 'Profile',
             lead: 'View purchase history, update account...',

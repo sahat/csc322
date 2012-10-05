@@ -3,6 +3,8 @@ extends layout
 block content
   form#registration.form-horizontal(method='post')
 
+    h1
+      = user.cv2
     if (message)
       p
         != message
