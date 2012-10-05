@@ -168,26 +168,37 @@ app.get('/users', function (req, res) {
     res.redirect('/');
   }
 });
-app.post('/users/:id', function (req, res) {
 
+// :id refers to whatever user types after www.ourwebsite.com/users/<id>
+// in our case, id = user's email address
+app.post('/users/:id', function (req, res) {
   // Updates an instance of a user model in the database
   // First parameter is finding the user we want to update, in this case find based on user's email
   // Second parameter with $set specifies which fields we want to update
   // Last parameter is a callback function that will execute once MongoDB updates specified fields
   // Again we use a callback function because we don't know how long the update process will take
   // and is therefore has to be done asynchronously so we don't block the main execution thread
-  User.update({ 'email': req.session.user.email }, {
+  //
+  // I broke apart parameters over multiple lines because we are updating many fields and it wouldn't
+  // fit in one line
+  User.update({'email': req.session.user.email }, {
     $set: {
       firstName: req.body.firstName,
       lastName: req.body.lastName,
       email: req.body.email,
-      password: req.body.password,
+      //password: req.body.password,
       ccnumber: req.body.ccnumber,
       expiration_date: req.body.expiration_date,
       cv2: req.body.cv2
-
-    }}, function () {
+    }
+  }, function () {
     console.log('User model has been updated');
+    res.render('profile', {
+      heading: 'Profile',
+      lead: 'View purchase history, update account...',
+      user: req.session.user,
+      message: req.session.message
+    });
   });
 /*
   var user = User.findOne({ 'email': req.session.user.email }, function (err, user) {
