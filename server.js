@@ -80,6 +80,44 @@ var User = new mongoose.Schema({
   }
 
 });
+
+// Here we create a schema called Game with the following fields.
+var Game = new mongoose.Schema({
+
+  slug: {
+    type: String
+  },
+
+  title: {
+    type: String
+  },
+
+  releaseDate: {
+    type: String
+  },
+
+  // change to array, use genre as 'tags', e.g. ['action', 'rpg'] instead of Action RPG
+  genre: {
+    type: String
+  },
+
+  rating: {
+    type: Number
+  },
+
+  summary: {
+    type: String
+  },
+
+  recommendedGames: {
+    type: Array
+  },
+
+  price: {
+    type: String
+  }
+
+});
 //  comments: [{ user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, body: String, date: Date }],
 
 // Express middleware that hashes a password before it is saved to database
@@ -127,7 +165,9 @@ User.methods.comparePassword = function(candidatePassword, callback) {
 // After we create a schema, the next step is to create a model based on that schema.
 // A model is a class with which we construct documents.
 // In this case, each document will be a user with properties and behaviors as declared in our schema.
+
 var User = mongoose.model('User', User);
+var Game = mongoose.model('Game', Game);
 
 /*
   ____       _   _   _
@@ -164,6 +204,45 @@ app.configure('development', function() {
  |_| \_\___/ \__,_|\__\___||___/
  */
 
+app.get('/addgame', function (req, res) {
+  var game = new Game({
+    slug: 'guildwars2',
+    title: 'Guild Wars 2',
+    releaseDate: 'Aug 28, 2012',
+    genre: 'Online Role-Playing',
+    summary: 'Guild Wars 2 is a fantasy massively multiplayer online role-playing game and is the sequel to the episodic Guild Wars game series.',
+    rating: 4.0,
+    price: '49.99'
+
+  });
+
+  game.save(function(err) {        // Save the model instance to database
+    if (!err) {
+      res.send('game saved!')
+    }
+  });
+  /*
+
+  var game = new Game({
+    slug: 'borderlands_2',
+    title: 'Borderlands 2',
+    releaseDate: 'Sep. 18, 2012',
+    genre: 'Sci-Fi First-Person Shooter',
+    summary: 'Borderlands 2 continues in its predecessors footsteps with four new characters, tons of new quests, and lots of shooting and looting.',
+    rating: 6.5,
+    price: '59.99'
+
+  });
+
+  game.save(function(err) {        // Save the model instance to database
+    if (!err) {
+      res.send('game saved!')
+    }
+  });
+
+  */
+});
+
 app.get('/', function(req, res) {
   res.render('index', {
     heading: 'N7 Online Store',
@@ -178,12 +257,32 @@ app.post('/buy', function (req, res) {
 });
 
 app.get('/games', function (req, res) {
-  res.render('games', {
-    heading: 'All Games',
-    lead: 'Game titles listed in alphabetical order',
-    user: req.session.user,
-    gameid: 'b2'
+
+  Game.find(function (err, games) {
+    if (!err) {
+      //console.log(games);
+      for (var i=0; i<3; i++) {
+        console.log(games[i]);
+      }
+
+      res.render('games', {
+        heading: 'All Games',
+        lead: 'Game titles listed in alphabetical order',
+        user: req.session.user,
+        gameid: 'b2',
+        games: games,
+        game: {
+          summary: 'www',
+          title: 'www',
+          price: 1231,
+          genre: 'www',
+          releaseDate: 'www'
+        }
+      });
+    }
   });
+
+
 });
 
 app.get('/games/:slug', function (req, res) {

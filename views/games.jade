@@ -7,19 +7,30 @@ block content
           tr
             th A-Z
         tbody
-          tr
-            td.span2
-              img.img-polaroid(src='/games/img/borderlands2.jpeg')
-            td
-              a(href='#')
-                strong Borderlands 2
-              button.btn.btn-primary.btn-mini
-                i.icon-shopping-cart.icon-white
-                |  $59.99
-              div(id=gameid)
-              div
-                small.muted Release Date: Sep. 18, 2012 | Genre: Sci-Fi First-Person Shooter
-              p Borderlands 2 continues in its predecessors footsteps with four new characters, tons of new quests, and lots of shooting and looting.
+          - for (var i = 0; i < 2; i++) {
+            tr
+              td.span2
+                img.img-polaroid(src='/games/img/borderlands2.jpeg')
+              td
+                a(href='#')
+                  strong
+                    =games[i].title
+                button.btn.btn-primary.btn-mini
+                  i.icon-shopping-cart.icon-white
+                  |  $59.99
+                div(id=games[i].slug)
+                div
+                  small.muted Release Date:
+                  =games[i].releaseDate
+                  |  | Genre:
+                  =games[i].genre
+                p
+                  =games[i].summary
+            script(type='text/javascript')
+                $('##{games[i].slug}').raty({
+                  score: #{games[i].rating}
+                });
+          - }
 
           tr
             td
@@ -33,30 +44,10 @@ block content
 
               div
                 i.icon-star
-                i.icon-star
-                i.icon-star
-                i.icon-star
-                i.icon-star
-                i.icon-star
-                i.icon-star
-                i.icon-star
-                i.icon-star
               div
                 small.muted Release Date: Nov 23, 2004 | Genre: Fantasy Online Role-Playing
               div Here is the online role-playing game you should play, no matter who you are.
-          tr
-            td
-              img.img-polaroid(src='/games/img/gw2.jpeg')
-            td
-              a(href='#')
-                strong Guild Wars 2
-              button.btn.btn-primary.btn-mini
-                i.icon-shopping-cart.icon-white
-                |  $53.99
-              #star2
-              div
-                small.muted Release Date: Aug 28, 2012 | Genre: Fantasy Online Role-Playing
-              p Guild Wars 2 is a fantasy massively multiplayer online role-playing game and is the sequel to the episodic Guild Wars game series.
+
             tr
               td
                 img.img-polaroid(src='/games/img/lol.jpeg')
@@ -74,7 +65,3 @@ block content
                   small.muted Release Date: Oct 27, 2009 | Genre: MOBA
                 p League of Legends combines elements of role-playing and strategy genres with addictive battle action that brings accessible, replayable and competitive gameplay into a whimsical universe that deepens with the player's commitment.
 
-  script(type='text/javascript')
-    $('##{gameid}').raty({
-      score: 1
-    });
