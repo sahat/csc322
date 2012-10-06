@@ -13,6 +13,53 @@ var mongoose = require('mongoose');
 var bcrypt = require('bcrypt')
 var RedisStore = require('connect-redis')(express);
 var moment = require('moment');
+var htmlparser = require('htmlparser');
+var sys = require('sys');
+
+
+/*
+var options = {
+  host: 'www.amazon.com',
+  port: 80,
+  path: '/Star-Wars-The-Old-Republic-Pc/dp/B001CWXAP2/ref=sr_1_1?ie=UTF8&qid=1349493845&sr=8-1&keywords=star+wars+the+old+republic'
+};
+
+var data = "";
+http.get(options, function(res) {
+  console.log("Got response: " + res.statusCode);
+
+  var data = "";
+
+  res.on("data", function(chunk) {
+    //console.log("BODY: " + chunk);
+    data += chunk;
+  });
+
+  res.on('end', function () {
+    Game.findOne({title: "Borderlands 2"}, function (err, game) {
+      if (err) return;
+
+      game = new Game({
+        title: "Awesome game",
+        genre: "RTS",
+        price: "12.22",
+        summary: "some random dsecription",
+        releaseDate: "11.22.55",
+        rating: 2.5,
+        description: data
+      });
+
+      game.save(function(err) {
+        if (err) return;
+        console.log('saved game into db');
+      })
+    });
+  })
+
+}).on('error', function(e) {
+    console.log("Got error: " + e.message);
+  });
+*/
 
 /*
   __  __                         ____  ____
@@ -106,6 +153,10 @@ var Game = new mongoose.Schema({
   },
 
   summary: {
+    type: String
+  },
+
+  description: {
     type: String
   },
 
@@ -282,6 +333,25 @@ app.get('/games', function (req, res) {
       });
     }
   });
+
+
+});
+
+app.get('/games/gw2', function (req, res) {
+  Game.findOne({title: 'Awesome game'}, function (err, game) {
+
+    if (err) return;
+
+
+    console.log(game.description);
+    res.render('gw2', {
+      heading: game.title,
+      lead: game.summary,
+      data: game.description
+    })
+
+
+  })
 
 
 });

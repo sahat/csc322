@@ -15,10 +15,10 @@ block content
                 a(href='#')
                   strong
                     =games[i].title
-                button.btn.btn-primary.btn-mini(id=games[i].slug, class=games[i].slug)
+                button.btn.btn-primary.btn-mini(id=games[i].slug)
                   i.icon-shopping-cart.icon-white
                   |  $59.99
-                div(class=games[i].slug)
+                div(id='raty_'+games[i].slug)
                 div
                   small.muted Release Date:&nbsp;
                     = games[i].releaseDate
@@ -28,12 +28,12 @@ block content
                   =games[i].summary
 
             script(type='text/javascript')
-              $('##{games[i].slug}').raty({
+              $('#raty_#{games[i].slug}').raty({
                 score: #{games[i].rating}
               });
 
-            script(type='text/javat')
-              $('##{games[i].slug}').click(function() {
+            script(type='text/javascript')
+              $('.#{games[i].slug}').click(function() {
                 var game = this;
                 $(game).removeClass('btn-primary').text('Confirm Purchase').addClass('btn-success');
                 $(game).unbind('click');
