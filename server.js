@@ -205,6 +205,7 @@ app.configure('development', function() {
  */
 
 app.get('/addgame', function (req, res) {
+
   var game = new Game({
     slug: 'guildwars2',
     title: 'Guild Wars 2',

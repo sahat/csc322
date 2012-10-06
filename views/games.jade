@@ -10,26 +10,47 @@ block content
           - for (var i = 0; i < 2; i++) {
             tr
               td.span2
-                img.img-polaroid(src='/games/img/borderlands2.jpeg')
+                img.img-polaroid(src='/games/img/#{games[i].slug}.jpeg')
               td
                 a(href='#')
                   strong
                     =games[i].title
-                button.btn.btn-primary.btn-mini
+                button.btn.btn-primary.btn-mini(id=games[i].slug, class=games[i].slug)
                   i.icon-shopping-cart.icon-white
                   |  $59.99
-                div(id=games[i].slug)
+                div(class=games[i].slug)
                 div
-                  small.muted Release Date:
-                  =games[i].releaseDate
-                  |  | Genre:
-                  =games[i].genre
+                  small.muted Release Date:&nbsp;
+                    = games[i].releaseDate
+                    |  | Genre::&nbsp;
+                    = games[i].genre
                 p
                   =games[i].summary
+
             script(type='text/javascript')
-                $('##{games[i].slug}').raty({
-                  score: #{games[i].rating}
+              $('##{games[i].slug}').raty({
+                score: #{games[i].rating}
+              });
+
+            script(type='text/javat')
+              $('##{games[i].slug}').click(function() {
+                var game = this;
+                $(game).removeClass('btn-primary').text('Confirm Purchase').addClass('btn-success');
+                $(game).unbind('click');
+                $(game).click(function() {
+                  $.ajax({
+                    type: 'POST',
+                    url: '/buy',
+                    data: {
+                      title: $(game).attr('id')
+                    }
+                  }).done(function() {
+                      $(game).attr('disabled', 'true');
+                      $(game).removeClass('btn-success').html('<i class="icon-shopping-cart icon-white"></i> Purchased').addClass('btn-primary disabled');
+                    });
+
                 });
+              });
           - }
 
           tr
