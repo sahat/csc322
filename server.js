@@ -1,11 +1,3 @@
-/*
-  ___                            _
- |_ _|_ __ ___  _ __   ___  _ __| |_
-  | || '_ ` _ \| '_ \ / _ \| '__| __|
-  | || | | | | | |_) | (_) | |  | |_
- |___|_| |_| |_| .__/ \___/|_|   \__|
-               |_|
- */
 var express = require('express');
 var path = require('path');
 var http = require('http');
@@ -13,53 +5,10 @@ var mongoose = require('mongoose');
 var bcrypt = require('bcrypt')
 var RedisStore = require('connect-redis')(express);
 var moment = require('moment');
-var htmlparser = require('htmlparser');
-var sys = require('sys');
+var nodeio = require('node.io');
+var jsdom = require('jsdom');
+var request = require('request');
 
-
-/*
-var options = {
-  host: 'www.amazon.com',
-  port: 80,
-  path: '/Star-Wars-The-Old-Republic-Pc/dp/B001CWXAP2/ref=sr_1_1?ie=UTF8&qid=1349493845&sr=8-1&keywords=star+wars+the+old+republic'
-};
-
-var data = "";
-http.get(options, function(res) {
-  console.log("Got response: " + res.statusCode);
-
-  var data = "";
-
-  res.on("data", function(chunk) {
-    //console.log("BODY: " + chunk);
-    data += chunk;
-  });
-
-  res.on('end', function () {
-    Game.findOne({title: "Borderlands 2"}, function (err, game) {
-      if (err) return;
-
-      game = new Game({
-        title: "Awesome game",
-        genre: "RTS",
-        price: "12.22",
-        summary: "some random dsecription",
-        releaseDate: "11.22.55",
-        rating: 2.5,
-        description: data
-      });
-
-      game.save(function(err) {
-        if (err) return;
-        console.log('saved game into db');
-      })
-    });
-  })
-
-}).on('error', function(e) {
-    console.log("Got error: " + e.message);
-  });
-*/
 
 /*
   __  __                         ____  ____
@@ -69,106 +18,108 @@ http.get(options, function(res) {
  |_|  |_|\___/|_| |_|\__, |\___/|____/|____/
                      |___/
  */
+{
+  // Establishes a connection with MongoDB database
+  // localhost is db-host and test is db-name
+  var db = mongoose.connect('mongodb://localhost/test');
 
-// Establishes a connection with MongoDB database
-// localhost is db-host and test is db-name
-var db = mongoose.connect('mongodb://localhost/test');
+  // In Mongoose everything is derived from Schema.
+  // Here we create a schema called User with the following fields.
+  // Each field requires a type and optional additional properties, e.g. unique field? required field?
+  var User = new mongoose.Schema({
 
-// In Mongoose everything is derived from Schema.
-// Here we create a schema called User with the following fields.
-// Each field requires a type and optional additional properties, e.g. unique field? required field?
-var User = new mongoose.Schema({
+    firstName: {
+      type: String,
+      required: true
+    },
 
-  firstName: {
-    type: String,
-    required: true
-  },
+    lastName: {
+      type: String,
+      required: true
+    },
 
-  lastName: {
-    type: String,
-    required: true
-  },
+    location: {
+      type: String
+    },
 
-  location: {
-    type: String
-  },
+    purchaseHistory: {
+      type: Array
+    },
 
-  purchaseHistory: {
-    type: Array
-  },
+    ratedGames: {
+      type: Array
+    },
 
-  ratedGames: {
-    type: Array
-  },
+    email: {
+      type: String,
+      required: true,
+      index: {
+        unique: true
+      }
+    },
 
-  email: {
-    type: String,
-    required: true,
-    index: {
-      unique: true
+    password: {
+      type: String,
+      required: true
+    },
+
+    ccnumber: {
+      type: String
+    },
+
+    cv2: {
+      type: String
+    },
+
+    expiration_date: {
+      type: String
     }
-  },
 
-  password: {
-    type: String,
-    required: true
-  },
+  });
 
-  ccnumber: {
-    type: String
-  },
+  // Here we create a schema called Game with the following fields.
+  var Game = new mongoose.Schema({
 
-  cv2: {
-    type: String
-  },
+    slug: {
+      type: String
+    },
 
-  expiration_date: {
-    type: String
-  }
+    title: {
+      type: String
+    },
 
-});
+    releaseDate: {
+      type: String
+    },
 
-// Here we create a schema called Game with the following fields.
-var Game = new mongoose.Schema({
+    // change to array, use genre as 'tags', e.g. ['action', 'rpg'] instead of Action RPG
+    genre: {
+      type: String
+    },
 
-  slug: {
-    type: String
-  },
+    rating: {
+      type: Number
+    },
 
-  title: {
-    type: String
-  },
+    summary: {
+      type: String
+    },
 
-  releaseDate: {
-    type: String
-  },
+    description: {
+      type: String
+    },
 
-  // change to array, use genre as 'tags', e.g. ['action', 'rpg'] instead of Action RPG
-  genre: {
-    type: String
-  },
+    recommendedGames: {
+      type: Array
+    },
 
-  rating: {
-    type: Number
-  },
+    price: {
+      type: String
+    }
 
-  summary: {
-    type: String
-  },
+  });
+}
 
-  description: {
-    type: String
-  },
-
-  recommendedGames: {
-    type: Array
-  },
-
-  price: {
-    type: String
-  }
-
-});
 //  comments: [{ user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, body: String, date: Date }],
 
 // Express middleware that hashes a password before it is saved to database
@@ -255,24 +206,158 @@ app.configure('development', function() {
  |_| \_\___/ \__,_|\__\___||___/
  */
 
-app.get('/addgame', function (req, res) {
+app.get('/add_game', function (req, res) {
 
+  var url = 'http://www.amazon.com/gp/product/B0050SYLRK/ref=vg_xbox_4pack_assassinsiii?pf_rd_m=ATVPDKIKX0DER&pf_rd_s=merchandised-search-3&pf_rd_r=4B4606133BD9433F8DFC&pf_rd_t=101&pf_rd_p=1404381382&pf_rd_i=14220161'
+
+  request({uri: url}, function (err, response, body) {
+
+    if (err && response.statusCode !== 200) return;
+
+    jsdom.env({ html: body, scripts: ['http://code.jquery.com/jquery-1.6.min.js'] }, function (err, window) {
+
+      var $ = window.jQuery;
+
+
+
+      // release date
+      var releaseDate = $('#detail-bullets_feature_div ul li:nth-child(5)').html().slice(22);
+      console.log($('#detail-bullets_feature_div ul li:nth-child(5)').html().slice(22));
+
+      // title
+      var title = $('#btAsinTitle').html();
+      console.log($('#btAsinTitle').html());
+
+      // price
+      var price = $('#listPriceValue').html();
+      console.log($('#listPriceValue').html());
+
+      function slugify(text) {
+        text = text.replace(/[^-a-zA-Z0-9,&\s]+/ig, '');
+        text = text.replace(/-/gi, "_");
+        text = text.replace(/\s/gi, "-");
+        text = text.toLowerCase();
+        return text;
+      }
+
+      // slug
+      var slug = slugify(title);
+      console.log(slugify(title));
+
+      // long game summary with screenshots
+      var summary = $('.productDescriptionWrapper .aplus').html();
+
+      request({uri: 'http://www.gamespot.com/' + slug + '/'}, function (err, response, body) {
+
+        if (err && response.statusCode !== 200) return;
+
+        jsdom.env({ html: body, scripts: ['http://code.jquery.com/jquery-1.6.min.js'] }, function (err, window) {
+
+          var $ = window.jQuery;
+
+          // game description
+          var description = $('.productDeck .mainDeck').text();
+          console.log(description);
+
+          // genre
+          var genre = $('.genre .data').text();
+          console.log(genre);
+
+          // game publisher
+          var genre = $('.publisher .data').text();
+          console.log(genre);
+
+          // thumbnail image
+          var thumb = $('.boxshot a').html();
+          console.log(thumb);
+
+
+          // save all above data to MongoDB
+          var game = new Game({
+            title: title,
+            genre: genre,
+            price: price,
+            summary:
+            releaseDate: "11.22.55",
+            rating: 2.5,
+            description: data
+          });
+
+            game.save(function(err) {
+              if (err) return;
+              console.log('saved game into db');
+            })
+          });
+        })
+        });
+      });
+
+
+      res.end($('.productDescriptionWrapper .aplus').html());
+    });
+  });
+
+  /*
+  var data = "";
+  var options = {
+    host: 'www.amazon.com',
+    port: 80,
+    path: 'loop-it'
+  };
+
+  // Create a get request with the above information, and when it receives a response back
+  // create a local string data to store the incoming response
+  http.get(options, function (res) {
+    console.log("Got response: " + res.statusCode);
+    var data = "";
+
+    res.on("data", function (chunk) {
+      data += chunk;
+    });
+
+  res.on('end', function () {
+  Game.findOne({title: "Borderlands 2"}, function (err, game) {
+  if (err) return;
+
+  game = new Game({
+  title: "Awesome game",
+  genre: "RTS",
+  price: "12.22",
+  summary: "some random dsecription",
+  releaseDate: "11.22.55",
+  rating: 2.5,
+  description: data
+  });
+
+  game.save(function(err) {
+  if (err) return;
+  console.log('saved game into db');
+  })
+  });
+  })
+
+  }).on('error', function(e) {
+  console.log("Got error: " + e.message);
+  });
+  */
+  /*
   var game = new Game({
-    slug: 'guildwars2',
-    title: 'Guild Wars 2',
-    releaseDate: 'Aug 28, 2012',
-    genre: 'Online Role-Playing',
-    summary: 'Guild Wars 2 is a fantasy massively multiplayer online role-playing game and is the sequel to the episodic Guild Wars game series.',
-    rating: 4.0,
-    price: '49.99'
+  slug: 'guildwars2',
+  title: 'Guild Wars 2',
+  releaseDate: 'Aug 28, 2012',
+  genre: 'Online Role-Playing',
+  summary: 'Guild Wars 2 is a fantasy massively multiplayer online role-playing game and is the sequel to the episodic Guild Wars game series.',
+  rating: 4.0,
+  price: '49.99'
 
   });
 
   game.save(function(err) {        // Save the model instance to database
-    if (!err) {
-      res.send('game saved!')
-    }
+  if (!err) {
+    res.send('game saved!')
+  }
   });
+  */
   /*
 
   var game = new Game({
