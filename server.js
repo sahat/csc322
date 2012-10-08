@@ -280,9 +280,8 @@ app.get('/add_game', function (req, res) {
           console.log(publisher);
 
           // thumbnail image
-          var thumbnail = $('.boxshot a').html();
+          var thumbnail = $('.boxshot a img').attr('src');
           console.log(thumbnail);
-
 
           // save all above data to MongoDB
           var game = new Game({
@@ -331,18 +330,14 @@ app.post('/buy', function (req, res) {
 app.get('/games', function (req, res) {
 
   Game.find(function (err, games) {
-    if (!err) {
-      for (var i=0; i<3; i++) {
-        console.log(games[i].thumbnail);
-      }
+    if (err) return;
 
-      res.render('games', {
-        heading: 'All Games',
-        lead: 'Game titles listed in alphabetical order',
-        user: req.session.user,
-        games: games,
-      });
-    }
+    res.render('games', {
+      heading: 'All Games',
+      lead: 'Game titles listed in alphabetical order',
+      user: req.session.user,
+      games: games
+    });
   });
 
 
