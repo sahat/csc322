@@ -7,33 +7,33 @@ block content
           tr
             th A-Z
         tbody
-          - for (var i = 0; i < 1; i++) {
+          for game in games
             tr
               td.span2
-                != games[i].thumbnail
+                img.img-polaroid(src=game.thumbnail)
               td
-                a(href='#')
+                a(href='/games/#{game.slug}')
                   strong
-                    = games[i].title
-                button.btn.btn-primary.btn-mini(id=games[i].slug)
+                    = game.title
+                button.btn.btn-primary.btn-mini(id=game.slug)
                   i.icon-shopping-cart.icon-white
-                  |  $59.99
-                div(id='raty_'+games[i].slug)
+                  | &nbsp;
+                  = game.price
+                div(id='raty_'+game.slug)
                 div
-                  small.muted Release Date:&nbsp;
-                    = games[i].releaseDate
-                    |  | Genre::&nbsp;
-                    = games[i].genre
+                  small.muted
+                    div #{game.releaseDate} | #{game.publisher}
+                    div #{game.genre}
                 p
-                  =games[i].description
+                  =game.description
 
             script(type='text/javascript')
-              $('#raty_#{games[i].slug}').raty({
-                score: #{games[i].rating}
+              $('#raty_#{game.slug}').raty({
+                score: #{game.rating}
               });
 
             script(type='text/javascript')
-              $('.#{games[i].slug}').click(function() {
+              $('##{game.slug}').click(function() {
                 var game = this;
                 $(game).removeClass('btn-primary').text('Confirm Purchase').addClass('btn-success');
                 $(game).unbind('click');
@@ -51,7 +51,6 @@ block content
 
                 });
               });
-          - }
 
           tr
             td

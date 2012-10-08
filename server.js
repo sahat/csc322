@@ -220,7 +220,9 @@ app.configure('development', function() {
 
 app.get('/add_game', function (req, res) {
 
-  var url = 'http://www.amazon.com/gp/product/B0050SYLRK/ref=vg_xbox_4pack_assassinsiii?pf_rd_m=ATVPDKIKX0DER&pf_rd_s=merchandised-search-3&pf_rd_r=4B4606133BD9433F8DFC&pf_rd_t=101&pf_rd_p=1404381382&pf_rd_i=14220161'
+  //var url = 'http://www.amazon.com/gp/product/B0050SYLRK/ref=vg_xbox_4pack_assassinsiii?pf_rd_m=ATVPDKIKX0DER&pf_rd_s=merchandised-search-3&pf_rd_r=4B4606133BD9433F8DFC&pf_rd_t=101&pf_rd_p=1404381382&pf_rd_i=14220161'
+  var url = 'http://www.amazon.com/Mass-Effect-3-Xbox-360/dp/B004FYEZMQ/ref=sr_1_1?ie=UTF8&qid=1349677230&sr=8-1&keywords=mass+effect+3';
+  //var url = 'http://www.amazon.com/Borderlands-2-Xbox-360/dp/B0050SYK44/ref=sr_1_1?s=videogames&ie=UTF8&qid=1349677265&sr=1-1&keywords=borderlands+2';
 
   request({uri: url}, function (err, response, body) {
 
@@ -329,6 +331,7 @@ app.post('/buy', function (req, res) {
 
 app.get('/games', function (req, res) {
 
+
   Game.find(function (err, games) {
     if (err) return;
 
@@ -336,43 +339,26 @@ app.get('/games', function (req, res) {
       heading: 'All Games',
       lead: 'Game titles listed in alphabetical order',
       user: req.session.user,
-      games: games
+      games: games,
     });
   });
 
 
 });
 
-app.get('/games/gw2', function (req, res) {
-  Game.findOne({title: 'Awesome game'}, function (err, game) {
-
-    if (err) return;
-
-
-    console.log(game.description);
-    res.render('gw2', {
-      heading: game.title,
-      lead: game.summary,
-      data: game.description
-    })
-
-
-  })
-
-
-});
-
 app.get('/games/:slug', function (req, res) {
-  res.render('detail', {
-    heading: 'Borderlands 2',
-    lead: '2K Games',
-    user: req.session.user
+
+  Game.findOne({ 'slug': req.params.slug }, function (err, game) {
+
+    res.render('detail', {
+      heading: game.title,
+      lead: game.publisher,
+      summary: game.summary,
+      user: req.session.user
+    });
+
   });
-  /*
-  1. findOne using slug
-  2. pass game's data to games/detail.jade
-  3. render page
-   */
+
 });
 
 app.get('/users', function (req, res) {
