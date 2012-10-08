@@ -9,6 +9,10 @@ var nodeio = require('node.io');
 var jsdom = require('jsdom');
 var request = require('request');
 
+// Rating calculation:
+// rating: cumulative number
+// count: how many times people have rated
+// actual rating to be displayed: finalRating = rating/count
 
 /*
   __  __                         ____  ____
@@ -88,6 +92,10 @@ var request = require('request');
       type: String
     },
 
+    publisher: {
+      type: String
+    },
+
     releaseDate: {
       type: String
     },
@@ -101,16 +109,16 @@ var request = require('request');
       type: Number
     },
 
+    votes: {
+      type: Number
+    },
+
     summary: {
       type: String
     },
 
     description: {
       type: String
-    },
-
-    recommendedGames: {
-      type: Array
     },
 
     price: {
@@ -277,10 +285,10 @@ app.get('/add_game', function (req, res) {
             title: title,
             genre: genre,
             price: price,
-            summary:
-            releaseDate: "11.22.55",
-            rating: 2.5,
-            description: data
+            summary: summary,
+            description: description,
+            releaseDate: releaseDate,
+            rating: 0
           });
 
             game.save(function(err) {
