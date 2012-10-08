@@ -96,6 +96,10 @@ var request = require('request');
       type: String
     },
 
+    thumbnail: {
+      type: String
+    },
+
     releaseDate: {
       type: String
     },
@@ -272,120 +276,43 @@ app.get('/add_game', function (req, res) {
           console.log(genre);
 
           // game publisher
-          var genre = $('.publisher .data').text();
-          console.log(genre);
+          var publisher = $('.publisher .data').text();
+          console.log(publisher);
 
           // thumbnail image
-          var thumb = $('.boxshot a').html();
-          console.log(thumb);
+          var thumbnail = $('.boxshot a').html();
+          console.log(thumbnail);
 
 
           // save all above data to MongoDB
           var game = new Game({
             title: title,
+            slug: slug,
+            publisher: publisher,
+            thumbnail: thumbnail,
             genre: genre,
             price: price,
             summary: summary,
             description: description,
             releaseDate: releaseDate,
-            rating: 0
+            rating: 0,
+            votes: 0
           });
 
-            game.save(function(err) {
-              if (err) return;
-              console.log('saved game into db');
-            })
+          game.save(function(err) {
+            if (err) return;
+            console.log('saved game into db');
           });
-        })
+
         });
+
       });
 
-
-      res.end($('.productDescriptionWrapper .aplus').html());
     });
   });
 
-  /*
-  var data = "";
-  var options = {
-    host: 'www.amazon.com',
-    port: 80,
-    path: 'loop-it'
-  };
+  res.send('Saved!');
 
-  // Create a get request with the above information, and when it receives a response back
-  // create a local string data to store the incoming response
-  http.get(options, function (res) {
-    console.log("Got response: " + res.statusCode);
-    var data = "";
-
-    res.on("data", function (chunk) {
-      data += chunk;
-    });
-
-  res.on('end', function () {
-  Game.findOne({title: "Borderlands 2"}, function (err, game) {
-  if (err) return;
-
-  game = new Game({
-  title: "Awesome game",
-  genre: "RTS",
-  price: "12.22",
-  summary: "some random dsecription",
-  releaseDate: "11.22.55",
-  rating: 2.5,
-  description: data
-  });
-
-  game.save(function(err) {
-  if (err) return;
-  console.log('saved game into db');
-  })
-  });
-  })
-
-  }).on('error', function(e) {
-  console.log("Got error: " + e.message);
-  });
-  */
-  /*
-  var game = new Game({
-  slug: 'guildwars2',
-  title: 'Guild Wars 2',
-  releaseDate: 'Aug 28, 2012',
-  genre: 'Online Role-Playing',
-  summary: 'Guild Wars 2 is a fantasy massively multiplayer online role-playing game and is the sequel to the episodic Guild Wars game series.',
-  rating: 4.0,
-  price: '49.99'
-
-  });
-
-  game.save(function(err) {        // Save the model instance to database
-  if (!err) {
-    res.send('game saved!')
-  }
-  });
-  */
-  /*
-
-  var game = new Game({
-    slug: 'borderlands_2',
-    title: 'Borderlands 2',
-    releaseDate: 'Sep. 18, 2012',
-    genre: 'Sci-Fi First-Person Shooter',
-    summary: 'Borderlands 2 continues in its predecessors footsteps with four new characters, tons of new quests, and lots of shooting and looting.',
-    rating: 6.5,
-    price: '59.99'
-
-  });
-
-  game.save(function(err) {        // Save the model instance to database
-    if (!err) {
-      res.send('game saved!')
-    }
-  });
-
-  */
 });
 
 app.get('/', function(req, res) {
@@ -405,24 +332,15 @@ app.get('/games', function (req, res) {
 
   Game.find(function (err, games) {
     if (!err) {
-      //console.log(games);
       for (var i=0; i<3; i++) {
-        console.log(games[i]);
+        console.log(games[i].thumbnail);
       }
 
       res.render('games', {
         heading: 'All Games',
         lead: 'Game titles listed in alphabetical order',
         user: req.session.user,
-        gameid: 'b2',
         games: games,
-        game: {
-          summary: 'www',
-          title: 'www',
-          price: 1231,
-          genre: 'www',
-          releaseDate: 'www'
-        }
       });
     }
   });

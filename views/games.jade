@@ -7,14 +7,14 @@ block content
           tr
             th A-Z
         tbody
-          - for (var i = 0; i < 2; i++) {
+          - for (var i = 0; i < 1; i++) {
             tr
               td.span2
-                img.img-polaroid(src='/games/img/#{games[i].slug}.jpeg')
+                != games[i].thumbnail
               td
                 a(href='#')
                   strong
-                    =games[i].title
+                    = games[i].title
                 button.btn.btn-primary.btn-mini(id=games[i].slug)
                   i.icon-shopping-cart.icon-white
                   |  $59.99
@@ -25,7 +25,7 @@ block content
                     |  | Genre::&nbsp;
                     = games[i].genre
                 p
-                  =games[i].summary
+                  =games[i].description
 
             script(type='text/javascript')
               $('#raty_#{games[i].slug}').raty({
