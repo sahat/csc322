@@ -329,25 +329,21 @@ app.post('/buy', function (req, res) {
   return res.redirect('/');
 });
 
-app.get('/games/rating', function (req, res) {
-  return;
-});
-
 app.post('/games/rating', function (req, res) {
   console.log(req.body.slug);
   console.log(req.body.rating);
 
 
-  Game.update({'slug': req.body.slug }, {
-      $set: { rating: req.body.rating },
-      $inc: { votes: 1}
-    },
+  Game.update(
+    { 'slug': req.body.slug },
+    { $inc: { rating: req.body.rating, votes: 1 } },
     function (err, game) {
       if (err) return;
-
       console.log('updated db!')
     }
   );
+
+  req.session.voted = true;
 
 });
 
@@ -356,8 +352,6 @@ app.get('/games', function (req, res) {
 
   Game.find(function (err, games) {
     if (err) return;
-
-
 
     res.render('games', {
       heading: 'All Games',
