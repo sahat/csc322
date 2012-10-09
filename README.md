@@ -12,3 +12,8 @@ Profile view. Note the sahat@msn.com | Sign Out links instead of Login | Create 
 ---
 
 ![Profile](https://raw.github.com/sahat/csc322/master/screenshots/profile.png)
+
+Game ratings retrieved from the database and displayed next to the game title
+---
+
+![Rating](https://raw.github.com/sahat/csc322/master/screenshots/ratings.png)
