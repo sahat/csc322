@@ -342,8 +342,9 @@ app.post('/games/rating', function (req, res) {
       console.log('updated db!')
     }
   );
+  //req.session.voted = true;
 
-  req.session.voted = true;
+  return res.redirect('/games');
 
 });
 
