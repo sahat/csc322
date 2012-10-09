@@ -1,17 +1,56 @@
+// TODO: Implement Admin, Registered User, Visitor and limit/grant access accordingly
+// TODO: User schema, should have additional field - type (e.g. super-user or user)
+
+// TODO: Display 3 most popular games on the homepage for visitors
+// TODO: Visitor can read other's comments and report a complaint about a comment
+
+// TODO: Only users can buy/rate/leave-comments on games
+// TODO: Super-user can do everything user can do + additional privileges
+
+// TODO: During registration user must select at least 3 criteria of interest
+//??? TODO: After registered user log-ins, redirect to main page and display 3 games based on interests criteria and 3 based on previous purchases
+//??? TODO: If the user hasn't purchased anything display 6 items based on interest criteria
+
+// TODO: Meow notification on Purchase post request
+// TODO: Send e-mail confirmation on purchase
+// TODO: Allow purchase only once; check if item is purchased on each request
+// TODO: Display purchased items in the profile
+
+// ??? TODO: Ratings have low and high weight depending if the user has purchased the game or not.
+
+// TODO: Per session, keep track how many times user voted, and the average rating of the votes
+// TODO: IF voteCount >= 5 and avg_rating <= 1, increment flag by 1
+// TODO: If flag == 3, suspend user for that session. Can't rate anymore (jRaty read-only flag).
+// TODO: If flag >= 1, rating weight is low
+
+// TODO: Recommend to a user, based on user's past ratings. Don't recommend low-rated games, recommend high-rated games
+// TODO: Recommend based on interests during the registration
+// TODO: Recommend based on other users with similar interests
+
+// TODO: Creative feature: Video reviews from IGN? Latest stories about the game from Gamespot?
+
+// TODO: Store game thumbs into MongoDB, leave summary as is with external links.
+// TODO: convert add_game to a page with URL input field and submit button
+
+// TODO: Users and visitors can submit complaint about inappropriate comment
+// TODO: Create a page where admin can process these inappropriate comments: Ignore or (Erase & Send warning to user)
+// TODO: Spammers who were warned/suspected twice will be given 1 last chance to clean up their bad comments
+// TODO: Users can remove their own comments
+// TODO: After 24 hours, user will be removed from the system
+
+// TODO: Humane.js notification (Jacked-up) for when the users logs-in 2nd time or more. (Orignal) for purchasing.
+
+
+
 var express = require('express');
 var path = require('path');
 var http = require('http');
 var mongoose = require('mongoose');
-var bcrypt = require('bcrypt')
+var bcrypt = require('bcrypt');
 var RedisStore = require('connect-redis')(express);
 var moment = require('moment');
 var jsdom = require('jsdom');
 var request = require('request');
-
-// Rating calculation:
-// rating: cumulative number
-// count: how many times people have rated
-// actual rating to be displayed: finalRating = rating/count
 
 /*
   __  __                         ____  ____
