@@ -5,7 +5,6 @@ var mongoose = require('mongoose');
 var bcrypt = require('bcrypt')
 var RedisStore = require('connect-redis')(express);
 var moment = require('moment');
-var nodeio = require('node.io');
 var jsdom = require('jsdom');
 var request = require('request');
 
