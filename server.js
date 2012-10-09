@@ -329,17 +329,41 @@ app.post('/buy', function (req, res) {
   return res.redirect('/');
 });
 
+app.get('/games/rating', function (req, res) {
+  return;
+});
+
+app.post('/games/rating', function (req, res) {
+  console.log(req.body.slug);
+  console.log(req.body.rating);
+
+
+  Game.update({'slug': req.body.slug }, {
+      $set: { rating: req.body.rating },
+      $inc: { votes: 1}
+    },
+    function (err, game) {
+      if (err) return;
+
+      console.log('updated db!')
+    }
+  );
+
+});
+
 app.get('/games', function (req, res) {
 
 
   Game.find(function (err, games) {
     if (err) return;
 
+
+
     res.render('games', {
       heading: 'All Games',
       lead: 'Game titles listed in alphabetical order',
       user: req.session.user,
-      games: games,
+      games: games
     });
   });
 
