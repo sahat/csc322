@@ -72,11 +72,7 @@ var request = require('request');
     lastName: { type: String, required: true },
     purchaseHistory: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Game' }],
     ratedGames: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Game' }],
-    email: {
-      type: String,
-      required: true,
-      index: { unique: true }
-    },
+    email: { type: String, required: true, index: { unique: true } },
     password: { type: String, required: true },
     interests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Game' }],
     comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }],
@@ -95,52 +91,20 @@ var request = require('request');
 
   // Here we create a schema called Game with the following fields.
   var Game = new mongoose.Schema({
-
-    slug: {
-      type: String
-    },
-
-    title: {
-      type: String
-    },
-
-    publisher: {
-      type: String
-    },
-
-    thumbnail: {
-      type: String
-    },
-
-    releaseDate: {
-      type: String
-    },
-
-    // change to array, use genre as 'tags', e.g. ['action', 'rpg'] instead of Action RPG
-    genre: {
-      type: String
-    },
-
-    rating: {
-      type: Number
-    },
-
-    votes: {
-      type: Number
-    },
-
-    summary: {
-      type: String
-    },
-
-    description: {
-      type: String
-    },
-
-    price: {
-      type: String
-    }
-
+    slug: String,
+    title: String,
+    publisher: String,
+    thumbnail: String,
+    releaseDate: String,
+    genre: String,
+    genreTags: Array, // slice genre into array
+    rating: Number,
+    votes: Number,
+    summary: String,
+    description: String,
+    price: String
+    // add features array? Games that have co-op or multiplayer
+    // perhaps games in the same series me1, me2, me3
   });
 }
 

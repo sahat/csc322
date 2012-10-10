@@ -4,7 +4,7 @@ block content
   form#registration.form-horizontal(method='post')
     p
       != message
-    legend Recommendations
+    legend Game Information
     .control-group
       label.control-label(for='firstName') My Interests
       .controls
@@ -32,31 +32,6 @@ block content
       label.control-label(for='newconfirm') Confirm Password
       .controls
         input#newconfirm(name='newconfirm', type='password', placeholder='Confirm Password')
-    legend Billing Information
-    .control-group
-          label.control-label(for='firstName') Supported Card Type
-          .controls
-            img(src='/img/american-express-curved-32px.png')
-            | &nbsp;
-            img(src='/img/visa-curved-32px.png')
-            | &nbsp;
-            img(src='/img/mastercard-curved-32px.png')
-            | &nbsp;
-            img(src='/img/discover-curved-32px.png')
-
-    .control-group
-      label.control-label(for='ccnumber') Credit Card Number
-      .controls
-        input#ccnumber(value=user.ccnumber, name='ccnumber', type='text', placeholder='#')
-    .control-group
-      label.control-label(for='expiration_date') Expiration Date
-      .controls
-        input#expiration_date(value=user.expiration_date, name='expiration_date', type='text', placeholder='mm/yy')
-    .control-group
-      label.control-label(for='cv2') CV2
-      .controls
-        input#cv2(value=user.cv2, name='cv2', type='text', placeholder='CV2 number')
-
     .control-group
       .controls
         button.btn.btn-large.btn-primary(type='submit') Update
