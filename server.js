@@ -64,59 +64,22 @@ var request = require('request');
   // Establishes a connection with MongoDB database
   // localhost is db-host and test is db-name
   var db = mongoose.connect('mongodb://localhost/test');
-
   // In Mongoose everything is derived from Schema.
   // Here we create a schema called User with the following fields.
   // Each field requires a type and optional additional properties, e.g. unique field? required field?
   var User = new mongoose.Schema({
-
-    firstName: {
-      type: String,
-      required: true
-    },
-
-    lastName: {
-      type: String,
-      required: true
-    },
-
-    location: {
-      type: String
-    },
-
-    purchaseHistory: {
-      type: Array
-    },
-
-    ratedGames: {
-      type: Array
-    },
-
+    firstName: { type: String, required: true },
+    lastName: { type: String, required: true },
+    purchaseHistory: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Game' }],
+    ratedGames: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Game' }],
     email: {
       type: String,
       required: true,
-      index: {
-        unique: true
-      }
+      index: { unique: true }
     },
-
-    password: {
-      type: String,
-      required: true
-    },
-
-    ccnumber: {
-      type: String
-    },
-
-    cv2: {
-      type: String
-    },
-
-    expiration_date: {
-      type: String
-    }
-
+    password: { type: String, required: true },
+    interests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Game' }],
+    comments: [{ body: String, date: Date }]
   });
 
   // Here we create a schema called Game with the following fields.
