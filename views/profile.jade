@@ -4,15 +4,11 @@ block content
   form#registration.form-horizontal(method='post')
     p
       != message
-    legend Recommendation List
-    div
-      input#demo-input-disable-animation(type='text', name='blah')
-      script(type='text/javascript')
-        $(document).ready(function() {
-          $("#demo-input-disable-animation").tokenInput("http://shell.loopj.com/tokeninput/tvshows.php", {
-            animateDropdown: false
-          });
-        });
+    legend Recommendations
+    .control-group
+      label.control-label(for='firstName') My Interests
+      .controls
+        input#recommendation(type='text', name='blah')
 
     legend Personal Information
     .control-group

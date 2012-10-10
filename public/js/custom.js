@@ -116,3 +116,41 @@ $('#login').validate({
       .removeClass('error');
   }
 });
+
+$(document).ready(function() {
+
+  var counter = 0;
+
+  $('#recommendation').tokenInput("http://shell.loopj.com/tokeninput/tvshows.php", {
+    preventDuplicates: true,
+    onAdd: function (item) {
+
+      counter++;
+
+      if (counter == 1) {
+        $.meow({
+          message: 'Thanks! We just need 2 more interests.'
+        });
+      }
+
+      if (counter == 2) {
+        $.meow({
+          message: 'Alright! Just need 1 more interest.'
+        });
+      }
+
+      if (counter == 3) {
+        $.meow({
+          message: 'Great job! That\'s all we need. Feel free to add more items if you wish to do so!'
+        });
+      }
+    }
+  });
+});
+
+$(document).ready(function() {
+  $("button[type=submit]").click(function () {
+    var selected = $('#recommendation').tokenInput('get');
+    console.log(selected);
+  });
+});
