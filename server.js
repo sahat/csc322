@@ -389,6 +389,16 @@ app.post('/games/rating', function (req, res) {
 
 });
 
+
+app.get('/api/games', function (req, res) {
+  Game.find(function (err, games) {
+    if (err) throw err;
+
+    res.send(games);
+  });
+});
+
+
 app.get('/games', function (req, res) {
 
 
@@ -455,7 +465,7 @@ app.post('/users/:id', function (req, res) {
   console.log(req.body.expiration_date);
   console.log(req.body.cv2);
   console.log();
-
+  console.log(req.body.blah);
   User.update({'email': req.session.user.email }, {
     firstName: req.body.firstName,
     lastName: req.body.lastName,

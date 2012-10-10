@@ -121,10 +121,11 @@ $(document).ready(function() {
 
   var counter = 0;
 
-  $('#recommendation').tokenInput("http://shell.loopj.com/tokeninput/tvshows.php", {
+  $('#recommendation').tokenInput("http://localhost:3000/api/games", {
     preventDuplicates: true,
-    onAdd: function (item) {
+    propertyToSearch: 'title',
 
+    onAdd: function (item) {
       counter++;
 
       if (counter == 1) {

@@ -50,7 +50,7 @@ var DEFAULT_SETTINGS = {
     tokenLimit: null,
     tokenDelimiter: ",",
     preventDuplicates: false,
-    tokenValue: "id",
+    tokenValue: "_id",
 
     // Behavioral settings
     allowFreeTagging: false,
