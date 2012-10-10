@@ -214,6 +214,8 @@ User.methods.comparePassword = function(candidatePassword, callback) {
   });
 };
 
+
+
 // After we create a schema, the next step is to create a model based on that schema.
 // A model is a class with which we construct documents.
 // In this case, each document will be a user with properties and behaviors as declared in our schema.
@@ -355,6 +357,7 @@ app.get('/add_game', function (req, res) {
 });
 
 app.get('/', function(req, res) {
+
   res.render('index', {
     heading: 'N7 Online Store',
     lead: 'The leading next generation video games recommendation engine',
@@ -452,6 +455,7 @@ app.post('/users/:id', function (req, res) {
   console.log(req.body.expiration_date);
   console.log(req.body.cv2);
   console.log();
+
   User.update({'email': req.session.user.email }, {
     firstName: req.body.firstName,
     lastName: req.body.lastName,
@@ -560,42 +564,36 @@ app.get('/login', function(req, res) {
 
 app.post('/login', function (req, res) {
   var user = User.findOne({ 'email': req.body.userEmail }, function (err, user) {
-
     if (!user) {
-      req.session.message = '<div class="alert alert-error fade in">' +
-        '<strong>Oops. </strong>' + 'No Such user in the database.' + '</div>';
+      req.session.message = '<div class="alert alert-error fade in">' + '<strong>Oops. </strong>' + 'No Such user in the database.' + '</div>';
       res.redirect('/login');
-    } else {
-        console.log(user.password);
-        console.log(req.body.password);
-        user.comparePassword(req.body.password, function(err, isMatch) {
-          if (err) {
-            throw err;
-          }
-          if (isMatch) {
-            req.session.user = user;
-            res.redirect('/');
-          } else {
-            req.session.message = '<div class="alert alert-error fade in">' +
-              '<strong>Sorry. </strong>' + 'The password is incorrect.' + '</div>';
-            console.log('invalid password')
-            res.redirect('/login');
-          }
+    }
 
-          console.log(req.body.password, isMatch); // -> Password123: true
-        });
-      /*
-        if (req.body.password == user.password) {
+    user.comparePassword(req.body.password, function(err, isMatch) {
+      if (err) throw err;
+
+      if (isMatch) {
+        console.log(req.body.password.length);
+
+        if (req.body.password.length < 6) {
+          req.session.message = '<div class="alert alert-error fade in">' + '<strong>Important! </strong>' + 'Please change the temporary password right away.' + '</div>';
+          req.session.user = user;
+          res.redirect('/users/' + user.email);
+
+        } else {
           req.session.user = user;
           res.redirect('/');
-        }	else {
-            req.session.message = '<div class="alert alert-error fade in">' +
-            '<strong>Sorry. </strong>' + 'The password is incorrect.' + '</div>';
-            console.log('invalid password')
-            res.redirect('/login');
-          }
-          */
-    }
+        }
+
+      } else {
+        req.session.message = '<div class="alert alert-error fade in">' +
+          '<strong>Sorry. </strong>' + 'The password is incorrect.' + '</div>';
+        console.log('invalid password')
+        res.redirect('/login');
+      }
+
+      console.log(req.body.password, isMatch); // -> Password123: true
+    });
   });
 });
 
@@ -627,17 +625,30 @@ app.post('/register', function(req, res) {
     }
   });
 
+  function randomPassword () {
+    var chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz";
+    var string_length = 4;
+    var randomstring = '';
+    for (var i=0; i<string_length; i++) {
+      var rnum = Math.floor(Math.random() * chars.length);
+      randomstring += chars.substring(rnum,rnum+1);
+    }
+    return randomstring;
+  };
+
+  var tempPassword = randomPassword();
+
   user = new User({           // Create a new Mongoose model instance
     firstName: req.body.firstName,
     lastName: req.body.lastName,
     email: req.body.userEmail,     // Set email field to the email input
-    password: req.body.password    // Set password field to the password input
+    password: tempPassword    // Set password field to the password input
   });
 
   user.save(function(err) {        // Save the model instance to database
     if (!err) {
       req.session.message = '<div class="alert alert-success fade in">' +
-        '<strong>Congratulations, ' + req.body.firstName + '! ' + '</strong>' + 'Registration has been successful.' + '</div>';
+        '<strong>Success! ' + '</strong>' + 'Your temporary password is ' + tempPassword  + '</div>';
 // If nothing went wrong save has been successful
       res.redirect('/login');
     }

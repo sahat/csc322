@@ -4,6 +4,16 @@ block content
   form#registration.form-horizontal(method='post')
     p
       != message
+    legend Recommendation List
+    div
+      input#demo-input-disable-animation(type='text', name='blah')
+      script(type='text/javascript')
+        $(document).ready(function() {
+          $("#demo-input-disable-animation").tokenInput("http://shell.loopj.com/tokeninput/tvshows.php", {
+            animateDropdown: false
+          });
+        });
+
     legend Personal Information
     .control-group
       label.control-label(for='firstName') First Name
@@ -17,7 +27,7 @@ block content
     .control-group
       label.control-label(for='userEmail') Email
       .controls
-        input#userEmail(value=user.email, name='userEmail', type='text', placeholder='Email')
+        input#userEmail(value=user.email, name='userEmail', type='text', placeholder='Email', disabled='disabled')
     .control-group
       label.control-label(for='newpassword') New Password
       .controls

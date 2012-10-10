@@ -116,25 +116,3 @@ $('#login').validate({
       .removeClass('error');
   }
 });
-
-
-// grawl notification and send email when purchased
-
-$('#b2').click(function() {
-  var game = this;
-  $(game).removeClass('btn-primary').text('Confirm Purchase').addClass('btn-success');
-  $(game).unbind('click');
-  $(game).click(function() {
-    $.ajax({
-      type: 'POST',
-      url: '/buy',
-      data: {
-        title: $(game).attr('id')
-      }
-    }).done(function() {
-        $(game).attr('disabled', 'true');
-        $(game).removeClass('btn-success').html('<i class="icon-shopping-cart icon-white"></i> Purchased').addClass('btn-primary disabled');
-      });
-
-  });
-});
