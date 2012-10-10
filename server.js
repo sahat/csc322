@@ -79,7 +79,18 @@ var request = require('request');
     },
     password: { type: String, required: true },
     interests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Game' }],
+    comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }],
     comments: [{ body: String, date: Date }]
+  });
+
+  // Comment schema
+  var Comment = new mongoose.Schema({
+    creator: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    body: String,
+    date: Date,
+    likes: Number,
+    dislikes: Number,
+    flagged: Boolean
   });
 
   // Here we create a schema called Game with the following fields.
