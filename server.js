@@ -95,6 +95,7 @@ var request = require('request');
     title: String,
     publisher: String,
     thumbnail: String,
+    largeImage: String,
     releaseDate: String,
     genre: String,
     genreTags: Array, // slice genre into array
@@ -263,12 +264,18 @@ app.get('/add_game', function (req, res) {
           var thumbnail = $('.boxshot a img').attr('src');
           console.log(thumbnail);
 
+          // large cover for the game
+          // I used a regular expression 'replace' to replace thumb with front to match valid Gamespot URL
+          var temp = $('.boxshot a img').attr('src');
+          var largeImage = temp.replace('thumb', 'front');
+
           // save all above data to MongoDB
           var game = new Game({
             title: title,
             slug: slug,
             publisher: publisher,
             thumbnail: thumbnail,
+            largeImage: largeImage,
             genre: genre,
             price: price,
             summary: summary,
