@@ -82,7 +82,7 @@ var request = require('request');
       date: { type: Date, default: Date.now() }
     }],
     email: { type: String, required: true, index: { unique: true } },
-    password: { type: String, required: true },
+    password: { type: String },
     interests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Game' }],
     comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }]
   });
@@ -456,65 +456,30 @@ app.get('/account', function (req, res) {
       heading: 'Profile',
       lead: 'View purchase history, update account...',
       user: req.session.user,
-      message: req.session.message
+      tempPassword: req.session.tempPassword
+
     });
   });
 });
 
-app.post('/users/:id', function (req, res) {
-
-  console.log(req.body.firstName);
-  console.log(req.body.lastName);
-  console.log(req.body.newpassword);
-  console.log(req.body.blah);
-
+app.post('/account', function (req, res) {
   User.findOne({ 'email': req.session.user.email }, function (err, user) {
+    if (req.session.tempPassword) {
+      user.password = req.body.password;
+      delete req.session.tempPassword;
+    }
     user.firstName = req.body.firstName;
     user.lastName = req.body.lastName;
     user.password = (!req.body.newpassword) ? req.session.user.password : req.body.newpassword;
-
     user.save();
-
     req.session.user = user;
-
     res.render('profile', {
       heading: 'Profile',
       lead: 'View purchase history, update account...',
-      user: req.session.user,
-      message: ""
+      user: req.session.user
     });
   });
-
-
-/*
-  var user = User.findOne({ 'email': req.session.user.email }, function (err, user) {
-    if (err) {
-      return;
-    }
-
-    if (user) {
-      user.update({           // Create a new Mongoose model instance
-        user.firstName: req.body.firstName,
-        lastName: req.body.lastName,
-        email: req.body.userEmail,     // Set email field to the email input
-        password: req.body.password,   // Set password field to the password input
-        ccnumber: req.body.ccnumber,
-        cv2: req.body.cv2,
-        expiration_date: req.body.expiration_date
-      });
-      */
-      /*
-      user.save(function(err) {        // Save the model instance to database
-        if (!err) {
-          res.redirect('/users/' + req.session.user.email);
-        }
-      });
-      */
-   // }
-  //});
 });
-
-
 
 app.get('/logout', function(req, res) {
   req.session.destroy(function(){
@@ -553,7 +518,7 @@ app.post('/login', function (req, res) {
         if (req.body.password.length < 6) {
           req.session.message = '<div class="alert alert-error fade in">' + '<strong>Important! </strong>' + 'Please change the temporary password right away.' + '</div>';
           req.session.user = user;
-          res.redirect('/users/' + user.email);
+          res.redirect('/account');
 
         } else {
           req.session.user = user;
@@ -586,7 +551,7 @@ app.get('/register', function(req, res) {
 
 app.post('/register', function(req, res) {
   // Query the database to see if email is available
-  var user = User.findOne({ 'email': req.body.userEmail }, function(err, user) {
+  User.findOne({ 'email': req.body.userEmail }, function(err, user) {
     if (!err) {
       if (user) { // There's a user with a given email already
         req.session.message = '<div class="alert alert-error fade in">' +
@@ -611,23 +576,24 @@ app.post('/register', function(req, res) {
     return randomstring;
   };
 
-  var tempPassword = randomPassword();
+  req.session.tempPassword = randomPassword();
 
-  user = new User({           // Create a new Mongoose model instance
+  var user = new User({           // Create a new Mongoose model instance
     firstName: req.body.firstName,
     lastName: req.body.lastName,
-    email: req.body.userEmail,     // Set email field to the email input
-    password: tempPassword    // Set password field to the password input
+    email: req.body.userEmail,   // Set email field to the email input
+    password: req.session.tempPassword
   });
 
   user.save(function(err) {        // Save the model instance to database
     if (!err) {
       req.session.message = '<div class="alert alert-success fade in">' +
-        '<strong>Success! ' + '</strong>' + 'Your temporary password is ' + tempPassword  + '</div>';
+        '<strong>Success! ' + '</strong>' + 'Your temporary password is ' + req.session.tempPassword  + '</div>';
 // If nothing went wrong save has been successful
       res.redirect('/login');
     }
   });
+
 });
 
 var server = http.createServer(app).listen(app.get('port'), function() {

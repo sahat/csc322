@@ -2,11 +2,13 @@ extends layout
 
 block content
   form#registration.form-horizontal(method='post')
-    p
-      != message
+    br
+    if typeof(tempPassword) != 'undefined'
+      .alert.alert-danger
+        h4 Important Announcement
+        div You must change your password before continuing!
 
-
-    .alert.alert-info
+    .alert.alert-success
       h4 Getting Started
       div Before you proceed our recommendation engine requires that you input three or more game interests.
     legend Game Information
