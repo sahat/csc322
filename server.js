@@ -445,12 +445,20 @@ app.get('/games/:slug', function (req, res) {
 
 });
 
-app.get('/users', function (req, res) {
-  if (req.session.user) {
-    res.redirect('/users/' + req.session.user.email);
-  } else {
+app.get('/account', function (req, res) {
+  if (!req.session.user) {
     res.redirect('/');
   }
+
+  User.findOne({ 'email': req.session.user.email }, function (err, user) {
+    req.session.user = user;
+    res.render('profile', {
+      heading: 'Profile',
+      lead: 'View purchase history, update account...',
+      user: req.session.user,
+      message: req.session.message
+    });
+  });
 });
 
 app.post('/users/:id', function (req, res) {
@@ -506,29 +514,7 @@ app.post('/users/:id', function (req, res) {
   //});
 });
 
-app.get('/users/:id', function (req, res) {
-  if (req.session.user) {
-    if (req.params.id !== req.session.user.email) {
-      res.redirect('/');
-    }
 
-    User.findOne({ 'email': req.session.user.email }, function(err, user) {
-      if (user) {
-        console.log(user);
-
-        res.render('profile', {
-          heading: 'Profile',
-          lead: 'View purchase history, update account...',
-          user: user,
-          message: req.session.message
-        });
-      }
-    });
-  } else {
-    res.redirect('/');
-  }
-
-});
 
 app.get('/logout', function(req, res) {
   req.session.destroy(function(){
