@@ -1,5 +1,9 @@
 extends layout
 block content
+  .page-header
+    p.lead#welcome
+      strong Welcome Visitor,
+      small  here's top 3 most popular games for you
   .row
     for game in games
       .span4
