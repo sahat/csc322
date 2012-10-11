@@ -1,0 +1,1 @@
+add amazon links here and then iterate over the entire file and populate the database with games

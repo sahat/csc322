@@ -3,37 +3,20 @@ extends layout
 block content
   h3 Product Summary
   != summary
-
-  h3 Recommended Games
-  table.table.table-striped
+  hr
+  .alert.alert-success
+    h4 Recommended Games
+    div Our recommendation engine has picked the following games that you may also enjoy.
+  table.table
       tbody
+
         tr
           td.span1
-            img.img-polaroid(src='/games/img/borderlands2.jpeg')
-          td
-            a(href='#')
-              strong Borderlands 2
-            button.btn.btn-primary.btn-mini
-              i.icon-shopping-cart.icon-white
-              |  $59.99
-            div
-              i.icon-plus
-              i.icon-plus
-              i.icon-plus
-              i.icon-plus
-              i.icon-plus
-            div
-              small.muted Release Date: Sep. 18, 2012 | Genre: Sci-Fi First-Person Shooter
-
-        tr
-          td
             img.img-polaroid(src='/games/img/wow.jpeg')
           td
             a(href='#')
               strong World of Warcraft
-            button.btn.btn-primary.btn-mini.disabled
-              i.icon-shopping-cart.icon-white
-              |  Purchased
+
             div
               i.icon-star
               i.icon-star
@@ -46,35 +29,82 @@ block content
               i.icon-star
             div
               small.muted Release Date: Nov 23, 2004 | Genre: Fantasy Online Role-Playing
-        tr
-          td
-            img.img-polaroid(src='/games/img/gw2.jpeg')
-          td
-            a(href='#')
-              strong Guild Wars 2
-            button.btn.btn-primary.btn-mini
-              i.icon-shopping-cart.icon-white
-              |  $53.99
-            div
-              i.icon-star
-              i.icon-star
-              i.icon-star
-              i.icon-star
-            div
-              small.muted Release Date: Aug 28, 2012 | Genre: Fantasy Online Role-Playing
           tr
             td
               img.img-polaroid(src='/games/img/lol.jpeg')
             td
               a(href='#')
                 strong League of Legends
-              button.btn.btn-primary.btn-mini
-                i.icon-shopping-cart.icon-white
-                |  $29.99
+
               div
                 strong
                   small Recommendations:
                     |  18
               div
                 small.muted Release Date: Oct 27, 2009 | Genre: MOBA
+
+  .alert.alert-info
+    h4 42 Comments
+    div Feel free to leave a comment below about the game. We only ask you to be civil.
+  table
+    tbody
+      tr
+        td
+          strong Sahat Yalkabov
+          |  says:
+      tr
+        td
+          small.muted October 11, 2012
+      tr
+        td
+          blockquote Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam pulvinar semper mauris. In orci odio, pharetra ac laoreet eu, tristique in justo. Donec in nulla id magna mollis volutpat eu volutpat dui. Cras sollicitudin convallis leo, non rhoncus velit blandit sit amet. Duis sollicitudin purus in arcu dapibus fermentum. Pellentesque eu pharetra turpis. Pellentesque aliquam, tellus eget pharetra scelerisque, mi tellus euismod libero, in commodo est urna sit amet tellus. Aliquam mi lorem, cursus et interdum a, suscipit at est. Ut euismod varius est, nec feugiat nisl tempus tincidunt. Nam blandit massa at leo facilisis vitae elementum eros fringilla.
+      tr
+        td
+          a(href='#')
+            | Report
+
+  br
+  table
+    tbody
+      tr
+        td
+          strong Sahat Yalkabov
+          |  says:
+      tr
+        td
+          small.muted October 11, 2012
+      tr
+        td
+          blockquote Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam pulvinar semper mauris. In orci odio, pharetra ac laoreet eu, tristique in justo. Donec in nulla id magna mollis volutpat eu volutpat dui. Cras sollicitudin convallis leo, non rhoncus velit blandit sit amet. Duis sollicitudin purus in arcu dapibus fermentum. Pellentesque eu pharetra turpis. Pellentesque aliquam, tellus eget pharetra scelerisque, mi tellus euismod libero, in commodo est urna sit amet tellus. Aliquam mi lorem, cursus et interdum a, suscipit at est. Ut euismod varius est, nec feugiat nisl tempus tincidunt. Nam blandit massa at leo facilisis vitae elementum eros fringilla.
+      tr
+        td
+          a(href='#')
+            | Report
+
+  br
+  table
+    tbody
+      tr
+        td
+          strong Sahat Yalkabov
+          |  says:
+      tr
+        td
+          small.muted October 11, 2012
+      tr
+        td
+          blockquote This is a demo comment.
+      tr
+        td
+          a(href='#')
+            | Report
+
+  h4 Leave a comment
+  form(method='post')
+    .controls
+      textarea.span5(rows=5)
+    .controls
+      button.btn.btn-info(type='submit') Post Comment
+
+
 
