@@ -4,9 +4,35 @@ block content
   form#registration.form-horizontal(method='post')
     p
       != message
+    legend Order Information
+    .control-group
+      label.control-label(for='firstName') Purchase History
+      .controls
+        if user.purchasedGames.length > 0
+          table.table.table-condensed
+            thead
+              tr
+                th Title
+                th Purchase Date
+                th Your Rating
+              tbody
+                for game in user.purchasedGames
+                  tr
+                    td
+                      a(href='/games/#{game.slug}') #{game.title}
+                    td #{game.date.toDateString()}
+                    td
+                      for i in user.ratedGames
+                        if i.title == game.title
+                          =i.rating
+
+        else
+          .alert.alert-info You haven't purchased anything yet.
+
+
     legend Game Information
     .control-group
-      label.control-label(for='firstName') My Interests
+      label.control-label(for='recommendation') My Interests
       .controls
         input#recommendation(type='text', name='interests')
 

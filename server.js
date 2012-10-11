@@ -1,7 +1,6 @@
 // TODO: Implement Admin, Registered User, Visitor and limit/grant access accordingly
 // TODO: User schema, should have additional field - type (e.g. super-user or user)
 
-// TODO: Display 3 most popular games on the homepage for visitors
 // TODO: Visitor can read other's comments and report a complaint about a comment
 
 // TODO: Only users can buy/rate/leave-comments on games
@@ -41,7 +40,7 @@
 // TODO: Humane.js notification (Jacked-up) for when the users logs-in 2nd time or more. (Orignal) for purchasing.
 
 
-
+var fs = require('fs');
 var express = require('express');
 var path = require('path');
 var http = require('http');
@@ -70,13 +69,21 @@ var request = require('request');
   var User = new mongoose.Schema({
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
-    purchaseHistory: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Game' }],
-    ratedGames: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Game' }],
+    purchasedGames: [{
+      title: String,
+      slug: String,
+      date: { type: Date, default: Date.now() }
+    }],
+    ratedGames: [{
+      title: String,
+      slug: String,
+      rating: Number,
+      date: { type: Date, default: Date.now() }
+    }],
     email: { type: String, required: true, index: { unique: true } },
     password: { type: String, required: true },
     interests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Game' }],
-    comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }],
-    comments: [{ body: String, date: Date }]
+    comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }]
   });
 
   // Comment schema
@@ -98,7 +105,7 @@ var request = require('request');
     largeImage: String,
     releaseDate: String,
     genre: String,
-    genreTags: Array, // slice genre into array
+    weightedScore: Number,
     rating: Number,
     votes: Number,
     summary: String,
@@ -198,11 +205,13 @@ app.configure('development', function() {
  */
 
 app.get('/add_game', function (req, res) {
-
+  var url = 'http://www.amazon.com/gp/product/B00006IR62/ref=s9_simh_gw_p63_d0_i3?pf_rd_m=ATVPDKIKX0DER&pf_rd_s=center-2&pf_rd_r=0SV5QGZXE9458998V6X5&pf_rd_t=101&pf_rd_p=1389517282&pf_rd_i=507846';
   //var url = 'http://www.amazon.com/gp/product/B0050SYLRK/ref=vg_xbox_4pack_assassinsiii?pf_rd_m=ATVPDKIKX0DER&pf_rd_s=merchandised-search-3&pf_rd_r=4B4606133BD9433F8DFC&pf_rd_t=101&pf_rd_p=1404381382&pf_rd_i=14220161'
-  var url = 'http://www.amazon.com/Mass-Effect-3-Xbox-360/dp/B004FYEZMQ/ref=sr_1_1?ie=UTF8&qid=1349677230&sr=8-1&keywords=mass+effect+3';
+  //var url = 'http://www.amazon.com/Mass-Effect-3-Xbox-360/dp/B004FYEZMQ/ref=sr_1_1?ie=UTF8&qid=1349677230&sr=8-1&keywords=mass+effect+3';
   //var url = 'http://www.amazon.com/Borderlands-2-Xbox-360/dp/B0050SYK44/ref=sr_1_1?s=videogames&ie=UTF8&qid=1349677265&sr=1-1&keywords=borderlands+2';
-
+  //var url = 'http://www.amazon.com/Star-Wars-The-Old-Republic-Pc/dp/B001CWXAP2/ref=sr_1_1?ie=UTF8&qid=1349849268&sr=8-1&keywords=star+wars+the+old+republic';
+  //var url = 'http://www.amazon.com/Star-Wars-The-Force-Unleashed-Pc/dp/B002LHSGSI/ref=acc_glance_vg_ai_ps_t_2'
+  //var url = 'http://www.amazon.com/Prototype-2-Xbox-360/dp/B004FUL9YW/ref=sr_1_1?s=videogames&ie=UTF8&qid=1349849413&sr=1-1&keywords=prototype+2'
   request({uri: url}, function (err, response, body) {
 
     if (err && response.statusCode !== 200) return;
@@ -214,8 +223,8 @@ app.get('/add_game', function (req, res) {
 
 
       // release date
-      var releaseDate = $('#detail-bullets_feature_div ul li:nth-child(5)').html().slice(22);
-      console.log($('#detail-bullets_feature_div ul li:nth-child(5)').html().slice(22));
+      // var releaseDate = $('#detail-bullets_feature_div ul li:nth-child(5)').html().slice(22);
+      // console.log($('#detail-bullets_feature_div ul li:nth-child(5)').html().slice(22));
 
       // title
       var title = $('#btAsinTitle').html();
@@ -240,7 +249,7 @@ app.get('/add_game', function (req, res) {
       // long game summary with screenshots
       var summary = $('.productDescriptionWrapper .aplus').html();
 
-      request({uri: 'http://www.gamespot.com/' + slug + '/'}, function (err, response, body) {
+      request({uri: 'http://www.gamespot.com/' + slug + '/platform/pc/'}, function (err, response, body) {
 
         if (err && response.statusCode !== 200) return;
 
@@ -260,6 +269,12 @@ app.get('/add_game', function (req, res) {
           var publisher = $('.publisher .data').text();
           console.log(publisher);
 
+          // release date
+          var temp = $('.date .data').text();
+          var releaseDate = temp.replace('  (US) »', '');
+          console.log(releaseDate);
+          console.log(Date.parse(releaseDate));
+
           // thumbnail image
           var thumbnail = $('.boxshot a img').attr('src');
           console.log(thumbnail);
@@ -268,6 +283,10 @@ app.get('/add_game', function (req, res) {
           // I used a regular expression 'replace' to replace thumb with front to match valid Gamespot URL
           var temp = $('.boxshot a img').attr('src');
           var largeImage = temp.replace('thumb', 'front');
+          request(largeImage).pipe(fs.createWriteStream('./public/img/large/demo.jpg'));
+          console.log(largeImage);
+
+
 
           // save all above data to MongoDB
           var game = new Game({
@@ -303,35 +322,61 @@ app.get('/add_game', function (req, res) {
 
 app.get('/', function(req, res) {
 
-  res.render('index', {
-    heading: 'N7 Online Store',
-    lead: 'The leading next generation video games recommendation engine',
-    user: req.session.user
-  });
+  Game
+    .find()
+    .limit(3)
+    .sort('-weightedScore')
+    .exec(function(err, game) {
+      if (err) throw err;
+      res.render('index', {
+        heading: 'N7 Online Store',
+        lead: 'The leading next generation video games recommendation engine',
+        user: req.session.user,
+        games: game
+      });
+    });
+
+
+  //Game.where('rating').gt(4.4).find(function (err, game) {
+
 });
 
 app.post('/buy', function (req, res) {
-  console.log(req.body.title);
-  return res.redirect('/');
+  User.findOne({ email: req.session.user.email }, function (err, user) {
+    Game.findOne({ slug: req.body.title }, function (err, game) {
+      user.purchasedGames.push({ title: game.title, slug: game.slug });
+      user.save();
+    });
+  });
+  res.redirect('/games');
 });
 
 app.post('/games/rating', function (req, res) {
   console.log(req.body.slug);
   console.log(req.body.rating);
 
+  Game.update({ 'slug': req.body.slug }, { $inc: { rating: req.body.rating, votes: 1 } }, function (err, game) {
+    if (err) throw err;
+    console.log('updated rating!')
+  });
 
-  Game.update(
-    { 'slug': req.body.slug },
-    { $inc: { rating: req.body.rating, votes: 1 } },
-    function (err, game) {
-      if (err) return;
-      console.log('updated db!')
-    }
-  );
-  //req.session.voted = true;
+  Game.findOne({ 'slug': req.body.slug }, function (err, game) {
+    game.weightedScore = game.rating + req.body.rating * 1.5;
+
+    console.log(game.rating * req.session.user.weightCoefficient);
+
+    game.save(function (err) {
+      if (err) throw err;
+      console.log('successfully set average rating');
+    });
+
+    User.findOne({ email: req.session.user.email }, function (err, user) {
+      user.ratedGames.push({ title: game.title, slug: game.slug, rating: req.body.rating });
+      user.save();
+    });
+  });
 
   return res.redirect('/games');
-
 });
 
 
@@ -405,27 +450,15 @@ app.post('/users/:id', function (req, res) {
   console.log("Newer password" + password);
   console.log(req.body.firstName);
   console.log(req.body.lastName);
-  console.log(req.body.userEmail);
-  console.log(req.body.ccnumber);
-  console.log(req.body.expiration_date);
-  console.log(req.body.cv2);
-  console.log();
   console.log(req.body.blah);
   User.update({'email': req.session.user.email }, {
     firstName: req.body.firstName,
     lastName: req.body.lastName,
-    email: req.body.userEmail,
-    password: password,
-    ccnumber: req.body.ccnumber,
-    expiration_date: req.body.expiration_date,
-    cv2: req.body.cv2
+    password: password
     }, function () {
         User.findOne({ 'email': req.session.user.email }, function (err, user) {
           if (err) return;
-
           req.session.user = user;
-
-
           res.render('profile', {
             heading: 'Profile',
             lead: 'View purchase history, update account...',
@@ -469,26 +502,20 @@ app.get('/users/:id', function (req, res) {
     }
 
     User.findOne({ 'email': req.session.user.email }, function(err, user) {
-      if (!err) {
-        if (user) { // There's a user with a given email already
-          console.log(user);
-          res.render('profile', {
-            heading: 'Profile',
-            lead: 'View purchase history, update account...',
-            user: req.session.user,
-            message: req.session.message
-          });
+      if (user) {
+        console.log(user);
+
+        for (var i=0; i < user.purchasedGames.length; i++) {
+          console.log(user.purchasedGames[i]);
         }
+
+        res.render('profile', {
+          heading: 'Profile',
+          lead: 'View purchase history, update account...',
+          user: user,
+          message: req.session.message
+        });
       }
-    });
-
-
-
-    res.render('profile', {
-      heading: 'Profile',
-      lead: 'View purchase history, update account...',
-      user: req.session.user,
-      message: req.session.message
     });
   } else {
     res.redirect('/');

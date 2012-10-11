@@ -67,8 +67,33 @@ body
   .container
     block content
 
-    hr
-    footer
-      p 2012 © City College of New York
+  footer.footer
+    .container
+      p.pull-right
+        a(href='#') Back to top
+      p
+        | Add credits, thanks yous, technologies used.
+        | people who have worked on this. Submit issues.
+        | Look at tastekid's footer.
+      p
+        | Code licensed under the
+        a(href='http://www.apache.org/licenses/LICENSE-2.0', target='_blank') Apache License v2.0
+        | . Documentation licensed under
+        a(href='http://creativecommons.org/licenses/by/3.0/') CC BY 3.0
+        | .
+      p
+        | Icons from
+        a(href='http://glyphicons.com') Glyphicons Free
+        | , licensed under
+        a(href='http://creativecommons.org/licenses/by/3.0/') CC BY 3.0
+        | .
+      ul.footer-links
+        li
+          a(href='http://blog.getbootstrap.com') Read the blog
+        li
+          a(href='https://github.com/twitter/bootstrap/issues?state=open') Submit issues
+        li
+          a(href='https://github.com/twitter/bootstrap/wiki') Roadmap and changelog
+
 
   script(src='/js/custom.js')
