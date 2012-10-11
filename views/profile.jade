@@ -22,10 +22,17 @@ block content
                       a(href='/games/#{game.slug}') #{game.title}
                     td #{game.date.toDateString()}
                     td
-                      for i in user.ratedGames
-                        if i.title == game.title
-                          =i.rating
-
+                      if game.rating == 0
+                        | You haven't rated this game yet
+                      else
+                        div(id='_'+game.slug)
+                        script(type='text/javascript')
+                          $('#_#{game.slug}').raty({
+                            round : { down: .25, full: .6, up: .76 },
+                            score: #{game.rating},
+                            readOnly: true,
+                            path: '/img/'
+                          });
         else
           .alert.alert-info You haven't purchased anything yet.
 

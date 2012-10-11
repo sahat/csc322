@@ -72,6 +72,7 @@ var request = require('request');
     purchasedGames: [{
       title: String,
       slug: String,
+      rating: { type: Number, default: 0 },
       date: { type: Date, default: Date.now() }
     }],
     ratedGames: [{
@@ -108,6 +109,7 @@ var request = require('request');
     weightedScore: Number,
     rating: Number,
     votes: Number,
+    votedPeople: [String],
     summary: String,
     description: String,
     price: String
@@ -341,19 +343,30 @@ app.get('/', function(req, res) {
 
 });
 
+
 app.post('/buy', function (req, res) {
+
   User.findOne({ email: req.session.user.email }, function (err, user) {
     Game.findOne({ slug: req.body.title }, function (err, game) {
-      user.purchasedGames.push({ title: game.title, slug: game.slug });
+
+      var rating = 0;
+
+      for (var i=0; i<user.ratedGames.length; i++) {
+        if (game.slug == user.ratedGames[i].slug) {
+          console.log("I have already voted on this game");
+          var rating = user.ratedGames[i].rating;
+        }
+      }
+      user.purchasedGames.push({ title: game.title, slug: game.slug, rating: rating });
       user.save();
+
     });
   });
   res.redirect('/games');
 });
 
-app.post('/games/rating', function (req, res) {
-  console.log(req.body.slug);
-  console.log(req.body.rating);
+
+app.post('/games/rating', function (req, res) {;
 
   Game.update({ 'slug': req.body.slug }, { $inc: { rating: req.body.rating, votes: 1 } }, function (err, game) {
     if (err) throw err;
@@ -362,8 +375,7 @@ app.post('/games/rating', function (req, res) {
 
   Game.findOne({ 'slug': req.body.slug }, function (err, game) {
     game.weightedScore = game.rating + req.body.rating * 1.5;
-
-    console.log(game.rating * req.session.user.weightCoefficient);
+    game.votedPeople.push(req.session.user.email);
 
     game.save(function (err) {
       if (err) throw err;
@@ -371,6 +383,14 @@ app.post('/games/rating', function (req, res) {
     });
 
     User.findOne({ email: req.session.user.email }, function (err, user) {
+
+      // if the user purchased the game, update rating in there as well
+      for (var i=0; i<user.purchasedGames.length; i++) {
+        if (user.purchasedGames[i].slug == req.body.slug) {
+          user.purchasedGames[i].rating = req.body.rating;
+        }
+      }
+
       user.ratedGames.push({ title: game.title, slug: game.slug, rating: req.body.rating });
       user.save();
     });
@@ -394,13 +414,17 @@ app.get('/games', function (req, res) {
 
   Game.find(function (err, games) {
     if (err) return;
+    User.findOne({ 'email': req.session.user.email }, function (err, user) {
 
-    res.render('games', {
-      heading: 'All Games',
-      lead: 'Game titles listed in alphabetical order',
-      user: req.session.user,
-      games: games
+
+      res.render('games', {
+        heading: 'All Games',
+        lead: 'Game titles listed in alphabetical order',
+        user: user,
+        games: games
+      });
     });
+
   });
 
 
@@ -429,44 +453,31 @@ app.get('/users', function (req, res) {
   }
 });
 
-// :id refers to whatever user types after www.ourwebsite.com/users/<id>
-// in our case, id = user's email address
 app.post('/users/:id', function (req, res) {
-  // Updates an instance of a user model in the database
-  // First parameter is finding the user we want to update, in this case find based on user's email
-  // Second parameter with $set specifies which fields we want to update
-  // Last parameter is a callback function that will execute once MongoDB updates specified fields
-  // Again we use a callback function because we don't know how long the update process will take
-  // and is therefore has to be done asynchronously so we don't block the main execution thread
-  //
-  // I broke apart parameters over multiple lines because we are updating many fields and it wouldn't
-  // fit in one line
 
-
-  // So we don't overwrite the existing password with a blank password if a user leaves password fields blank
-  if (!req.body.newpassword) {
-    var password = req.session.user.password;
-  }
-  console.log("Newer password" + password);
   console.log(req.body.firstName);
   console.log(req.body.lastName);
+  console.log(req.body.newpassword);
   console.log(req.body.blah);
-  User.update({'email': req.session.user.email }, {
-    firstName: req.body.firstName,
-    lastName: req.body.lastName,
-    password: password
-    }, function () {
-        User.findOne({ 'email': req.session.user.email }, function (err, user) {
-          if (err) return;
-          req.session.user = user;
-          res.render('profile', {
-            heading: 'Profile',
-            lead: 'View purchase history, update account...',
-            user: req.session.user,
-            message: req.session.message
-          });
+
+  User.findOne({ 'email': req.session.user.email }, function (err, user) {
+    user.firstName = req.body.firstName;
+    user.lastName = req.body.lastName;
+    user.password = (!req.body.newpassword) ? req.session.user.password : req.body.newpassword;
+
+    user.save();
+
+    req.session.user = user;
+
+    res.render('profile', {
+      heading: 'Profile',
+      lead: 'View purchase history, update account...',
+      user: req.session.user,
+      message: ""
     });
   });
+
+
 /*
   var user = User.findOne({ 'email': req.session.user.email }, function (err, user) {
     if (err) {
@@ -504,10 +515,6 @@ app.get('/users/:id', function (req, res) {
     User.findOne({ 'email': req.session.user.email }, function(err, user) {
       if (user) {
         console.log(user);
-
-        for (var i=0; i < user.purchasedGames.length; i++) {
-          console.log(user.purchasedGames[i]);
-        }
 
         res.render('profile', {
           heading: 'Profile',
