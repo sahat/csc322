@@ -129,21 +129,30 @@ $(document).ready(function() {
       counter++;
 
       if (counter == 1) {
+        humane.log('Two more interests');
+        /*
         $.meow({
           message: 'Thanks! We just need 2 more interests.'
         });
+        */
       }
 
       if (counter == 2) {
+        humane.log('One more interest');
+        /*
         $.meow({
           message: 'Alright! Just need 1 more interest.'
         });
+        */
       }
 
       if (counter == 3) {
+        humane.log('That is all we need, but feel free to add more interests');
+        /*
         $.meow({
           message: 'Great job! That\'s all we need. Feel free to add more items if you wish to do so!'
         });
+        */
       }
     }
   });

@@ -4,59 +4,30 @@ block content
   form#registration.form-horizontal(method='post')
     p
       != message
-    legend Order Information
-    .control-group
-      label.control-label(for='firstName') Purchase History
-      .controls
-        if user.purchasedGames.length > 0
-          table.table.table-condensed
-            thead
-              tr
-                th Title
-                th Purchase Date
-                th Your Rating
-              tbody
-                for game in user.purchasedGames
-                  tr
-                    td
-                      a(href='/games/#{game.slug}') #{game.title}
-                    td #{game.date.toDateString()}
-                    td
-                      if game.rating == 0
-                        | You haven't rated this game yet
-                      else
-                        div(id='_'+game.slug)
-                        script(type='text/javascript')
-                          $('#_#{game.slug}').raty({
-                            round : { down: .25, full: .6, up: .76 },
-                            score: #{game.rating},
-                            readOnly: true,
-                            path: '/img/'
-                          });
-        else
-          .alert.alert-info You haven't purchased anything yet.
 
 
+    .alert.alert-info
+      h4 Getting Started
+      div Before you proceed our recommendation engine requires that you input three or more game interests.
     legend Game Information
     .control-group
-      label.control-label(for='recommendation') My Interests
+      label.control-label(for='recommendation') My Interests*
       .controls
         input#recommendation(type='text', name='interests')
 
-    legend Personal Information
-    .control-group
-      label.control-label(for='firstName') First Name
-      .controls
-        input#firstName(value=user.firstName, name='firstName', type='text', placeholder='First Name')
-    .control-group
-          label.control-label(for='lastName') Last Name
-          .controls
-            input#lastName(value=user.lastName, name='lastName', type='text', placeholder='Last Name')
     legend Account Information
     .control-group
       label.control-label(for='userEmail') Email
       .controls
         input#userEmail(value=user.email, name='userEmail', type='text', placeholder='Email', disabled='disabled')
+    .control-group
+      label.control-label(for='firstName') First Name
+      .controls
+        input#firstName(value=user.firstName, name='firstName', type='text', placeholder='First Name')
+    .control-group
+      label.control-label(for='lastName') Last Name
+      .controls
+        input#lastName(value=user.lastName, name='lastName', type='text', placeholder='Last Name')
     .control-group
       label.control-label(for='newpassword') New Password
       .controls
@@ -68,3 +39,32 @@ block content
     .control-group
       .controls
         button.btn.btn-large.btn-primary(type='submit') Update
+
+  legend Order History
+  if user.purchasedGames.length > 0
+    table.table.table-condensed
+      thead
+        tr
+          th Title
+          th Purchase Date
+          th Your Rating
+        tbody
+          for game in user.purchasedGames
+            tr
+              td
+                a(href='/games/#{game.slug}') #{game.title}
+              td #{game.date.toDateString()}
+              td
+                if game.rating == 0
+                  | You haven't rated this game yet
+                else
+                  div(id='_'+game.slug)
+                  script(type='text/javascript')
+                    $('#_#{game.slug}').raty({
+                      round : { down: .25, full: .6, up: .76 },
+                      score: #{game.rating},
+                      readOnly: true,
+                      path: '/img/'
+                    });
+  else
+    .alert.alert-info You haven't purchased anything yet.
