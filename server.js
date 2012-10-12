@@ -84,7 +84,7 @@ var _ = require('underscore');
     }],
     email: { type: String, required: true, index: { unique: true } },
     password: String,
-    interests: [],
+    interests: [String],
     comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }]
   });
 
@@ -452,17 +452,23 @@ app.get('/account', function (req, res) {
     res.redirect('/');
   }
   User.findOne({ email: req.session.user.email }, function (err, user) {
+    Game.find(function (err, games) {
+      var tagArray = [];
+      _.each(games, function (game) {
+        tagArray.push(game.title)
+        console.log(game.title);
+      });
       req.session.user = user;
-
       res.render('profile', {
         heading: 'Profile',
         lead: 'View purchase history, update account, choose interests',
         interests: user.interests,
         user: req.session.user,
-        tags: user.interests,
+        tags: tagArray,
         tempPassword: req.session.tempPassword
       });
     });
+  });
 });
 
 app.post('/account', function (req, res) {
@@ -471,6 +477,7 @@ app.post('/account', function (req, res) {
       user.password = req.body.password;
       delete req.session.tempPassword;
     }
+
 
     console.log(req.body.tag);
 
@@ -487,12 +494,15 @@ app.post('/account', function (req, res) {
 
 app.post('/account/tags/add', function (req, res) {
   User.findOne({ 'email': req.session.user.email }, function (err, user) {
-
     _.each(req.body.tags, function (tag) {
       user.interests.push(tag);
     });
+    var flatArray = _.flatten(user.interests);
+    var uniqueArray = _.uniq(flatArray);
+    user.interests = uniqueArray;
+
     user.save(function() {
-      console.log('Api page updated');
+      console.log('Saved ' + uniqueArray);
     });
 
   });

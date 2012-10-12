@@ -28,7 +28,6 @@ block content
                   =game.description
 
             for person in game.votedPeople
-              p= person
               if person == user.email
                 script(type='text/javascript')
                   $('#_#{game.slug}').raty({

@@ -74,7 +74,7 @@ block content
 
 
   script(type='text/javascript')
-    var tags = '#{tags}'.split(',');
+    var tags = "#{tags}".split(',');
 
     $("#interests").tagit({
       allowSpaces: true,
@@ -87,8 +87,8 @@ block content
     });
 
     $("button[type=submit]").click(function () {
-      $.post('/account/api', { tags: $('#interests').tagit('assignedTags') }, function (data) {
-        alert("Data loaded: " + data);
+      $.post('/account/tags/add', { tags: $('#interests').tagit('assignedTags') }, function (data) {
+        console.log("Data loaded: " + data);
       });
     });
 
