@@ -75,13 +75,14 @@ block content
 
   script(type='text/javascript')
     var tags = '#{tags}'.split(',');
+
     $("#interests").tagit({
       allowSpaces: true,
       availableTags: tags,
       onTagRemoved: function (event, tag) {
-        $.post('/account/tags/remove', { tag: tag }, function(data) {
-          console.log('Tag Removed');
-        });
+        var tempTag = $(tag).text();
+        var myTag = tempTag.substring(0, tempTag.length-1);
+        $.post('/account/tags/remove', { removedTag: myTag });
       }
     });
 

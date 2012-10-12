@@ -485,8 +485,9 @@ app.post('/account', function (req, res) {
   });
 });
 
-app.post('/account/api', function (req, res) {
+app.post('/account/tags/add', function (req, res) {
   User.findOne({ 'email': req.session.user.email }, function (err, user) {
+
     _.each(req.body.tags, function (tag) {
       user.interests.push(tag);
     });
@@ -499,7 +500,15 @@ app.post('/account/api', function (req, res) {
 
 app.post('/account/tags/remove', function (req, res) {
   User.findOne({ 'email': req.session.user.email }, function (err, user) {
-    console.log(req.body.tag);
+
+    var index = user.interests.indexOf(req.body.removedTag);
+
+    user.interests.splice(index, 1);
+
+    user.save(function(err) {
+      console.log('Saved!');
+    })
+    console.log('Removed ' + req.body.removedTag + ' from interests.');
   });
 });
 

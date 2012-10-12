@@ -120,12 +120,6 @@ $('#login').validate({
 
 
 
-$.post("test.php", { name: "John", time: "2pm" },
-  function(data) {
-    alert("Data Loaded: " + data);
-  });
-
-
 var welcome = $('#welcome').html();
 var now = new Date();
 $('#welcome').html('<p class="lead" id="welcome">Today is <strong>' + now.toLocaleDateString() + '</strong></p>');
