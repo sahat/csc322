@@ -37,8 +37,6 @@
 // TODO: Users can remove their own comments
 // TODO: After 24 hours, user will be removed from the system
 
-// TODO: Humane.js notification (Jacked-up) for when the users logs-in 2nd time or more. (Orignal) for purchasing.
-
 
 var fs = require('fs');
 var express = require('express');
@@ -91,11 +89,10 @@ var _ = require('underscore');
   // Comment schema
   var Comment = new mongoose.Schema({
     creator: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    body: String,
-    date: Date,
-    likes: Number,
-    dislikes: Number,
-    flagged: Boolean
+    game: { type: mongoose.Schema.Types.ObjectId, ref: 'Game' },
+    body: {type: String, required: true },
+    date: {type: Date, default: Date.now },
+    flagged: { type: Boolean, default: false }
   });
 
   // Here we create a schema called Game with the following fields.
@@ -171,6 +168,7 @@ User.methods.comparePassword = function(candidatePassword, callback) {
 
 var User = mongoose.model('User', User);
 var Game = mongoose.model('Game', Game);
+var Comment = mongoose.model('Comment', Comment);
 
 /*
   ____       _   _   _
@@ -412,29 +410,39 @@ app.get('/games/api', function (req, res) {
 
 
 app.get('/games', function (req, res) {
-
-
   Game.find(function (err, games) {
     if (err) return;
-    User.findOne({ 'email': req.session.user.email }, function (err, user) {
-
-
+    if (typeof req.session.user != 'undefined') {
+      User.findOne({ 'email': req.session.user.email }, function (err, user) {
+        res.render('games', {
+          heading: 'All Games',
+          lead: 'Game titles listed in alphabetical order',
+          user: user,
+          games: games
+        });
+      });
+    } else {
+      console.log("I AM HERE");
       res.render('games', {
         heading: 'All Games',
         lead: 'Game titles listed in alphabetical order',
-        user: user,
         games: games
       });
-    });
+    }
 
   });
 
 
 });
 
-app.get('/games/:slug', function (req, res) {
-
-  Game.findOne({ 'slug': req.params.slug }, function (err, game) {
+app.get('/games/:detail', function (req, res) {
+  Game.findOne({ 'slug': req.params.detail }, function (err, game) {
+    Comment
+      .findOne({ creator: req.session.user._id })
+      .exec(function (err, comment) {
+        if (err) return err;
+        console.log('The creator is %s', comment); // prints "The creator is Aaron"
+      });
 
     res.render('detail', {
       heading: game.title,
@@ -442,9 +450,25 @@ app.get('/games/:slug', function (req, res) {
       summary: game.summary,
       user: req.session.user
     });
-
   });
+});
 
+
+app.post('/games/:detail', function (req, res) {
+  console.log(req.body.comment);
+  User.findOne({ email: req.session.user.email }, function (err, user) {
+    Game.findOne({ slug: req.params.detail }, function (err, game) {
+      var comment = new Comment({
+        creator: user._id,
+        game: game._id,
+        body: req.body.comment
+      });
+      comment.save(function () {
+        console.log('Saved comment to database');
+      });
+      res.redirect('/games/' + req.params.detail);
+    });
+  });
 });
 
 app.get('/account', function (req, res) {
