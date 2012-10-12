@@ -50,7 +50,8 @@ var RedisStore = require('connect-redis')(express);
 var moment = require('moment');
 var jsdom = require('jsdom');
 var request = require('request');
-
+var io = require('socket.io');
+var _ = require('underscore');
 /*
   __  __                         ____  ____
  |  \/  | ___  _ __   __ _  ___ |  _ \| __ )
@@ -82,8 +83,8 @@ var request = require('request');
       date: { type: Date, default: Date.now() }
     }],
     email: { type: String, required: true, index: { unique: true } },
-    password: { type: String },
-    interests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Game' }],
+    password: String,
+    interests: [],
     comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }]
   });
 
@@ -400,12 +401,13 @@ app.post('/games/rating', function (req, res) {;
 });
 
 
-app.get('/api/games', function (req, res) {
-  Game.find(function (err, games) {
-    if (err) throw err;
-
-    res.send(games);
-  });
+app.get('/games/api', function (req, res) {
+  Game
+    .find()
+    .select('_id title')
+    .exec(function (err, games) {
+      res.send(games);
+    });
 });
 
 
@@ -449,17 +451,18 @@ app.get('/account', function (req, res) {
   if (!req.session.user) {
     res.redirect('/');
   }
+  User.findOne({ email: req.session.user.email }, function (err, user) {
+      req.session.user = user;
 
-  User.findOne({ 'email': req.session.user.email }, function (err, user) {
-    req.session.user = user;
-    res.render('profile', {
-      heading: 'Profile',
-      lead: 'View purchase history, update account...',
-      user: req.session.user,
-      tempPassword: req.session.tempPassword
-
+      res.render('profile', {
+        heading: 'Profile',
+        lead: 'View purchase history, update account, choose interests',
+        interests: user.interests,
+        user: req.session.user,
+        tags: user.interests,
+        tempPassword: req.session.tempPassword
+      });
     });
-  });
 });
 
 app.post('/account', function (req, res) {
@@ -468,18 +471,39 @@ app.post('/account', function (req, res) {
       user.password = req.body.password;
       delete req.session.tempPassword;
     }
+
+    console.log(req.body.tag);
+
     user.firstName = req.body.firstName;
     user.lastName = req.body.lastName;
     user.password = (!req.body.newpassword) ? req.session.user.password : req.body.newpassword;
-    user.save();
-    req.session.user = user;
-    res.render('profile', {
-      heading: 'Profile',
-      lead: 'View purchase history, update account...',
-      user: req.session.user
+    user.save(function() {
+      console.log('Account Page has been updated');
     });
+    req.session.user = user;
+    res.redirect('/account')
   });
 });
+
+app.post('/account/api', function (req, res) {
+  User.findOne({ 'email': req.session.user.email }, function (err, user) {
+    _.each(req.body.tags, function (tag) {
+      user.interests.push(tag);
+    });
+    user.save(function() {
+      console.log('Api page updated');
+    });
+
+  });
+});
+
+app.post('/account/tags/remove', function (req, res) {
+  User.findOne({ 'email': req.session.user.email }, function (err, user) {
+    console.log(req.body.tag);
+  });
+});
+
+
 
 app.get('/logout', function(req, res) {
   req.session.destroy(function(){

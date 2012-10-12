@@ -117,58 +117,17 @@ $('#login').validate({
   }
 });
 
-$(document).ready(function() {
 
-  var counter = 0;
 
-  $('#recommendation').tokenInput("http://localhost:3000/api/games", {
-    preventDuplicates: true,
-    propertyToSearch: 'title',
 
-    onAdd: function (item) {
-      counter++;
-
-      if (counter == 1) {
-        humane.log('Two more interests');
-        /*
-        $.meow({
-          message: 'Thanks! We just need 2 more interests.'
-        });
-        */
-      }
-
-      if (counter == 2) {
-        humane.log('One more interest');
-        /*
-        $.meow({
-          message: 'Alright! Just need 1 more interest.'
-        });
-        */
-      }
-
-      if (counter == 3) {
-        humane.log('That is all we need, but feel free to add more interests');
-        /*
-        $.meow({
-          message: 'Great job! That\'s all we need. Feel free to add more items if you wish to do so!'
-        });
-        */
-      }
-    }
+$.post("test.php", { name: "John", time: "2pm" },
+  function(data) {
+    alert("Data Loaded: " + data);
   });
-});
-
-$(document).ready(function() {
-  $("button[type=submit]").click(function () {
-    var selected = $('#recommendation').tokenInput('get');
-    console.log(selected);
-  });
-});
 
 
 var welcome = $('#welcome').html();
 var now = new Date();
-
 $('#welcome').html('<p class="lead" id="welcome">Today is <strong>' + now.toLocaleDateString() + '</strong></p>');
 setTimeout(function() {
   $("#welcome").fadeOut(400, function() {
@@ -176,4 +135,5 @@ setTimeout(function() {
     $('#welcome').fadeIn(400);
   });
 }, 2000);
+
 
