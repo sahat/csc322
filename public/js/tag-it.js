@@ -33,7 +33,7 @@
             availableTags     : [],
             tagSource         : null,
             removeConfirmation: false,
-            caseSensitive     : true,
+            caseSensitive     : false,
             placeholderText   : null,
 
             // When enabled, quotes are not neccesary

@@ -34,3 +34,8 @@ a:active {
 .table td {
   border-top: none;
 }
+
+.left-table-border {
+  border-left: 5px solid #eeeeee;
+  padding-right: 15px;
+}

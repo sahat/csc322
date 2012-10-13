@@ -13,9 +13,6 @@
 // TODO: Meow notification on Purchase post request
 // TODO: Send e-mail confirmation on purchase
 // TODO: Allow purchase only once; check if item is purchased on each request
-// TODO: Display purchased items in the profile
-
-// ??? TODO: Ratings have low and high weight depending if the user has purchased the game or not.
 
 // TODO: Per session, keep track how many times user voted, and the average rating of the votes
 // TODO: IF voteCount >= 5 and avg_rating <= 1, increment flag by 1
@@ -66,6 +63,7 @@ var _ = require('underscore');
   // Here we create a schema called User with the following fields.
   // Each field requires a type and optional additional properties, e.g. unique field? required field?
   var User = new mongoose.Schema({
+    userName: { type: String, required: true, index: { unique: true } },
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
     purchasedGames: [{
@@ -80,7 +78,7 @@ var _ = require('underscore');
       rating: Number,
       date: { type: Date, default: Date.now() }
     }],
-    email: { type: String, required: true, index: { unique: true } },
+    email: { type: String, required: true },
     password: String,
     interests: [String],
     comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }]
@@ -375,21 +373,18 @@ app.post('/games/rating', function (req, res) {;
   Game.findOne({ 'slug': req.body.slug }, function (err, game) {
     game.weightedScore = game.rating + req.body.rating * 1.5;
     game.votedPeople.push(req.session.user.email);
-
     game.save(function (err) {
       if (err) throw err;
       console.log('successfully set average rating');
     });
 
     User.findOne({ email: req.session.user.email }, function (err, user) {
-
       // if the user purchased the game, update rating in there as well
       for (var i=0; i<user.purchasedGames.length; i++) {
         if (user.purchasedGames[i].slug == req.body.slug) {
           user.purchasedGames[i].rating = req.body.rating;
         }
       }
-
       user.ratedGames.push({ title: game.title, slug: game.slug, rating: req.body.rating });
       user.save();
     });
@@ -429,10 +424,7 @@ app.get('/games', function (req, res) {
         games: games
       });
     }
-
   });
-
-
 });
 
 app.get('/games/:detail', function (req, res) {
@@ -475,14 +467,13 @@ app.get('/account', function (req, res) {
   if (!req.session.user) {
     res.redirect('/');
   }
-  User.findOne({ email: req.session.user.email }, function (err, user) {
+  User.findOne({ userName: req.session.user.userName }, function (err, user) {
     Game.find(function (err, games) {
       var tagArray = [];
       _.each(games, function (game) {
         tagArray.push(game.title)
-        console.log(game.title);
       });
-      req.session.user = user;
+      console.log('interests from DB: ' + user.interests);
       res.render('profile', {
         heading: 'Profile',
         lead: 'View purchase history, update account, choose interests',
@@ -496,23 +487,18 @@ app.get('/account', function (req, res) {
 });
 
 app.post('/account', function (req, res) {
-  User.findOne({ 'email': req.session.user.email }, function (err, user) {
-    if (req.session.tempPassword) {
-      user.password = req.body.password;
-      delete req.session.tempPassword;
-    }
-
-
-    console.log(req.body.tag);
-
+  User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
     user.firstName = req.body.firstName;
     user.lastName = req.body.lastName;
     user.password = (!req.body.newpassword) ? req.session.user.password : req.body.newpassword;
-    user.save(function() {
-      console.log('Account Page has been updated');
+    if (req.body.newpassword) {
+      user.password = req.body.newpassword;
+      delete req.session.tempPassword;
+    }
+    user.save(function(err) {
+      req.session.user = user;
+      res.redirect('/account')
     });
-    req.session.user = user;
-    res.redirect('/account')
   });
 });
 
@@ -561,11 +547,8 @@ app.get('/login', function(req, res) {
   res.render('login', {
     heading: 'Sign In',
     lead: 'Use the login form if you are an existing user',
-    registrationSuccessful: false,
-    userNotFound: false,
-    incorrectPassword: false,
     user: req.session.user,
-    message: req.session.message
+    message: { success: req.session.message }
   });
 });
 
@@ -604,11 +587,11 @@ app.post('/login', function (req, res) {
   });
 });
 
+
 app.get('/register', function(req, res) {
   if (req.session.user) {
     res.redirect('/');
   }
-
   res.render('register', {
     heading: 'Create Account',
     lead: 'Register with us to get your own personalized profile',
@@ -616,52 +599,30 @@ app.get('/register', function(req, res) {
   });
 });
 
+
 app.post('/register', function(req, res) {
-  // Query the database to see if email is available
-  User.findOne({ 'email': req.body.userEmail }, function(err, user) {
-    if (!err) {
-      if (user) { // There's a user with a given email already
-        req.session.message = '<div class="alert alert-error fade in">' +
-          '<strong>Oh snap. </strong>' + 'Email address is not available.' + '</div>';
-        res.render('register', { // Re-render the same page but with emailIsUnavalable set to true
-          heading: 'Create Account',
-          lead: 'Register with us to get your own personalized profile',
-          message: req.session.message
-        });
-      }
-    }
-  });
-
-  function randomPassword () {
-    var chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz";
-    var string_length = 4;
-    var randomstring = '';
-    for (var i=0; i<string_length; i++) {
-      var rnum = Math.floor(Math.random() * chars.length);
-      randomstring += chars.substring(rnum,rnum+1);
-    }
-    return randomstring;
-  };
-
-  req.session.tempPassword = randomPassword();
-
-  var user = new User({           // Create a new Mongoose model instance
+  var firstLetterOfFirstName = req.body.firstName[0].toLowerCase();
+  var lastName = req.body.lastName.toLowerCase();
+  var randomNumber = Math.floor(Math.random() * 1000);
+  var userName = firstLetterOfFirstName + lastName + randomNumber;
+  var user = new User({
+    userName: userName,
+    password: userName,
     firstName: req.body.firstName,
     lastName: req.body.lastName,
-    email: req.body.userEmail,   // Set email field to the email input
-    password: req.session.tempPassword
+    email: req.body.userEmail
   });
-
-  user.save(function(err) {        // Save the model instance to database
-    if (!err) {
-      req.session.message = '<div class="alert alert-success fade in">' +
-        '<strong>Success! ' + '</strong>' + 'Your temporary password is ' + req.session.tempPassword  + '</div>';
-// If nothing went wrong save has been successful
-      res.redirect('/login');
+  user.save(function (err) {
+    if (err) {
+      res.send(500, 'Halt: Duplicate Username Detected');
+    } else {
+      req.session.user = user;
+      req.session.tempPassword = true;
+      res.redirect('/account');
     }
   });
-
 });
+
 
 var server = http.createServer(app).listen(app.get('port'), function() {
   console.log('Express server listening on port ' + app.get('port'));

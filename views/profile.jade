@@ -1,28 +1,23 @@
 extends layout
 
 block content
+  if tempPassword
+    br
+    .alert.alert-danger
+      strong Important Announcement
+      div You must change your password before continuing!
+
   form#registration.form-horizontal(method='post')
     br
-    if typeof(tempPassword) != 'undefined'
-      .alert.alert-danger
-        h4 Important Announcement
-        div You must change your password before continuing!
-
-    .alert.alert-success
-      h4 Getting Started
-      div Before you proceed our recommendation engine requires that you input three or more game interests.
-    legend Game Information
-    .control-group
-      .controls
+    div.lead#getting-started Type your interests below to get started...
     ul#interests
-      for i in user.interests
+      for i in interests
         li= i
-
     legend Account Information
     .control-group
-      label.control-label(for='userEmail') Email
+      label.control-label(for='userName') Username
       .controls
-        input#userEmail(value=user.email, name='userEmail', type='text', placeholder='Email', disabled='disabled')
+        input#userName(value=user.userName, name='userName', type='text', placeholder='Username', disabled='disabled')
     .control-group
       label.control-label(for='firstName') First Name
       .controls
@@ -31,6 +26,10 @@ block content
       label.control-label(for='lastName') Last Name
       .controls
         input#lastName(value=user.lastName, name='lastName', type='text', placeholder='Last Name')
+    .control-group
+      label.control-label(for='userEmail') Email
+      .controls
+        input#userEmail(value=user.email, name='userEmail', type='text', placeholder='Email')
     .control-group
       label.control-label(for='newpassword') New Password
       .controls
@@ -41,7 +40,7 @@ block content
         input#newconfirm(name='newconfirm', type='password', placeholder='Confirm Password')
     .control-group
       .controls
-        button.btn.btn-large.btn-primary(type='submit') Update
+        button.btn.btn-primary.btn-large(type='submit') Update Profile
 
   legend Order History
   if user.purchasedGames.length > 0
@@ -74,22 +73,79 @@ block content
 
 
   script(type='text/javascript')
-    var tags = "#{tags}".split(',');
-
-    $("#interests").tagit({
-      allowSpaces: true,
-      availableTags: tags,
-      onTagRemoved: function (event, tag) {
-        var tempTag = $(tag).text();
-        var myTag = tempTag.substring(0, tempTag.length-1);
-        $.post('/account/tags/remove', { removedTag: myTag });
+    $(document).ready(function() {
+      if ($('#interests li').length == 0) {
+        var tagCount = 0;
+      } else {
+        var tagCount = $('#interests li').length - 1;
       }
-    });
 
-    $("button[type=submit]").click(function () {
-      $.post('/account/tags/add', { tags: $('#interests').tagit('assignedTags') }, function (data) {
-        console.log("Data loaded: " + data);
+      $("#interests").tagit({
+        allowSpaces: true,
+        availableTags: "#{tags}".split(','),
+        onTagRemoved: function (event, tag) {
+          if (tagCount == 0) {
+            $('#getting-started').fadeOut(200, function() {
+              $(this).text('Type your interests below to get started...').fadeIn(200);
+            });
+          }
+          if (tagCount == 1) {
+            $('#getting-started').fadeOut(200, function() {
+              $(this).text('We need two more interests.').fadeIn(200);
+            });
+          }
+          if (tagCount == 2) {
+            $('#getting-started').fadeOut(200, function() {
+              $(this).text('One more interest.').fadeIn(200);
+            });
+          }
+          if (tagCount == 3) {
+            $('#getting-started').fadeOut(200, function() {
+              $(this).text('Thanks! Please feel free to add more interests if you wish.').fadeIn(200);
+            });
+          }
+          if (tagCount > 3) {
+            $('#getting-started').hide();
+          }
+          var tempTag = $(tag).text();
+          var myTag = tempTag.substring(0, tempTag.length-1);
+          $.post('/account/tags/remove', { removedTag: myTag });
+        },
+        onTagAdded: function (event, tag) {
+          if (tagCount == 0) {
+            $('#getting-started').fadeOut(200, function() {
+              $(this).text('Type your interests below to get started...').fadeIn(200);
+            });
+          }
+          if (tagCount == 1) {
+            $('#getting-started').fadeOut(200, function() {
+              $(this).text('We need two more interests.').fadeIn(200);
+            });
+          }
+          if (tagCount == 2) {
+            $('#getting-started').fadeOut(200, function() {
+              $(this).text('One more interest.').fadeIn(200);
+            });
+          }
+          if (tagCount == 3) {
+            $('#getting-started').fadeOut(200, function() {
+              $(this).text('Thanks! Please feel free to add more interests if you wish.').fadeIn(200);
+            });
+          }
+          if (tagCount > 3) {
+            $('#getting-started').hide();
+          }
+        }
+      });
+
+      $("button[type=submit]").click(function () {
+        $.post('/account/tags/add', { tags: $('#interests').tagit('assignedTags') }, function (data) {
+          console.log("Data loaded: " + data);
+        });
       });
     });
+
+
+
 
 

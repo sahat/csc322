@@ -46,9 +46,11 @@ block content
   .alert.alert-info
     h4 42 Comments
     div Feel free to leave a comment below about the game. We only ask you to be civil.
+
   table
     tbody
       tr
+        td.left-table-border(rowspan=4)
         td
           strong Sahat Yalkabov
           |  says:
@@ -57,16 +59,18 @@ block content
           small.muted October 11, 2012
       tr
         td
-          blockquote Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam pulvinar semper mauris. In orci odio, pharetra ac laoreet eu, tristique in justo. Donec in nulla id magna mollis volutpat eu volutpat dui. Cras sollicitudin convallis leo, non rhoncus velit blandit sit amet. Duis sollicitudin purus in arcu dapibus fermentum. Pellentesque eu pharetra turpis. Pellentesque aliquam, tellus eget pharetra scelerisque, mi tellus euismod libero, in commodo est urna sit amet tellus. Aliquam mi lorem, cursus et interdum a, suscipit at est. Ut euismod varius est, nec feugiat nisl tempus tincidunt. Nam blandit massa at leo facilisis vitae elementum eros fringilla.
+          | Pellentesque eu pharetra turpis. Pellentesque aliquam, tellus eget pharetra scelerisque, mi tellus euismod libero, in commodo est urna sit amet tellus. Aliquam mi lorem, cursus et interdum a, suscipit at est. Ut euismod varius est, nec feugiat nisl tempus tincidunt. Nam blandit massa at leo facilisis vitae elementum eros fringilla.
       tr
         td
           a(href='#')
-            | Report
+            small Report
 
   br
+
   table
     tbody
       tr
+        td.left-table-border(rowspan=4)
         td
           strong Sahat Yalkabov
           |  says:
@@ -75,16 +79,18 @@ block content
           small.muted October 11, 2012
       tr
         td
-          blockquote Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam pulvinar semper mauris. In orci odio, pharetra ac laoreet eu, tristique in justo. Donec in nulla id magna mollis volutpat eu volutpat dui. Cras sollicitudin convallis leo, non rhoncus velit blandit sit amet. Duis sollicitudin purus in arcu dapibus fermentum. Pellentesque eu pharetra turpis. Pellentesque aliquam, tellus eget pharetra scelerisque, mi tellus euismod libero, in commodo est urna sit amet tellus. Aliquam mi lorem, cursus et interdum a, suscipit at est. Ut euismod varius est, nec feugiat nisl tempus tincidunt. Nam blandit massa at leo facilisis vitae elementum eros fringilla.
+          | Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam pulvinar semper mauris. In orci odio, pharetra ac laoreet eu, tristique in justo. Donec in nulla id magna mollis volutpat eu volutpat dui. Cras sollicitudin convallis leo, non rhoncus velit blandit sit amet. Duis sollicitudin purus in arcu dapibus fermentum. Pellentesque eu pharetra turpis. Pellentesque aliquam, tellus eget pharetra scelerisque, mi tellus euismod libero, in commodo est urna sit amet tellus. Aliquam mi lorem, cursus et interdum a, suscipit at est. Ut euismod varius est, nec feugiat nisl tempus tincidunt. Nam blandit massa at leo facilisis vitae elementum eros fringilla.
       tr
         td
           a(href='#')
-            | Report
+            small Report
 
   br
+
   table
     tbody
       tr
+        td.left-table-border(rowspan=4)
         td
           strong Sahat Yalkabov
           |  says:
@@ -93,17 +99,29 @@ block content
           small.muted October 11, 2012
       tr
         td
-          blockquote This is a demo comment.
+          | This is a demo comment.
       tr
         td
           a(href='#')
-            | Report
-
-  h4 Leave a comment
-  form(method='post')
-    .controls
-      textarea.span5(rows=5, name='comment')
-    .controls
-      button.m-btn.blue(type='submit') Post Comment
+            small Report
 
 
+  br
+
+  .alert.alert-warning
+    h4 Login Required
+    div Please sign-in if you would like to leave a comment.
+
+  if !user
+    .alert.alert-warning
+      h4 Login Required
+      div Please sign-in if you would like to leave a comment.
+  else
+    h4 Leave a comment
+    form(method='post')
+      .controls
+        textarea.span5(rows=5, name='comment')
+      .controls
+        button.m-btn.blue(type='submit')
+          i.icon-comment.icon-white
+          |  Leave Comment
