@@ -36,6 +36,9 @@ $('#registration').validate({
     }
   },
   messages: {
+    userName: {
+      required: "Enter your username"
+    },
     firstName: {
       required: "Enter your first name"
     },
@@ -91,13 +94,12 @@ $('#registration').validate({
 
 $('#login').validate({
   rules: {
-    userEmail: { required: true, email: true },
+    userName: { required: true },
     password: { required: true }
   },
   messages: {
-    userEmail: {
-      required: "Enter your email address",
-      email: "Enter valid email address"
+    userName: {
+      required: "Enter your username"
     },
     password: {
       required: "Enter your password"

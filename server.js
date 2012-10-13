@@ -431,8 +431,10 @@ app.get('/games/:detail', function (req, res) {
   Game.findOne({ 'slug': req.params.detail }, function (err, game) {
     Comment
       .find({ game: game._id })
+      .populate('creator')
       .exec(function (err, comments) {
         if (err) return err;
+
         res.render('detail', {
           heading: game.title,
           lead: game.publisher,
@@ -548,42 +550,28 @@ app.get('/login', function(req, res) {
     heading: 'Sign In',
     lead: 'Use the login form if you are an existing user',
     user: req.session.user,
+    incorrectLogin: req.session.incorrectLogin,
     message: { success: req.session.message }
   });
 });
 
 app.post('/login', function (req, res) {
-  var user = User.findOne({ 'userName': req.body.userName }, function (err, user) {
+  User.findOne({ 'userName': req.body.userName }, function (err, user) {
     if (!user) {
-      req.session.message = '<div class="alert alert-error fade in">' + '<strong>Oops. </strong>' + 'No Such user in the database.' + '</div>';
+      req.session.incorrectLogin = true;
       res.redirect('/login');
-    }
-
-    user.comparePassword(req.body.password, function(err, isMatch) {
-      if (err) throw err;
-
-      if (isMatch) {
-        console.log(req.body.password.length);
-
-        if (req.body.password.length < 6) {
-          req.session.message = '<div class="alert alert-error fade in">' + '<strong>Important! </strong>' + 'Please change the temporary password right away.' + '</div>';
-          req.session.user = user;
-          res.redirect('/account');
-
-        } else {
+    } else {
+      user.comparePassword(req.body.password, function(err, isMatch) {
+        if (isMatch) {
+          delete session.incorrectLogin;
           req.session.user = user;
           res.redirect('/');
+        } else {
+          req.session.incorrectLogin = true;
+          res.redirect('/login');
         }
-
-      } else {
-        req.session.message = '<div class="alert alert-error fade in">' +
-          '<strong>Sorry. </strong>' + 'The password is incorrect.' + '</div>';
-        console.log('invalid password')
-        res.redirect('/login');
-      }
-
-      console.log(req.body.password, isMatch); // -> Password123: true
-    });
+      });
+    }
   });
 });
 

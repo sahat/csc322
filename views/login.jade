@@ -4,16 +4,17 @@ block content
   form#login.form-horizontal(method='post')
     legend Login
     .control-group
-      if (message == 'OK')
-        .alert.alert-success
-          h4
+      if (incorrectLogin)
+        .alert.alert-danger
+          h4 Uh-oh :(
+          div It looks like the username and/or the password is incorrect.
       label.control-label(for='userName') Username
       .controls
-        input.m-wrap.m-ctrl#userName(name='userName', type='text', placeholder='Username', autofocus='autofocus')
+        input#userName(name='userName', type='text', autofocus='autofocus')
     .control-group
       label.control-label(for='password') Password
       .controls
-        input.m-wrap.m-ctrl#password(name='password', type='password', placeholder='Password')
+        input#password(name='password', type='password')
     .control-group
       .controls
         button.btn.btn-primary(type='submit') Sign in
