@@ -92,6 +92,7 @@ $('#registration').validate({
   }
 });
 
+
 $('#login').validate({
   rules: {
     userName: { required: true },
@@ -103,6 +104,31 @@ $('#login').validate({
     },
     password: {
       required: "Enter your password"
+    }
+  },
+  errorClass: "help-inline",
+  errorElement: "span",
+  highlight: function (element, errorClass, validClass) {
+    $(element)
+      .parents('.control-group')
+      .addClass('error');
+  },
+  unhighlight: function (element, errorClass, validClass) {
+    $(element)
+      .parents('.control-group')
+      .removeClass('error');
+  }
+});
+
+$('#comment').validate({
+  rules: {
+    comment: {
+      required: true
+    }
+  },
+  messages: {
+    comment: {
+      required: ""
     }
   },
   errorClass: "help-inline",

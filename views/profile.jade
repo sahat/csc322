@@ -3,9 +3,11 @@ extends layout
 block content
   if tempPassword
     br
-    .alert.alert-danger
-      strong Important Announcement
-      div You must change your password before continuing!
+    .alert.alert-error
+      h4 Important Announcement
+      div You must select a new password and add at least
+        strong  three interests
+        |  before continuing!
 
   form#registration.form-horizontal(method='post')
     br
@@ -114,7 +116,7 @@ block content
         }
         var tempTag = $(tag).text();
         var myTag = tempTag.substring(0, tempTag.length-1);
-        $.post('/account/tags/remove', { removedTag: myTag });
+        $.post('/account/tag/delete', { removedTag: myTag });
       },
       onTagAdded: function (event, tag) {
         tagCount++;
@@ -145,7 +147,7 @@ block content
     });
 
     $("button[type=submit]").click(function () {
-      $.post('/account/tags/add', { tags: $('#interests').tagit('assignedTags') }, function (data) {
+      $.post('/account/tag/add', { tags: $('#interests').tagit('assignedTags') }, function (data) {
         console.log("Data loaded: " + data);
       });
     });

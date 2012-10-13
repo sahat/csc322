@@ -3,7 +3,14 @@
 
 // TODO: Visitor can read other's comments and report a complaint about a comment
 
+
+
+
+///
 // TODO: Only users can buy/rate/leave-comments on games
+///
+
+
 // TODO: Super-user can do everything user can do + additional privileges
 
 // TODO: During registration user must select at least 3 criteria of interest
@@ -88,6 +95,7 @@ var _ = require('underscore');
   var Comment = new mongoose.Schema({
     creator: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     game: { type: mongoose.Schema.Types.ObjectId, ref: 'Game' },
+    likes: { count: { type: Number }, user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' } },
     body: {type: String, required: true },
     date: {type: Date, default: Date.now },
     flagged: { type: Boolean, default: false }
@@ -320,6 +328,9 @@ app.get('/add_game', function (req, res) {
 });
 
 app.get('/', function(req, res) {
+  if (req.session.tempPassword || req.session.user.interests.length < 3) {
+    return res.redirect('/account');
+  }
 
   Game
     .find()
@@ -405,6 +416,10 @@ app.get('/games/api', function (req, res) {
 
 
 app.get('/games', function (req, res) {
+  if (req.session.tempPassword || req.session.user.interests.length < 3) {
+    return res.redirect('/account');
+  }
+
   Game.find(function (err, games) {
     if (err) return;
     if (typeof req.session.user != 'undefined') {
@@ -428,13 +443,14 @@ app.get('/games', function (req, res) {
 });
 
 app.get('/games/:detail', function (req, res) {
+  if (req.session.tempPassword || req.session.user.interests.length < 3) {
+    return res.redirect('/account');
+  }
   Game.findOne({ 'slug': req.params.detail }, function (err, game) {
     Comment
       .find({ game: game._id })
       .populate('creator')
       .exec(function (err, comments) {
-        if (err) return err;
-
         res.render('detail', {
           heading: game.title,
           lead: game.publisher,
@@ -467,15 +483,15 @@ app.post('/games/:detail', function (req, res) {
 
 app.get('/account', function (req, res) {
   if (!req.session.user) {
-    res.redirect('/');
+    return res.redirect('/login');
   }
+
   User.findOne({ userName: req.session.user.userName }, function (err, user) {
     Game.find(function (err, games) {
       var tagArray = [];
       _.each(games, function (game) {
         tagArray.push(game.title)
       });
-      console.log('interests from DB: ' + user.interests);
       res.render('profile', {
         heading: 'Profile',
         lead: 'View purchase history, update account, choose interests',
@@ -504,7 +520,23 @@ app.post('/account', function (req, res) {
   });
 });
 
-app.post('/account/tags/add', function (req, res) {
+
+app.post('/account/tag/add', function (req, res) {
+  User.findOne({ 'email': req.session.user.email }, function (err, user) {
+
+    var index = user.interests.indexOf(req.body.removedTag);
+
+    user.interests.splice(index, 1);
+
+    user.save(function(err) {
+      console.log('Saved!');
+    })
+    console.log('Removed ' + req.body.removedTag + ' from interests.');
+  });
+});
+
+
+app.post('/account/tag/delete', function (req, res) {
   User.findOne({ 'email': req.session.user.email }, function (err, user) {
     _.each(req.body.tags, function (tag) {
       user.interests.push(tag);
@@ -520,24 +552,9 @@ app.post('/account/tags/add', function (req, res) {
   });
 });
 
-app.post('/account/tags/remove', function (req, res) {
-  User.findOne({ 'email': req.session.user.email }, function (err, user) {
-
-    var index = user.interests.indexOf(req.body.removedTag);
-
-    user.interests.splice(index, 1);
-
-    user.save(function(err) {
-      console.log('Saved!');
-    })
-    console.log('Removed ' + req.body.removedTag + ' from interests.');
-  });
-});
-
-
 
 app.get('/logout', function(req, res) {
-  req.session.destroy(function(){
+  req.session.destroy(function (){
     res.redirect('/');
   });
 });
@@ -563,7 +580,7 @@ app.post('/login', function (req, res) {
     } else {
       user.comparePassword(req.body.password, function(err, isMatch) {
         if (isMatch) {
-          delete session.incorrectLogin;
+          delete req.session.incorrectLogin;
           req.session.user = user;
           res.redirect('/');
         } else {
