@@ -73,77 +73,83 @@ block content
 
 
   script(type='text/javascript')
-    $(document).ready(function() {
-      if ($('#interests li').length == 0) {
-        var tagCount = 0;
-      } else {
+    var tagCount;
+    if ($('#interests li').length == 0) {
+      tagCount = 0;
+    } else {
+      tagCount = $('#interests li').length - 1;
+    }
+
+    $("#interests").tagit({
+      allowSpaces: true,
+      availableTags: "#{tags}".split(','),
+      onTagRemoved: function (event, tag) {
         var tagCount = $('#interests li').length - 1;
-      }
-
-      $("#interests").tagit({
-        allowSpaces: true,
-        availableTags: "#{tags}".split(','),
-        onTagRemoved: function (event, tag) {
-          if (tagCount == 0) {
-            $('#getting-started').fadeOut(200, function() {
-              $(this).text('Type your interests below to get started...').fadeIn(200);
-            });
-          }
-          if (tagCount == 1) {
-            $('#getting-started').fadeOut(200, function() {
-              $(this).text('We need two more interests.').fadeIn(200);
-            });
-          }
-          if (tagCount == 2) {
-            $('#getting-started').fadeOut(200, function() {
-              $(this).text('One more interest.').fadeIn(200);
-            });
-          }
-          if (tagCount == 3) {
-            $('#getting-started').fadeOut(200, function() {
-              $(this).text('Thanks! Please feel free to add more interests if you wish.').fadeIn(200);
-            });
-          }
-          if (tagCount > 3) {
-            $('#getting-started').hide();
-          }
-          var tempTag = $(tag).text();
-          var myTag = tempTag.substring(0, tempTag.length-1);
-          $.post('/account/tags/remove', { removedTag: myTag });
-        },
-        onTagAdded: function (event, tag) {
-          if (tagCount == 0) {
-            $('#getting-started').fadeOut(200, function() {
-              $(this).text('Type your interests below to get started...').fadeIn(200);
-            });
-          }
-          if (tagCount == 1) {
-            $('#getting-started').fadeOut(200, function() {
-              $(this).text('We need two more interests.').fadeIn(200);
-            });
-          }
-          if (tagCount == 2) {
-            $('#getting-started').fadeOut(200, function() {
-              $(this).text('One more interest.').fadeIn(200);
-            });
-          }
-          if (tagCount == 3) {
-            $('#getting-started').fadeOut(200, function() {
-              $(this).text('Thanks! Please feel free to add more interests if you wish.').fadeIn(200);
-            });
-          }
-          if (tagCount > 3) {
-            $('#getting-started').hide();
-          }
+        tagCount--;
+        if (tagCount < 0) {
+          tagCount = 0;
         }
-      });
+        if (tagCount == 0) {
+          $('#getting-started').fadeOut(200, function() {
+            $(this).text('Type your interests below to get started...').fadeIn(200);
+          });
+        }
+        if (tagCount == 1) {
+          $('#getting-started').fadeOut(200, function() {
+            $(this).text('We need two more interests.').fadeIn(200);
+          });
+        }
+        if (tagCount == 2) {
+          $('#getting-started').fadeOut(200, function() {
+            $(this).text('One more interest.').fadeIn(200);
+          });
+        }
+        if (tagCount == 3) {
+          $('#getting-started').fadeOut(200, function() {
+            $(this).text('Thanks! Please feel free to add more interests if you wish.').fadeIn(200);
+          });
+        }
+        if (tagCount > 3) {
+          $('#getting-started').hide();
+        }
+        var tempTag = $(tag).text();
+        var myTag = tempTag.substring(0, tempTag.length-1);
+        $.post('/account/tags/remove', { removedTag: myTag });
+      },
+      onTagAdded: function (event, tag) {
+        tagCount++;
+        if (tagCount == 0) {
+          $('#getting-started').fadeOut(200, function() {
+            $(this).text('Type your interests below to get started...').fadeIn(200);
+          });
+        }
+        if (tagCount == 1) {
+          $('#getting-started').fadeOut(200, function() {
+            $(this).text('We need two more interests.').fadeIn(200);
+          });
+        }
+        if (tagCount == 2) {
+          $('#getting-started').fadeOut(200, function() {
+            $(this).text('One more interest.').fadeIn(200);
+          });
+        }
+        if (tagCount == 3) {
+          $('#getting-started').fadeOut(200, function() {
+            $(this).text('Thanks! Please feel free to add more interests if you wish.').fadeIn(200);
+          });
+        }
+        if (tagCount > 3) {
+          $('#getting-started').hide();
+        }
+      }
+    });
 
-      $("button[type=submit]").click(function () {
-        $.post('/account/tags/add', { tags: $('#interests').tagit('assignedTags') }, function (data) {
-          console.log("Data loaded: " + data);
-        });
+    $("button[type=submit]").click(function () {
+      $.post('/account/tags/add', { tags: $('#interests').tagit('assignedTags') }, function (data) {
+        console.log("Data loaded: " + data);
       });
     });
+
 
 
 

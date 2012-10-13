@@ -429,13 +429,15 @@ app.get('/games', function (req, res) {
 
 app.get('/games/:detail', function (req, res) {
   Game.findOne({ 'slug': req.params.detail }, function (err, game) {
+
+    /*
     Comment
       .findOne({ creator: req.session.user._id })
       .exec(function (err, comment) {
         if (err) return err;
         console.log('The creator is %s', comment); // prints "The creator is Aaron"
       });
-
+    */
     res.render('detail', {
       heading: game.title,
       lead: game.publisher,
@@ -462,6 +464,7 @@ app.post('/games/:detail', function (req, res) {
     });
   });
 });
+
 
 app.get('/account', function (req, res) {
   if (!req.session.user) {
