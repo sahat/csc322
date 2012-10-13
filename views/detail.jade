@@ -46,67 +46,35 @@ block content
     h4 2 Comments
     div Feel free to leave a comment below about the game. We only ask you to be civil.
 
+  for comment in comments
+    table
+      tbody
+        tr
+          td.left-table-border(rowspan=4)
+          td
+            strong #{comment.creator}
+            |  says:
+        tr
+          td
+            small.muted #{comment.date}
+        tr
+          td
+            p= comment.body
+        tr
+          td
+            .btn-group
+              a.btn.btn-mini(href='#')
+                i.icon-thumbs-up
+                |  Like
+              a.btn.btn-mini(href='#')
+                i.icon-thumbs-down
+                |  Dislike
+              a.btn.btn-mini(href='#')
+                i.icon-flag
+                |  Report
+    hr
 
-  table
-    tbody
-      tr
-        td.left-table-border(rowspan=4)
-        td
-          strong Sahat Yalkabov
-          |  says:
-      tr
-        td
-          small.muted October 11, 2012
-      tr
-        td
-          p Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam pulvinar semper mauris. In orci odio, pharetra ac laoreet eu,
-          p tristique in justo. Donec in nulla id magna mollis volutpat eu volutpat dui. Cras sollicitudin convallis leo, non rhoncus velit blandit sit amet. Duis sollicitudin purus in arcu dapibus fermentum. Pellentesque eu pharetra turpis. Pellentesque aliquam, tellus eget pharetra scelerisque, mi tellus euismod libero, in commodo est urna sit amet tellus.
-          p Aliquam mi lorem, cursus et interdum a, suscipit at est. Ut euismod varius est, nec feugiat nisl tempus tincidunt. Nam blandit massa at leo facilisis vitae elementum eros fringilla.
-      tr
-        td
-          .btn-group
-            a.btn.btn-mini(href='#')
-              i.icon-thumbs-up
-              |  Like
-            a.btn.btn-mini(href='#')
-              i.icon-thumbs-down
-              |  Dislike
-            a.btn.btn-mini(href='#')
-              i.icon-flag
-              |  Report
-
-  hr
-
-  table
-    tbody
-      tr
-        td.left-table-border(rowspan=4)
-        td
-          strong Sahat Yalkabov
-          |  says:
-      tr
-        td
-          small.muted October 11, 2012
-      tr
-        td
-          p This is a demo comment.
-      tr
-        td
-          .btn-group
-            a.btn.btn-mini(href='#')
-              i.icon-thumbs-up
-              |  Like
-            a.btn.btn-mini(href='#')
-              i.icon-thumbs-down
-              |  Dislike
-            a.btn.btn-mini(href='#')
-              i.icon-flag
-              |  Report
-
-
-  hr
-
-  if u
+  if typeof(user.userName) == 'undefined'
     .alert
       strong Login Required
       div Please sign-in if you would like to leave a comment.
@@ -116,7 +84,7 @@ block content
       small  comment box
     form(method='post')
       .controls
-        textarea.span5(rows=5, name='comment')
+        textarea#comment.span5(rows=5, name='comment')
       .controls
         button.btn.btn-primary(type='submit')
           i.icon-comment.icon-white

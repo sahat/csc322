@@ -429,21 +429,18 @@ app.get('/games', function (req, res) {
 
 app.get('/games/:detail', function (req, res) {
   Game.findOne({ 'slug': req.params.detail }, function (err, game) {
-
-    /*
     Comment
-      .findOne({ creator: req.session.user._id })
-      .exec(function (err, comment) {
+      .find({ game: game._id })
+      .exec(function (err, comments) {
         if (err) return err;
-        console.log('The creator is %s', comment); // prints "The creator is Aaron"
+        res.render('detail', {
+          heading: game.title,
+          lead: game.publisher,
+          summary: game.summary,
+          comments: comments,
+          user: req.session.user
+        });
       });
-    */
-    res.render('detail', {
-      heading: game.title,
-      lead: game.publisher,
-      summary: game.summary,
-      user: req.session.user
-    });
   });
 });
 
@@ -556,7 +553,7 @@ app.get('/login', function(req, res) {
 });
 
 app.post('/login', function (req, res) {
-  var user = User.findOne({ 'email': req.body.userEmail }, function (err, user) {
+  var user = User.findOne({ 'userName': req.body.userName }, function (err, user) {
     if (!user) {
       req.session.message = '<div class="alert alert-error fade in">' + '<strong>Oops. </strong>' + 'No Such user in the database.' + '</div>';
       res.redirect('/login');

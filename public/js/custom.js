@@ -117,17 +117,3 @@ $('#login').validate({
   }
 });
 
-
-
-
-var welcome = $('#welcome').html();
-var now = new Date();
-$('#welcome').html('<p class="lead" id="welcome">Today is <strong>' + now.toLocaleDateString() + '</strong></p>');
-setTimeout(function() {
-  $("#welcome").fadeOut(400, function() {
-    $('#welcome').html(welcome)
-    $('#welcome').fadeIn(400);
-  });
-}, 2000);
-
-
