@@ -522,33 +522,29 @@ app.post('/account', function (req, res) {
 
 
 app.post('/account/tag/add', function (req, res) {
-  User.findOne({ 'email': req.session.user.email }, function (err, user) {
-
-    var index = user.interests.indexOf(req.body.removedTag);
-
-    user.interests.splice(index, 1);
-
-    user.save(function(err) {
-      console.log('Saved!');
-    })
-    console.log('Removed ' + req.body.removedTag + ' from interests.');
-  });
-});
-
-
-app.post('/account/tag/delete', function (req, res) {
-  User.findOne({ 'email': req.session.user.email }, function (err, user) {
+  User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
     _.each(req.body.tags, function (tag) {
       user.interests.push(tag);
     });
     var flatArray = _.flatten(user.interests);
     var uniqueArray = _.uniq(flatArray);
     user.interests = uniqueArray;
-
-    user.save(function() {
+    user.save(function (err) {
       console.log('Saved ' + uniqueArray);
     });
 
+  });
+});
+
+
+app.post('/account/tag/delete', function (req, res) {
+  User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
+    var index = user.interests.indexOf(req.body.removedTag);
+    user.interests.splice(index, 1);
+    user.save(function (err) {
+      console.log('Saved!');
+    });
+    console.log('Removed ' + req.body.removedTag + ' from interests.');
   });
 });
 
