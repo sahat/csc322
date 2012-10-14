@@ -5,12 +5,6 @@
 
 
 
-
-///
-// TODO: Only users can buy/rate/leave-comments on games
-///
-
-
 // TODO: Super-user can do everything user can do + additional privileges
 
 // TODO: During registration user must select at least 3 criteria of interest
@@ -328,7 +322,8 @@ app.get('/add_game', function (req, res) {
 });
 
 app.get('/', function(req, res) {
-  if (req.session.tempPassword || req.session.user.interests.length < 3) {
+
+  if (req.session.tempPassword || req.session.user && req.session.user.interests.length < 3) {
     return res.redirect('/account');
   }
 
@@ -354,8 +349,8 @@ app.get('/', function(req, res) {
 
 app.post('/buy', function (req, res) {
 
-  User.findOne({ email: req.session.user.email }, function (err, user) {
-    Game.findOne({ slug: req.body.title }, function (err, game) {
+  User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
+    Game.findOne({ 'slug': req.body.slug }, function (err, game) {
 
       var rating = 0;
 
@@ -366,7 +361,9 @@ app.post('/buy', function (req, res) {
         }
       }
       user.purchasedGames.push({ title: game.title, slug: game.slug, rating: rating });
-      user.save();
+      user.save(function (err) {
+        console.log('Purchased game added to the list');
+      });
 
     });
   });
@@ -383,13 +380,13 @@ app.post('/games/rating', function (req, res) {;
 
   Game.findOne({ 'slug': req.body.slug }, function (err, game) {
     game.weightedScore = game.rating + req.body.rating * 1.5;
-    game.votedPeople.push(req.session.user.email);
+    game.votedPeople.push(req.session.user.userName);
     game.save(function (err) {
       if (err) throw err;
       console.log('successfully set average rating');
     });
 
-    User.findOne({ email: req.session.user.email }, function (err, user) {
+    User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
       // if the user purchased the game, update rating in there as well
       for (var i=0; i<user.purchasedGames.length; i++) {
         if (user.purchasedGames[i].slug == req.body.slug) {
@@ -416,29 +413,25 @@ app.get('/games/api', function (req, res) {
 
 
 app.get('/games', function (req, res) {
-  if (req.session.tempPassword || req.session.user.interests.length < 3) {
+  if (req.session.tempPassword || req.session.user && req.session.user.interests.length < 3) {
     return res.redirect('/account');
   }
-
   Game.find(function (err, games) {
-    if (err) return;
-    if (typeof req.session.user != 'undefined') {
-      User.findOne({ 'email': req.session.user.email }, function (err, user) {
-        res.render('games', {
-          heading: 'All Games',
-          lead: 'Game titles listed in alphabetical order',
-          user: user,
-          games: games
-        });
-      });
-    } else {
-      console.log("I AM HERE");
-      res.render('games', {
+    if (!req.session.user) {
+      return res.render('games', {
         heading: 'All Games',
         lead: 'Game titles listed in alphabetical order',
         games: games
       });
     }
+    User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
+      res.render('games', {
+        heading: 'All Games',
+        lead: 'Game titles listed in alphabetical order',
+        user: user,
+        games: games
+      });
+    });
   });
 });
 
@@ -465,7 +458,7 @@ app.get('/games/:detail', function (req, res) {
 
 app.post('/games/:detail', function (req, res) {
   console.log(req.body.comment);
-  User.findOne({ email: req.session.user.email }, function (err, user) {
+  User.findOne({ user: req.session.user.userName }, function (err, user) {
     Game.findOne({ slug: req.params.detail }, function (err, game) {
       var comment = new Comment({
         creator: user._id,
@@ -485,17 +478,18 @@ app.get('/account', function (req, res) {
   if (!req.session.user) {
     return res.redirect('/login');
   }
-
+  console.log(req.session.user.purchasedGames);
   User.findOne({ userName: req.session.user.userName }, function (err, user) {
     Game.find(function (err, games) {
       var tagArray = [];
       _.each(games, function (game) {
         tagArray.push(game.title)
       });
+      req.session.user = user;
+      console.log(user.purchasedGames);
       res.render('profile', {
         heading: 'Profile',
         lead: 'View purchase history, update account, choose interests',
-        interests: user.interests,
         user: req.session.user,
         tags: tagArray,
         tempPassword: req.session.tempPassword
@@ -628,6 +622,3 @@ app.post('/register', function(req, res) {
 var server = http.createServer(app).listen(app.get('port'), function() {
   console.log('Express server listening on port ' + app.get('port'));
 });
-
-// TODO: Implement email, search, tel, url text fields HTML5 with client-side validation autofocus html5 on first field
-

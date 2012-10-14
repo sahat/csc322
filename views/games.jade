@@ -56,9 +56,35 @@ block content
       li
         a(href='#') Z
 
+
   table.table
         tbody
           for game in games
+            .modal.hide.fade(id='modal-#{game.slug}', tabindex='-1', role='dialog', aria-labelledby='myModalLabel', aria-hidden='true')
+              .modal-header
+                span.lead Game Checkout
+                  img.pull-right(src='/img/new_visa_medium.gif')
+              .modal-body
+                label
+                  i.icon-user
+                  |  Name on Card
+                input.input-medium(type='text')
+                label
+                  i.icon-barcode
+                  |  Card Number
+                input.input-medium(type='text', placeholder='•••• •••• •••• ••••', maxlength=16)
+
+                label
+                  i.icon-time
+                  |  Expiration Date
+                input.input-mini(type='text', placeholder='MMYY', maxlength=4)
+                label
+                  i.icon-qrcode
+                  |  Card Code
+                input.input-mini(type='text', placeholder='CVC', maxlength=4)
+              .modal-footer
+                button.btn(data-dismiss='modal', aria-hidden='true') Cancel
+                button.btn.btn-primary(id='#{game.slug}') Buy
             tr
               td.span2
                 img.img-polaroid(src=game.thumbnail)
@@ -66,10 +92,12 @@ block content
                 a(href='/games/#{game.slug}')
                   strong
                     = game.title
-                button.btn.btn-primary.btn-mini(id=game.slug)
+
+
+
+                button.btn.btn-primary.btn-mini(href='#modal-#{game.slug}', role='button', data-toggle='modal')
                   i.icon-shopping-cart.icon-white
-                  | &nbsp;
-                  = game.price
+                  =  game.price
                 div(id='_'+game.slug)
                 div
                   small.muted
@@ -78,16 +106,16 @@ block content
                 p
                   =game.description
 
-            for person in game.votedPeople
-              if typeof(user.email) != 'undefined'
-
-                if person == user.email
+            if typeof(user.userName) != 'undefined'
+              h1= user.userName
+              for voter in game.votedPeople
+                if voter == user.userName
                   script(type='text/javascript')
                     $('#_#{game.slug}').raty({
-                        round : { down: .25, full: .6, up: .76 },
-                        score: #{game.rating}/#{game.votes},
-                        readOnly: true,
-                      });
+                      round : { down: .25, full: .6, up: .76 },
+                      score: #{game.rating}/#{game.votes},
+                      readOnly: true
+                    });
                 else
                   script(type='text/javascript')
                     $('#_#{game.slug}').raty({
@@ -114,57 +142,24 @@ block content
                         });
                       }
                     });
+            else
+              script(type='text/javascript')
+                $('#_#{game.slug}').raty({
+                  round : { down: .25, full: .6, up: .76 },
+                  score: #{game.rating}/#{game.votes},
+                  readOnly: true
+                });
 
             script(type='text/javascript')
               $('##{game.slug}').click(function() {
                 var game = this;
-                $(game).removeClass('btn-primary').text('Confirm Purchase').addClass('btn-success');
-                $(game).unbind('click');
-                $(game).click(function() {
-                  $.ajax({
-                    type: 'POST',
-                    url: '/buy',
-                    data: {
-                      title: $(game).attr('id')
-                    }
-                  }).done(function() {
-                      $(game).attr('disabled', 'true');
-                      $(game).removeClass('btn-success').html('<i class="icon-shopping-cart icon-white"></i> Purchased').addClass('btn-primary disabled');
-                    });
-
+                $.ajax({
+                  type: 'post',
+                  url: '/buy',
+                  data:  {
+                    slug: $(game).attr('id')
+                  }
+                }).success(function () {
+                  $('#modal-' + $(game).attr('id')).modal('hide')
                 });
               });
-
-          tr
-            td
-              img.img-polaroid(src='/games/img/wow.jpeg')
-            td
-              a(href='#')
-                strong World of Warcraft
-              button.btn.btn-primary.btn-mini.disabled
-                i.icon-shopping-cart.icon-white
-                |  Purchased
-
-              div
-                i.icon-star
-              div
-                small.muted Release Date: Nov 23, 2004 | Genre: Fantasy Online Role-Playing
-              div Here is the online role-playing game you should play, no matter who you are.
-
-            tr
-              td
-                img.img-polaroid(src='/games/img/lol.jpeg')
-              td
-                a(href='#')
-                  strong League of Legends
-                button.btn.btn-primary.btn-mini
-                  i.icon-shopping-cart.icon-white
-                  |  $29.99
-                div
-                  strong
-                    small Recommendations:
-                      |  18
-                div
-                  small.muted Release Date: Oct 27, 2009 | Genre: MOBA
-                p League of Legends combines elements of role-playing and strategy genres with addictive battle action that brings accessible, replayable and competitive gameplay into a whimsical universe that deepens with the player's commitment.
-

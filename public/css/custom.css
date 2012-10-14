@@ -34,3 +34,6 @@ a:active {
 .table td {
   border-top: none;
 }
+.modal {
+  width:450px;
+}
