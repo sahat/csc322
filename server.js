@@ -458,7 +458,7 @@ app.get('/games/:detail', function (req, res) {
 
 app.post('/games/:detail', function (req, res) {
   console.log(req.body.comment);
-  User.findOne({ user: req.session.user.userName }, function (err, user) {
+  User.findOne({ userName: req.session.user.userName }, function (err, user) {
     Game.findOne({ slug: req.params.detail }, function (err, game) {
       var comment = new Comment({
         creator: user._id,
