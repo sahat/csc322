@@ -11,7 +11,6 @@
 //??? TODO: After registered user log-ins, redirect to main page and display 3 games based on interests criteria and 3 based on previous purchases
 //??? TODO: If the user hasn't purchased anything display 6 items based on interest criteria
 
-// TODO: Meow notification on Purchase post request
 // TODO: Send e-mail confirmation on purchase
 // TODO: Allow purchase only once; check if item is purchased on each request
 
@@ -48,6 +47,19 @@ var jsdom = require('jsdom');
 var request = require('request');
 var io = require('socket.io');
 var _ = require('underscore');
+var email = require('emailjs')
+
+/*
+    ______                _ __
+   / ____/___ ___  ____ _(_) /
+  / __/ / __ `__ \/ __ `/ / /
+ / /___/ / / / / / /_/ / / /
+/_____/_/ /_/ /_/\__,_/_/_/
+
+*/
+
+
+
 /*
   __  __                         ____  ____
  |  \/  | ___  _ __   __ _  ___ |  _ \| __ )
@@ -351,9 +363,7 @@ app.post('/buy', function (req, res) {
 
   User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
     Game.findOne({ 'slug': req.body.slug }, function (err, game) {
-
       var rating = 0;
-
       for (var i=0; i<user.ratedGames.length; i++) {
         if (game.slug == user.ratedGames[i].slug) {
           console.log("I have already voted on this game");
@@ -363,6 +373,20 @@ app.post('/buy', function (req, res) {
       user.purchasedGames.push({ title: game.title, slug: game.slug, rating: rating });
       user.save(function (err) {
         console.log('Purchased game added to the list');
+        var server = email.server.connect({
+          user:    "username",
+          password:"password",
+          host:    "smtp.gmail.com",
+          ssl:     true
+        });
+        server.send({
+          text: 'Thank you for purchasing ' + game.title + '. Your game will be shipped within 2 to 3 business days.',
+          from: 'Sahat Yalkabov <sakhat@gmail.com>',
+          to: user.firstName + ' ' + user.lastName + ' <' + user.email + '>',
+          subject: 'Order Confirmation'
+        }, function(err, message) {
+          console.log(err || message);
+        });
       });
 
     });

@@ -14,6 +14,7 @@
     "request": ">= 2.11.4",
     "moment": "*",
     "jade": "*",
-    "mocha": "*"
+    "mocha": "*",
+    "underscore": "*"
   }
 }
