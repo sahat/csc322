@@ -30,6 +30,10 @@ a:active {
   max-width: 250px;
   max-height: 360px;
 }
+.medium {
+  max-width: 125px;
+  max-height: 180px;
+}
 
 .table td {
   border-top: none;

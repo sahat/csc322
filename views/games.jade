@@ -99,8 +99,10 @@ block content
                       script(type='text/javascript')
                         $('#price-#{game.slug}').removeAttr('href');
                         $('#price-#{game.slug}').html('<i class="icon-shopping-cart icon-white"></i> Purchased');
-
-                div(id='_' + game.slug)
+                div
+                  span(id='_' + game.slug)
+                  span(id='votes', name='votes')
+                  |  (#{game.votes} votes)
                 div
                   small.muted
                     div #{game.releaseDate} | #{game.publisher}

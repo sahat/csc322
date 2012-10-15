@@ -1,18 +1,10 @@
 // TODO: Implement Admin, Registered User, Visitor and limit/grant access accordingly
-// TODO: User schema, should have additional field - type (e.g. super-user or user)
-
-// TODO: Visitor can read other's comments and report a complaint about a comment
-
-
 
 // TODO: Super-user can do everything user can do + additional privileges
 
 // TODO: During registration user must select at least 3 criteria of interest
 //??? TODO: After registered user log-ins, redirect to main page and display 3 games based on interests criteria and 3 based on previous purchases
 //??? TODO: If the user hasn't purchased anything display 6 items based on interest criteria
-
-// TODO: Send e-mail confirmation on purchase
-// TODO: Allow purchase only once; check if item is purchased on each request
 
 // TODO: Per session, keep track how many times user voted, and the average rating of the votes
 // TODO: IF voteCount >= 5 and avg_rating <= 1, increment flag by 1
@@ -94,7 +86,8 @@ var email = require('emailjs')
     email: { type: String, required: true },
     password: String,
     interests: [String],
-    comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }]
+    comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }],
+    isAdmin: { type: Boolean, default: false }
   });
 
   // Comment schema
@@ -218,13 +211,13 @@ app.configure('development', function() {
  */
 
 app.get('/add_game', function (req, res) {
-  var url = 'http://www.amazon.com/gp/product/B00006IR62/ref=s9_simh_gw_p63_d0_i3?pf_rd_m=ATVPDKIKX0DER&pf_rd_s=center-2&pf_rd_r=0SV5QGZXE9458998V6X5&pf_rd_t=101&pf_rd_p=1389517282&pf_rd_i=507846';
+  //var url = 'http://www.amazon.com/gp/product/B00006IR62/ref=s9_simh_gw_p63_d0_i3?pf_rd_m=ATVPDKIKX0DER&pf_rd_s=center-2&pf_rd_r=0SV5QGZXE9458998V6X5&pf_rd_t=101&pf_rd_p=1389517282&pf_rd_i=507846';
   //var url = 'http://www.amazon.com/gp/product/B0050SYLRK/ref=vg_xbox_4pack_assassinsiii?pf_rd_m=ATVPDKIKX0DER&pf_rd_s=merchandised-search-3&pf_rd_r=4B4606133BD9433F8DFC&pf_rd_t=101&pf_rd_p=1404381382&pf_rd_i=14220161'
   //var url = 'http://www.amazon.com/Mass-Effect-3-Xbox-360/dp/B004FYEZMQ/ref=sr_1_1?ie=UTF8&qid=1349677230&sr=8-1&keywords=mass+effect+3';
   //var url = 'http://www.amazon.com/Borderlands-2-Xbox-360/dp/B0050SYK44/ref=sr_1_1?s=videogames&ie=UTF8&qid=1349677265&sr=1-1&keywords=borderlands+2';
   //var url = 'http://www.amazon.com/Star-Wars-The-Old-Republic-Pc/dp/B001CWXAP2/ref=sr_1_1?ie=UTF8&qid=1349849268&sr=8-1&keywords=star+wars+the+old+republic';
   //var url = 'http://www.amazon.com/Star-Wars-The-Force-Unleashed-Pc/dp/B002LHSGSI/ref=acc_glance_vg_ai_ps_t_2'
-  //var url = 'http://www.amazon.com/Prototype-2-Xbox-360/dp/B004FUL9YW/ref=sr_1_1?s=videogames&ie=UTF8&qid=1349849413&sr=1-1&keywords=prototype+2'
+  var url = 'http://www.amazon.com/Prototype-2-Xbox-360/dp/B004FUL9YW/ref=sr_1_1?s=videogames&ie=UTF8&qid=1349849413&sr=1-1&keywords=prototype+2'
   request({uri: url}, function (err, response, body) {
 
     if (err && response.statusCode !== 200) return;
@@ -334,28 +327,39 @@ app.get('/add_game', function (req, res) {
 });
 
 app.get('/', function(req, res) {
-
   if (req.session.tempPassword || req.session.user && req.session.user.interests.length < 3) {
     return res.redirect('/account');
   }
-
-  Game
-    .find()
-    .limit(3)
-    .sort('-weightedScore')
-    .exec(function(err, game) {
-      if (err) throw err;
-      res.render('index', {
-        heading: 'N7 Online Store',
-        lead: 'The leading next generation video games recommendation engine',
-        user: req.session.user,
-        games: game
+  if (req.session.user) {
+    Game
+      .find()
+      .where('genre').in(req.session.user.interests)
+      .limit(6)
+      .sort('-weightedScore')
+      .exec(function (err, games) {
+        if (err) throw err;
+        res.render('index', {
+          heading: 'N7 Online Store',
+          lead: 'The leading next generation video games recommendation engine',
+          user: req.session.user,
+          customgames: games
+        });
       });
-    });
-
-
-  //Game.where('rating').gt(4.4).find(function (err, game) {
-
+  } else {
+    Game
+      .find()
+      .limit(3)
+      .sort('-weightedScore')
+      .exec(function(err, game) {
+        if (err) throw err;
+        res.render('index', {
+          heading: 'N7 Online Store',
+          lead: 'The leading next generation video games recommendation engine',
+          user: req.session.user,
+          games: game
+        });
+      });
+  }
 });
 
 
@@ -364,7 +368,7 @@ app.post('/buy', function (req, res) {
   User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
     Game.findOne({ 'slug': req.body.slug }, function (err, game) {
       var rating = 0;
-      for (var i=0; i<user.ratedGames.length; i++) {
+      for (var i = 0; i < user.ratedGames.length; i++) {
         if (game.slug == user.ratedGames[i].slug) {
           console.log("I have already voted on this game");
           var rating = user.ratedGames[i].rating;
@@ -471,7 +475,7 @@ app.get('/games/:detail', function (req, res) {
         res.render('detail', {
           heading: game.title,
           lead: game.publisher,
-          summary: game.summary,
+          game: game,
           comments: comments,
           user: req.session.user
         });
@@ -482,6 +486,8 @@ app.get('/games/:detail', function (req, res) {
 
 app.post('/games/:detail', function (req, res) {
   console.log(req.body.comment);
+
+  // move into comment/add method
   User.findOne({ userName: req.session.user.userName }, function (err, user) {
     Game.findOne({ slug: req.params.detail }, function (err, game) {
       var comment = new Comment({
@@ -497,6 +503,13 @@ app.post('/games/:detail', function (req, res) {
   });
 });
 
+
+app.post('/comment/delete', function (req, res) {
+  Comment.remove({ _id: req.body.commentId }, function (err) {
+    if (err) throw err;
+    console.log('comment has been removed');
+  });
+});
 
 app.get('/account', function (req, res) {
   if (!req.session.user) {
