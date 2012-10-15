@@ -93,12 +93,13 @@ block content
                 button.btn.btn-primary.btn-mini(id='price-#{game.slug}', href='#modal-#{game.slug}', role='button', data-toggle='modal')
                   i.icon-shopping-cart.icon-white
                   =  game.price
-                if user.purchasedGames.length > 0
-                  for mygame in user.purchasedGames
-                    if mygame.slug == game.slug
-                      script(type='text/javascript')
-                        $('#price-#{game.slug}').removeAttr('href');
-                        $('#price-#{game.slug}').html('<i class="icon-shopping-cart icon-white"></i> Purchased');
+                if user.userName
+                  if user.purchasedGames.length > 0
+                    for mygame in user.purchasedGames
+                      if mygame.slug == game.slug
+                        script(type='text/javascript')
+                          $('#price-#{game.slug}').removeAttr('href');
+                          $('#price-#{game.slug}').html('<i class="icon-shopping-cart icon-white"></i> Purchased');
                 div
                   span(id='_' + game.slug)
                   span(id='votes', name='votes')
@@ -111,6 +112,8 @@ block content
                   =game.description
             if typeof(user.userName) != 'undefined'
               for voter in game.votedPeople
+
+                // If user has already voted for this game
                 if voter == user.userName
                   script(type='text/javascript')
                     $('#_#{game.slug}').raty({
@@ -118,6 +121,7 @@ block content
                       score: #{game.rating}/#{game.votes},
                       readOnly: true
                     });
+
                 else
                   script(type='text/javascript')
                     $('#_#{game.slug}').raty({

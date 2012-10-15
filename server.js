@@ -42,17 +42,6 @@ var _ = require('underscore');
 var email = require('emailjs')
 
 /*
-    ______                _ __
-   / ____/___ ___  ____ _(_) /
-  / __/ / __ `__ \/ __ `/ / /
- / /___/ / / / / / /_/ / / /
-/_____/_/ /_/ /_/\__,_/_/_/
-
-*/
-
-
-
-/*
   __  __                         ____  ____
  |  \/  | ___  _ __   __ _  ___ |  _ \| __ )
  | |\/| |/ _ \| '_ \ / _` |/ _ \| | | |  _ \
@@ -60,68 +49,63 @@ var email = require('emailjs')
  |_|  |_|\___/|_| |_|\__, |\___/|____/|____/
                      |___/
  */
-{
-  // Establishes a connection with MongoDB database
-  // localhost is db-host and test is db-name
-  var db = mongoose.connect('mongodb://localhost/test');
-  // In Mongoose everything is derived from Schema.
-  // Here we create a schema called User with the following fields.
-  // Each field requires a type and optional additional properties, e.g. unique field? required field?
-  var User = new mongoose.Schema({
-    userName: { type: String, required: true, index: { unique: true } },
-    firstName: { type: String, required: true },
-    lastName: { type: String, required: true },
-    purchasedGames: [{
-      title: String,
-      slug: String,
-      rating: { type: Number, default: 0 },
-      date: { type: Date, default: Date.now() }
-    }],
-    ratedGames: [{
-      title: String,
-      slug: String,
-      rating: Number,
-      date: { type: Date, default: Date.now() }
-    }],
-    email: { type: String, required: true },
-    password: String,
-    interests: [String],
-    comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }],
-    isAdmin: { type: Boolean, default: false }
-  });
 
-  // Comment schema
-  var Comment = new mongoose.Schema({
-    creator: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    game: { type: mongoose.Schema.Types.ObjectId, ref: 'Game' },
-    likes: { count: { type: Number }, user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' } },
-    body: {type: String, required: true },
-    date: {type: Date, default: Date.now },
-    flagged: { type: Boolean, default: false }
-  });
-
-  // Here we create a schema called Game with the following fields.
-  var Game = new mongoose.Schema({
-    slug: String,
+// Establishes a connection with MongoDB database
+// localhost is db-host and test is db-name
+var db = mongoose.connect('mongodb://localhost/test');
+// In Mongoose everything is derived from Schema.
+// Here we create a schema called User with the following fields.
+// Each field requires a type and optional additional properties, e.g. unique field? required field?
+var User = new mongoose.Schema({
+  userName: { type: String, required: true, index: { unique: true } },
+  firstName: { type: String, required: true },
+  lastName: { type: String, required: true },
+  purchasedGames: [{
     title: String,
-    publisher: String,
-    thumbnail: String,
-    largeImage: String,
-    releaseDate: String,
-    genre: String,
-    weightedScore: Number,
+    slug: String,
+    rating: { type: Number, default: 0 },
+    date: { type: Date, default: Date.now() }
+  }],
+  ratedGames: [{
+    title: String,
+    slug: String,
     rating: Number,
-    votes: Number,
-    votedPeople: [String],
-    summary: String,
-    description: String,
-    price: String
-    // add features array? Games that have co-op or multiplayer
-    // perhaps games in the same series me1, me2, me3
-  });
-}
+    date: { type: Date, default: Date.now() }
+  }],
+  email: { type: String, required: true },
+  password: String,
+  interests: [String],
+  comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }],
+  isAdmin: { type: Boolean, default: false }
+});
 
-//  comments: [{ user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, body: String, date: Date }],
+// Comment schema
+var Comment = new mongoose.Schema({
+  creator: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  game: { type: mongoose.Schema.Types.ObjectId, ref: 'Game' },
+  likes: { count: { type: Number }, user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' } },
+  body: {type: String, required: true },
+  date: {type: Date, default: Date.now },
+  flagged: { type: Boolean, default: false }
+});
+
+// Here we create a schema called Game with the following fields.
+var Game = new mongoose.Schema({
+  slug: String,
+  title: String,
+  publisher: String,
+  thumbnail: String,
+  largeImage: String,
+  releaseDate: String,
+  genre: String,
+  weightedScore: Number,
+  rating: Number,
+  votes: Number,
+  votedPeople: [String],
+  summary: String,
+  description: String,
+  price: String
+});
 
 // Express middleware that hashes a password before it is saved to database
 // The following function is invoked right when we called MongoDB save() method
@@ -217,7 +201,9 @@ app.get('/add_game', function (req, res) {
   //var url = 'http://www.amazon.com/Borderlands-2-Xbox-360/dp/B0050SYK44/ref=sr_1_1?s=videogames&ie=UTF8&qid=1349677265&sr=1-1&keywords=borderlands+2';
   //var url = 'http://www.amazon.com/Star-Wars-The-Old-Republic-Pc/dp/B001CWXAP2/ref=sr_1_1?ie=UTF8&qid=1349849268&sr=8-1&keywords=star+wars+the+old+republic';
   //var url = 'http://www.amazon.com/Star-Wars-The-Force-Unleashed-Pc/dp/B002LHSGSI/ref=acc_glance_vg_ai_ps_t_2'
-  var url = 'http://www.amazon.com/Prototype-2-Xbox-360/dp/B004FUL9YW/ref=sr_1_1?s=videogames&ie=UTF8&qid=1349849413&sr=1-1&keywords=prototype+2'
+  //var url = 'http://www.amazon.com/Prototype-2-Xbox-360/dp/B004FUL9YW/ref=sr_1_1?s=videogames&ie=UTF8&qid=1349849413&sr=1-1&keywords=prototype+2'
+  var url = 'http://www.amazon.com/Guild-Wars-2-Pc/dp/B001TOQ8X4/ref=sr_tr_1?ie=UTF8&qid=1350276922&sr=8-1&keywords=guild+wars+2';
+
   request({uri: url}, function (err, response, body) {
 
     if (err && response.statusCode !== 200) return;
@@ -375,6 +361,9 @@ app.post('/buy', function (req, res) {
         }
       }
       user.purchasedGames.push({ title: game.title, slug: game.slug, rating: rating });
+
+      req.session.user = user;
+
       user.save(function (err) {
         console.log('Purchased game added to the list');
         var server = email.server.connect({
@@ -637,18 +626,27 @@ app.post('/register', function(req, res) {
   var lastName = req.body.lastName.toLowerCase();
   var randomNumber = Math.floor(Math.random() * 1000);
   var userName = firstLetterOfFirstName + lastName + randomNumber;
-  var user = new User({
+  var newUser = new User({
     userName: userName,
     password: userName,
     firstName: req.body.firstName,
     lastName: req.body.lastName,
     email: req.body.userEmail
   });
-  user.save(function (err) {
+  User.findOne({'isAdmin': true }, function (err, user) {
+    if (!user) {
+      console.log('no users that are admin');
+      newUser.isAdmin = true;
+    } else {
+      console.log('admin already exists');
+      newUser.isAdmin = false;
+    }
+  });
+  newUser.save(function (err) {
     if (err) {
       res.send(500, 'Halt: Duplicate Username Detected');
     } else {
-      req.session.user = user;
+      req.session.user = newUser;
       req.session.tempPassword = true;
       res.redirect('/account');
     }

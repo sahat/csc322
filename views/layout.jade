@@ -50,6 +50,9 @@ body
                 a(href='/register') Create Account
               li
             else
+              if user.isAdmin
+                li
+                  a(href='/admin') Admin
               li
                 a(href='/account')
                   = user.firstName
