@@ -1,8 +1,3 @@
-// TODO: Implement Admin, Registered User, Visitor and limit/grant access accordingly
-
-// TODO: Super-user can do everything user can do + additional privileges
-
-// TODO: During registration user must select at least 3 criteria of interest
 //??? TODO: After registered user log-ins, redirect to main page and display 3 games based on interests criteria and 3 based on previous purchases
 //??? TODO: If the user hasn't purchased anything display 6 items based on interest criteria
 
@@ -39,7 +34,7 @@ var jsdom = require('jsdom');
 var request = require('request');
 var io = require('socket.io');
 var _ = require('underscore');
-var email = require('emailjs')
+var email = require('emailjs');
 
 /*
   __  __                         ____  ____
@@ -348,9 +343,11 @@ app.get('/', function(req, res) {
   }
 });
 
+app.get('/bot', function (req, res) {
+    console.log('w');
+});
 
 app.post('/buy', function (req, res) {
-
   User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
     Game.findOne({ 'slug': req.body.slug }, function (err, game) {
       var rating = 0;
@@ -361,9 +358,7 @@ app.post('/buy', function (req, res) {
         }
       }
       user.purchasedGames.push({ title: game.title, slug: game.slug, rating: rating });
-
       req.session.user = user;
-
       user.save(function (err) {
         console.log('Purchased game added to the list');
         var server = email.server.connect({
@@ -381,7 +376,6 @@ app.post('/buy', function (req, res) {
           console.log(err || message);
         });
       });
-
     });
   });
   res.redirect('/games');
@@ -389,12 +383,10 @@ app.post('/buy', function (req, res) {
 
 
 app.post('/games/rating', function (req, res) {;
-
   Game.update({ 'slug': req.body.slug }, { $inc: { rating: req.body.rating, votes: 1 } }, function (err, game) {
     if (err) throw err;
     console.log('updated rating!')
   });
-
   Game.findOne({ 'slug': req.body.slug }, function (err, game) {
     game.weightedScore = game.rating + req.body.rating * 1.5;
     game.votedPeople.push(req.session.user.userName);
@@ -402,7 +394,6 @@ app.post('/games/rating', function (req, res) {;
       if (err) throw err;
       console.log('successfully set average rating');
     });
-
     User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
       // if the user purchased the game, update rating in there as well
       for (var i=0; i<user.purchasedGames.length; i++) {
@@ -414,7 +405,6 @@ app.post('/games/rating', function (req, res) {;
       user.save();
     });
   });
-
   return res.redirect('/games');
 });
 
@@ -500,6 +490,36 @@ app.post('/comment/delete', function (req, res) {
   });
 });
 
+
+app.post('/comment/report', function (req, res) {
+  Comment.findOne({ '_id': req.body.comment_id }, function (req, comment) {
+    console.log(comment);
+    comment.flagged = true;
+    comment.save(function (err) {
+      console.log('Comment has been reported');
+    });
+  });
+});
+
+
+app.get('/admin', function (req, res) {
+  User.find(function (err, users) {
+    if (err) throw err;
+    console.log(users);
+    Comment.find({ 'flagged': true }, function (err, comments) {
+      if (err) throw err;
+    });
+    res.render('admin', {
+      heading: 'Admin Dashboard',
+      lead: 'Manage users, system analytics..',
+      user: req.session.user,
+      users: users,
+      flaggedComments: comments
+    });
+  });
+});
+
+
 app.get('/account', function (req, res) {
   if (!req.session.user) {
     return res.redirect('/login');
@@ -539,7 +559,6 @@ app.post('/account', function (req, res) {
     });
   });
 });
-
 
 app.post('/account/tag/add', function (req, res) {
   User.findOne({ 'userName': req.session.user.userName }, function (err, user) {

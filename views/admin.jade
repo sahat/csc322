@@ -1,0 +1,25 @@
+extends layout
+
+block content
+  legend Reported Comments
+  table.table-striped
+    thead
+    tr
+      th Comment ID
+      th Number of Reports
+      th Link
+
+    tbody
+      tr
+        td
+        td
+  table.table.table-striped
+    tbody
+      for usr in users
+        tr
+          td
+            p #{usr.userName}
+          td
+            p #{usr.firstName}
+  btn.btn.btn-primary Send message to user
+  btn.btn.btn-danger Delete User

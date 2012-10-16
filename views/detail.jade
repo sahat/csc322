@@ -126,11 +126,11 @@ block content
                 i.icon-thumbs-up
                 |  Like (35)
 
-              a.btn.btn-mini(href='#')
+              a.btn.btn-mini(href='#', id='report-#{comment._id}')
                 i.icon-flag
                 |  Report
 
-              if comment.creator.userName == user.userName
+              if comment.creator.userName == user.userName || user.isAdmin
                 a.btn.btn-mini(href='#', id=comment._id)
                   i.icon-trash
                   |  Delete
@@ -142,6 +142,13 @@ block content
         $('#table-#{comment.id}').remove();
         $('#hr-#{comment.id}').remove();
         humane.log('Comment removed');
+        return false;
+      });
+
+      $('#report-#{comment._id}').click(function() {
+        console.log('clicked on report');
+        $.post('/comment/report', { comment_id: '#{comment._id}' });
+        humane.log('Comment has been reported');
         return false;
       });
 
