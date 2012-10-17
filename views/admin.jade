@@ -10,14 +10,30 @@ block content
         th.span2 Actions
       tbody
         for comment in flaggedComments
-          tr
+          tr(id='tr-#{comment.id}')
             td #{comment.body}
             td
               a(href='/games/#{comment.game.slug}') #{comment.game.title}
             td
-              btn.btn.btn-small Ignore
-              btn.btn.btn-small.btn-danger Delete
+              btn.btn.btn-small(id='ignore-#{comment.id}') Ignore
+              btn.btn.btn-small.btn-danger(id='delete-#{comment.id}') Delete
               // notify user on delete
+              script(type='text/javascript')
+                $('#delete-#{comment.id}').click(function() {
+                  console.log('clicked on delete');
+                  $.post('/comment/delete', { commentId: '#{comment.id}' });
+                  $('#tr-#{comment.id}').remove();
+                  humane.log('Comment has been removed');
+                  return false;
+                });
+
+                $('#ignore-#{comment.id}').click(function() {
+                  console.log('clicked on ignore');
+                  $.post('/comment/ignore', { commentId: '#{comment.id}' });
+                  $('#tr-#{comment.id}').remove();
+                  humane.log('Comment has been ignored');
+                  return false;
+                });
 
 
 
@@ -33,3 +49,4 @@ block content
             p #{usr.firstName}
   btn.btn.btn-primary Send message to user
   btn.btn.btn-danger Delete User
+

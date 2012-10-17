@@ -83,7 +83,7 @@ block content
               for voter in game.votedPeople
 
                 // If user has already voted for this game
-                if voter == user.userName
+                if voter == user.userName || user.suspendedRating
                   script(type='text/javascript')
                     $('#_#{game.slug}').raty({
                       round : { down: .25, full: .6, up: .76 },
