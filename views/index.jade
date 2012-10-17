@@ -10,86 +10,94 @@ block content
         small  here's the top 3 most popular games for you
   .row
     if user.userName
-      for game in customgames
-        .span2
-          img.img-polaroid.medium(src=game.largeImage)
-          strong
-            a(href='/games/#{game.slug}') #{game.title}
-          div
+      if customgames.length == 0
+        .alert.alert-warning
+          | Database query returned no results that match your interests.
+      else
+        for game in customgames
+          .span2
+            img.img-polaroid.medium(src=game.largeImage)
+            strong
+              a(href='/games/#{game.slug}') #{game.title}
+            div
+              span(id='_' + game.slug)
+              span(id='votes', name='votes')
+                small  (#{game.votes})
+              br
+              strong #{game.price}
+
+            script(type='text/javascript')
+              $('#_#{game.slug}').raty({
+                path: '/img/',
+                round: { down: .25, full: .6, up: .76 },
+                score: #{game.rating}/#{game.votes},
+                space: false,
+                readOnly: true,
+                click: function (score, event) {
+                  var self = this;
+                  $.meow({
+                    message: 'Thanks for voting. Your rating has been recorded.',
+                    icon: 'http://png-3.findicons.com/files/icons/1577/danish_royalty_free/32/smiley.png'
+                  });
+
+                  $.ajax({
+                    type: 'POST',
+                    url: '/games/rating',
+                    data: {
+                      slug: $(self).attr('id').slice(1),
+                      rating: score
+                    },
+                    success: function () {
+                      console.log('setting to read-only');
+                      $(self).raty('readOnly', true);
+
+                    }
+                  });
+                }
+              });
+    else
+      if games.length == 0
+        .alert.alert-warning
+          | Database query returned no results.
+      else
+        for game in games
+          .span4
+            img.img-polaroid.large(src=game.largeImage)
+            h4
+              a(href='/games/#{game.slug}') #{game.title}
             span(id='_' + game.slug)
             span(id='votes', name='votes')
-              small  (#{game.votes})
+              |  (#{game.votes})
             br
-            strong #{game.price}
+            h4 #{game.price}
 
-          script(type='text/javascript')
-            $('#_#{game.slug}').raty({
-              path: '/img/',
-              round: { down: .25, full: .6, up: .76 },
-              score: #{game.rating}/#{game.votes},
-              space: false,
-              readOnly: true,
-              click: function (score, event) {
-                var self = this;
-                $.meow({
-                  message: 'Thanks for voting. Your rating has been recorded.',
-                  icon: 'http://png-3.findicons.com/files/icons/1577/danish_royalty_free/32/smiley.png'
-                });
+            script(type='text/javascript')
+              $('#_#{game.slug}').raty({
+                round : { down: .25, full: .6, up: .76 },
+                score: #{game.rating}/#{game.votes},
+                readOnly: true,
+                click: function (score, event) {
+                  var self = this;
+                  $.meow({
+                    message: 'Thanks for voting. Your rating has been recorded.',
+                    icon: 'http://png-3.findicons.com/files/icons/1577/danish_royalty_free/32/smiley.png'
+                  });
 
-                $.ajax({
-                  type: 'POST',
-                  url: '/games/rating',
-                  data: {
-                    slug: $(self).attr('id').slice(1),
-                    rating: score
-                  },
-                  success: function () {
-                    console.log('setting to read-only');
-                    $(self).raty('readOnly', true);
+                  $.ajax({
+                    type: 'POST',
+                    url: '/games/rating',
+                    data: {
+                      slug: $(self).attr('id').slice(1),
+                      rating: score
+                    },
+                    success: function () {
+                      console.log('setting to read-only');
+                      $(self).raty('readOnly', true);
 
-                  }
-                });
-              }
-            });
-    else
-      for game in games
-        .span4
-          img.img-polaroid.large(src=game.largeImage)
-          h4
-            a(href='/games/#{game.slug}') #{game.title}
-          span(id='_' + game.slug)
-          span(id='votes', name='votes')
-            |  (#{game.votes})
-          br
-          h4 #{game.price}
-
-          script(type='text/javascript')
-            $('#_#{game.slug}').raty({
-              round : { down: .25, full: .6, up: .76 },
-              score: #{game.rating}/#{game.votes},
-              readOnly: true,
-              click: function (score, event) {
-                var self = this;
-                $.meow({
-                  message: 'Thanks for voting. Your rating has been recorded.',
-                  icon: 'http://png-3.findicons.com/files/icons/1577/danish_royalty_free/32/smiley.png'
-                });
-
-                $.ajax({
-                  type: 'POST',
-                  url: '/games/rating',
-                  data: {
-                    slug: $(self).attr('id').slice(1),
-                    rating: score
-                  },
-                  success: function () {
-                    console.log('setting to read-only');
-                    $(self).raty('readOnly', true);
-
-                  }
-                });
-              }
-            });
+                    }
+                  });
+                }
+              });
   .row
     .span12
       hr

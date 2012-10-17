@@ -1,18 +1,11 @@
 //??? TODO: After registered user log-ins, redirect to main page and display 3 games based on interests criteria and 3 based on previous purchases
 //??? TODO: If the user hasn't purchased anything display 6 items based on interest criteria
 
-// TODO: Per session, keep track how many times user voted, and the average rating of the votes
-// TODO: IF voteCount >= 5 and avg_rating <= 1, increment flag by 1
-// TODO: If flag == 3, suspend user for that session. Can't rate anymore (jRaty read-only flag).
-// TODO: If flag >= 1, rating weight is low
-
 // TODO: Recommend to a user, based on user's past ratings. Don't recommend low-rated games, recommend high-rated games
 // TODO: Recommend based on interests during the registration
 // TODO: Recommend based on other users with similar interests
 
 // TODO: Creative feature: Video reviews from IGN? Latest stories about the game from Gamespot?
-
-// TODO: convert add_game to a page with URL input field and submit button
 
 // TODO: Users and visitors can submit complaint about inappropriate comment
 // TODO: Create a page where admin can process these inappropriate comments: Ignore or (Erase & Send warning to user)
@@ -87,7 +80,7 @@ var Comment = new mongoose.Schema({
 
 // Here we create a schema called Game with the following fields.
 var Game = new mongoose.Schema({
-  slug: String,
+  slug: { type: String, index: { unique: true } },
   title: String,
   publisher: String,
   thumbnail: String,
@@ -230,7 +223,14 @@ app.post('/add', function (req, res) {
       console.log(slugify(title));
 
       // long game summary with screenshots
-      var summary = $('.productDescriptionWrapper .aplus').html();
+      if (!$('.productDescriptionWrapper .aplus').html()) {
+        console.log('aplus is not here');
+        var summary = $('.productDescriptionWrapper').html();
+      }
+      else {
+        console.log('using aplus');
+        var summary = $('.productDescriptionWrapper .aplus').html();
+      }
 
       request({uri: 'http://www.gamespot.com/' + slug + '/platform/pc/'}, function (err, response, body) {
         if (err && response.statusCode !== 200) return;
@@ -257,14 +257,14 @@ app.post('/add', function (req, res) {
 
           // thumbnail image
           var thumbnail = $('.boxshot a img').attr('src');
-          request(thumbnail).pipe(fs.createWriteStream('./public/img/small/' + thumbnail));
+          request(thumbnail).pipe(fs.createWriteStream('./public/img/games/' + slug + '-thumb.jpg'));
           console.log(thumbnail);
 
           // large cover for the game
           // I used a regular expression 'replace' to replace thumb with front to match valid Gamespot URL
           var tempLarge = $('.boxshot a img').attr('src');
           var largeImage = tempLarge.replace('thumb', 'front');
-          request(largeImage).pipe(fs.createWriteStream('./public/img/large/' + largeImage));
+          request(largeImage).pipe(fs.createWriteStream('./public/img/games/' + slug + '-large.jpg'));
           console.log(largeImage);
 
           // save all above data to MongoDB
@@ -284,7 +284,9 @@ app.post('/add', function (req, res) {
           });
 
           game.save(function(err) {
-            if (err) return;
+            if (err) {
+              res.send(500, 'Halt: Games already exists');
+            };
             console.log('saved game into db');
             res.redirect('/add');
           });
@@ -379,20 +381,20 @@ app.post('/games/rating', function (req, res) {
     req.session.userRating += req.body.rating;
     req.session.userAvgRating = req.session.userRating / req.session.userVoteCount;
 
-    if (req.session.userVoteCount == 5 && req.session.userAvgRating <= 2.0) {
+    if (req.session.userVoteCount == 5 && (req.session.userAvgRating <= 1.5 || req.session.userAvgRating >= 4.5)) {
       req.session.user.flagCount = 1;
       req.session.user.weight = 0.75;
       console.log('user rating flag count has been increased to 1');
     }
-    else if (req.session.userVoteCount == 10 && req.session.userAvgRating <= 2.0) {
+    else if (req.session.userVoteCount == 10 && (req.session.userAvgRating <= 1.5 || req.session.userAvgRating >= 4.5)) {
       req.session.user.flagCount = 2;
       req.session.user.weight = 0.5;
       console.log('user rating flag count has been increased to 2');
     }
-    else if (req.session.userVoteCount == 15 && req.session.userAvgRating <= 2.0) {
+    else if (req.session.userVoteCount == 15 && (req.session.userAvgRating <= 1.5 || req.session.userAvgRating >= 4.5)) {
       req.session.user.flagCount = 3;
       user.suspendedRating = true;
-      console.log('Suspended rating privelleges. No longer can rate.')
+      console.log('Suspended rating privilleges. No longer can rate.')
     }
 
     game.weightedScore = game.rating + req.body.rating * req.session.user.weight;
