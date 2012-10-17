@@ -12,7 +12,6 @@
 
 // TODO: Creative feature: Video reviews from IGN? Latest stories about the game from Gamespot?
 
-// TODO: Store game thumbs into MongoDB, leave summary as is with external links.
 // TODO: convert add_game to a page with URL input field and submit button
 
 // TODO: Users and visitors can submit complaint about inappropriate comment
@@ -189,7 +188,11 @@ app.configure('development', function() {
  |_| \_\___/ \__,_|\__\___||___/
  */
 
-app.get('/add_game', function (req, res) {
+app.get('/add', function (req, res) {
+  res.render('add');
+});
+
+app.post('/add', function (req, res) {
   //var url = 'http://www.amazon.com/gp/product/B00006IR62/ref=s9_simh_gw_p63_d0_i3?pf_rd_m=ATVPDKIKX0DER&pf_rd_s=center-2&pf_rd_r=0SV5QGZXE9458998V6X5&pf_rd_t=101&pf_rd_p=1389517282&pf_rd_i=507846';
   //var url = 'http://www.amazon.com/gp/product/B0050SYLRK/ref=vg_xbox_4pack_assassinsiii?pf_rd_m=ATVPDKIKX0DER&pf_rd_s=merchandised-search-3&pf_rd_r=4B4606133BD9433F8DFC&pf_rd_t=101&pf_rd_p=1404381382&pf_rd_i=14220161'
   //var url = 'http://www.amazon.com/Mass-Effect-3-Xbox-360/dp/B004FYEZMQ/ref=sr_1_1?ie=UTF8&qid=1349677230&sr=8-1&keywords=mass+effect+3';
@@ -197,21 +200,12 @@ app.get('/add_game', function (req, res) {
   //var url = 'http://www.amazon.com/Star-Wars-The-Old-Republic-Pc/dp/B001CWXAP2/ref=sr_1_1?ie=UTF8&qid=1349849268&sr=8-1&keywords=star+wars+the+old+republic';
   //var url = 'http://www.amazon.com/Star-Wars-The-Force-Unleashed-Pc/dp/B002LHSGSI/ref=acc_glance_vg_ai_ps_t_2'
   //var url = 'http://www.amazon.com/Prototype-2-Xbox-360/dp/B004FUL9YW/ref=sr_1_1?s=videogames&ie=UTF8&qid=1349849413&sr=1-1&keywords=prototype+2'
-  var url = 'http://www.amazon.com/Guild-Wars-2-Pc/dp/B001TOQ8X4/ref=sr_tr_1?ie=UTF8&qid=1350276922&sr=8-1&keywords=guild+wars+2';
-
+  //var url = 'http://www.amazon.com/Guild-Wars-2-Pc/dp/B001TOQ8X4/ref=sr_tr_1?ie=UTF8&qid=1350276922&sr=8-1&keywords=guild+wars+2';
+  var url = req.body.gameURL;
   request({uri: url}, function (err, response, body) {
-
     if (err && response.statusCode !== 200) return;
-
     jsdom.env({ html: body, scripts: ['http://code.jquery.com/jquery-1.6.min.js'] }, function (err, window) {
-
       var $ = window.jQuery;
-
-
-
-      // release date
-      // var releaseDate = $('#detail-bullets_feature_div ul li:nth-child(5)').html().slice(22);
-      // console.log($('#detail-bullets_feature_div ul li:nth-child(5)').html().slice(22));
 
       // title
       var title = $('#btAsinTitle').html();
@@ -237,11 +231,8 @@ app.get('/add_game', function (req, res) {
       var summary = $('.productDescriptionWrapper .aplus').html();
 
       request({uri: 'http://www.gamespot.com/' + slug + '/platform/pc/'}, function (err, response, body) {
-
         if (err && response.statusCode !== 200) return;
-
         jsdom.env({ html: body, scripts: ['http://code.jquery.com/jquery-1.6.min.js'] }, function (err, window) {
-
           var $ = window.jQuery;
 
           // game description
@@ -264,16 +255,15 @@ app.get('/add_game', function (req, res) {
 
           // thumbnail image
           var thumbnail = $('.boxshot a img').attr('src');
+          request(thumbnail).pipe(fs.createWriteStream('./public/img/small/' + thumbnail));
           console.log(thumbnail);
 
           // large cover for the game
           // I used a regular expression 'replace' to replace thumb with front to match valid Gamespot URL
-          var temp = $('.boxshot a img').attr('src');
-          var largeImage = temp.replace('thumb', 'front');
-          request(largeImage).pipe(fs.createWriteStream('./public/img/large/demo.jpg'));
+          var tempLarge = $('.boxshot a img').attr('src');
+          var largeImage = tempLarge.replace('thumb', 'front');
+          request(largeImage).pipe(fs.createWriteStream('./public/img/large/' + largeImage));
           console.log(largeImage);
-
-
 
           // save all above data to MongoDB
           var game = new Game({
@@ -294,17 +284,12 @@ app.get('/add_game', function (req, res) {
           game.save(function(err) {
             if (err) return;
             console.log('saved game into db');
+            res.redirect('/add');
           });
-
         });
-
       });
-
     });
   });
-
-  res.send('Saved!');
-
 });
 
 app.get('/', function(req, res) {
@@ -343,9 +328,6 @@ app.get('/', function(req, res) {
   }
 });
 
-app.get('/bot', function (req, res) {
-    console.log('w');
-});
 
 app.post('/buy', function (req, res) {
   User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
@@ -604,12 +586,13 @@ app.get('/login', function(req, res) {
   if (req.session.user) {
     res.redirect('/');
   }
+
   res.render('login', {
     heading: 'Sign In',
     lead: 'Use the login form if you are an existing user',
     user: req.session.user,
     incorrectLogin: req.session.incorrectLogin,
-    message: { success: req.session.message }
+    message: { success: req.session.message },
   });
 });
 
@@ -620,10 +603,17 @@ app.post('/login', function (req, res) {
       res.redirect('/login');
     } else {
       user.comparePassword(req.body.password, function(err, isMatch) {
+        // correct login
         if (isMatch) {
           delete req.session.incorrectLogin;
           req.session.user = user;
+
+          // create session to keep track of votes
+          req.session.voteCount = 0;
+          req.session.avgRating = 0;
+
           res.redirect('/');
+          // incorrect login
         } else {
           req.session.incorrectLogin = true;
           res.redirect('/login');

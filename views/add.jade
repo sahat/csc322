@@ -1,0 +1,40 @@
+doctype 5
+html(lang='en')
+head
+  meta(charset='utf-8')
+  title N7
+  meta(name='viewport', content='width=device-width, initial-scale=1.0')
+  meta(name='description', content='CSC322 Project')
+  meta(name='author', content='CCNY')
+
+  link(href='/css/bootstrap.css', rel='stylesheet')
+  link(href='/css/docs.css', rel='stylesheet')
+  link(href='/css/bootstrap-responsive.css', rel='stylesheet')
+  link(href='/css/google-bootstrap.css', rel='stylesheet')
+  link(href='/css/custom.css', rel='stylesheet')
+  link(href='/css/jquery.meow.css', rel='stylesheet')
+  link(href='/css/original.css', rel='stylesheet')
+  link(href='/css/jquery-ui.css', rel='stylesheet')
+  link(href='/css/jquery.ui.theme.css', rel='stylesheet')
+  link(href='/css/jquery.tagit.css', rel='stylesheet')
+
+  script(src='/js/jquery-1.8.2.min.js')
+  script(src='/js/bootstrap.min.js')
+  script(src='/js/jquery.validate.js')
+  script(src='/js/jquery.raty.min.js')
+  script(src='/js/jquery.meow.js')
+  script(src='/js/humane.js')
+  script(src='/js/jquery-ui.js')
+  script(src='/js/tag-it.js')
+
+body
+  .container
+    form#login.form-horizontal(method='post')
+      legend Add Game
+      .control-group
+        label.control-label(for='gameURL') Amazon.com URL
+        .controls
+          input#gameURL((name='gameURL', type='text', autofocus='autofocus')
+      .control-group
+        .controls
+          button.btn.btn-primary(type='submit') Submit
