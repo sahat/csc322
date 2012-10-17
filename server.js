@@ -506,16 +506,20 @@ app.get('/admin', function (req, res) {
   User.find(function (err, users) {
     if (err) throw err;
     console.log(users);
-    Comment.find({ 'flagged': true }, function (err, comments) {
-      if (err) throw err;
-    });
-    res.render('admin', {
-      heading: 'Admin Dashboard',
-      lead: 'Manage users, system analytics..',
-      user: req.session.user,
-      users: users,
-      flaggedComments: comments
-    });
+
+    Comment
+      .find({ 'flagged': true })
+      .populate('game')
+      .exec(function (err, comments) {
+        res.render('admin', {
+          heading: 'Admin Dashboard',
+          lead: 'Manage users, system analytics..',
+          user: req.session.user,
+          users: users,
+          flaggedComments: comments
+        });
+      });
+
   });
 });
 
@@ -544,6 +548,7 @@ app.get('/account', function (req, res) {
   });
 });
 
+
 app.post('/account', function (req, res) {
   User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
     user.firstName = req.body.firstName;
@@ -559,6 +564,7 @@ app.post('/account', function (req, res) {
     });
   });
 });
+
 
 app.post('/account/tag/add', function (req, res) {
   User.findOne({ 'userName': req.session.user.userName }, function (err, user) {

@@ -2,17 +2,27 @@ extends layout
 
 block content
   legend Reported Comments
-  table.table-striped
+  table.table
     thead
-    tr
-      th Comment ID
-      th Number of Reports
-      th Link
-
-    tbody
       tr
-        td
-        td
+        th Text
+        th.span4 Game URL
+        th.span2 Actions
+      tbody
+        for comment in flaggedComments
+          tr
+            td #{comment.body}
+            td
+              a(href='/games/#{comment.game.slug}') #{comment.game.title}
+            td
+              btn.btn.btn-small Ignore
+              btn.btn.btn-small.btn-danger Delete
+              // notify user on delete
+
+
+
+
+  legend List of Users
   table.table.table-striped
     tbody
       for usr in users

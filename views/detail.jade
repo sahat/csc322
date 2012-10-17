@@ -110,7 +110,10 @@ block content
           td.left-table-border(rowspan=4)
           td
             | By&nbsp;
-            strong #{comment.creator.firstName} #{comment.creator.lastName}
+            if comment.creator
+              strong #{comment.creator.firstName} #{comment.creator.lastName}
+            else
+              strong User That No Longer Exists
         tr
           td
             small.muted #{comment.date.toLocaleDateString()}
@@ -130,7 +133,8 @@ block content
                 i.icon-flag
                 |  Report
 
-              if comment.creator.userName == user.userName || user.isAdmin
+
+              if comment.creator && comment.creator.userName == user.userName || user.isAdmin
                 a.btn.btn-mini(href='#', id=comment._id)
                   i.icon-trash
                   |  Delete
@@ -164,7 +168,7 @@ block content
       small  comment box
     form#comment(method='post')
       .controls
-        textarea#comment.span5(rows=5, name='comment')
+        textarea#comment.span5(rows=5, name='comment', maxlength=2000)
       .controls
         button.btn.btn-primary(type='submit')
           i.icon-comment.icon-white
