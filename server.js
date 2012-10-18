@@ -10,6 +10,8 @@ var jsdom = require('jsdom');
 var request = require('request');
 var io = require('socket.io');
 var _ = require('underscore');
+_.str = require('underscore.string');
+_.mixin(_.str.exports());
 var email = require('emailjs');
 
 /*
@@ -459,8 +461,8 @@ app.get('/games', function (req, res) {
       }
       User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
         res.render('games', {
-          heading: 'All Games',
-          lead: 'Game titles listed in alphabetical order',
+          heading: 'Top 25',
+          lead: 'Game titles listed by popularity rating',
           user: user,
           games: games
         });
@@ -503,23 +505,28 @@ app.get('/games/genre/:genre', function (req, res) {
   if (req.session.tempPassword || req.session.user && req.session.user.interests.length < 3) {
     return res.redirect('/account');
   }
-  Game.find(function (err, games) {
-    if (!req.session.user) {
-      return res.render('games', {
-        heading: 'All Games',
-        lead: 'Game titles listed in alphabetical order',
-        games: games
-      });
-    }
-    User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
-      res.render('games', {
-        heading: 'All Games',
-        lead: 'Game titles listed in alphabetical order',
-        user: user,
-        games: games
+  Game
+    .find()
+    .where('genre').equals(_(req.params.genre).capitalize())
+    .sort('-weightedScore')
+    .exec(function (err, games) {
+      if (!req.session.user) {
+        return res.render('games', {
+          heading: _.first(games).genre,
+          lead: 'Listing games by genre',
+          games: games
+        });
+      }
+      User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
+        res.render('games', {
+          heading: _.first(games).genre,
+          lead: 'Listing games by genre',
+          user: user,
+          games: games
+        });
       });
     });
-  });
+
 });
 
 app.post('/games/:detail', function (req, res) {
