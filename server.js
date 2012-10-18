@@ -1,14 +1,3 @@
-//??? TODO: After registered user log-ins, redirect to main page and display 3 games based on interests criteria and 3 based on previous purchases
-//??? TODO: If the user hasn't purchased anything display 6 items based on interest criteria
-
-// TODO: Recommend to a user, based on user's past ratings. Don't recommend low-rated games, recommend high-rated games
-// TODO: Recommend based on interests during the registration
-// TODO: Recommend based on other users with similar interests
-
-// TODO: Social feed, user avatars
-
-
-
 var fs = require('fs');
 var express = require('express');
 var path = require('path');
@@ -61,7 +50,8 @@ var User = new mongoose.Schema({
   isAdmin: { type: Boolean, default: false },
   suspendedAccount: { type: Boolean, default: false },
   suspendedRating: { type: Boolean, default: false },
-  spammerFlagCount: Number
+  warningCount: { type: Number, default: 0 },
+  weightCoefficient: { type: Number, default: 1}
 });
 
 // Comment schema
@@ -365,40 +355,52 @@ app.post('/buy', function (req, res) {
 
 
 app.post('/games/rating', function (req, res) {
-  console.log(req.body.rating);
   Game.update({ 'slug': req.body.slug }, { $inc: { rating: req.body.rating, votes: 1 } }, function (err) {
     if (err) throw err;
-    console.log('updated rating!');
+    console.log('updated game rating');
   });
   User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
+    if (err) {
+      return res.send(500, 'Could not find the user');
+    }
 
     Game.findOne({ 'slug': req.body.slug }, function (err, game) {
-      req.session.user.voteCount++;
-      req.session.user.rating += req.body.rating;
-      req.session.user.avgRating = req.session.user.rating / req.session.user.voteCount;
+      if (err) {
+        return res.send(500, 'No results for such game');
+      }
+
+      req.session.voteCount++;
+      req.session.rating = parseInt(req.session.rating) + parseInt(req.body.rating);
+      req.session.avgRating = req.session.rating / req.session.voteCount;
+
+      console.log('voteCount is now: ' + req.session.voteCount);
+      console.log('rating is now: ' + req.session.rating);
+      console.log('avgRating is now: ' + req.session.avgRating);
+
 
       if (req.session.userVoteCount == 5 && (req.session.userAvgRating <= 1.5 || req.session.userAvgRating >= 4.5)) {
-        req.session.user.flagCount = 1;
-        req.session.user.weight = 0.75;
+        req.session.flagCount = 1;
+        req.session.weight = 0.75;
         console.log('user rating flag count has been increased to 1');
       }
       else if (req.session.userVoteCount == 10 && (req.session.userAvgRating <= 1.5 || req.session.userAvgRating >= 4.5)) {
-        req.session.user.flagCount = 2;
-        req.session.user.weight = 0.5;
+        req.session.flagCount = 2;
+        req.session.weight = 0.5;
         console.log('user rating flag count has been increased to 2');
       }
       else if (req.session.userVoteCount == 15 && (req.session.userAvgRating <= 1.5 || req.session.userAvgRating >= 4.5)) {
-        req.session.user.flagCount = 3;
-        user.suspendedRating = true;
+        req.session.flagCount = 3;
+        user.suspendedRating = true; // have to save to work
         console.log('Suspended rating privilleges. No longer can rate.')
       }
 
       console.log('db game rating ' + game.rating);
-      console.log('post game rating ' + req.body.rating);
-      console.log('user weight ' + req.session.user.weight);
+      console.log('POSTed game rating ' + req.body.rating);
+      console.log('user weight ' + user.weightCoefficient);
 
-      game.weightedScore = game.rating + req.body.rating * user.weight;
+      game.weightedScore = game.rating + req.body.rating * user.weightCoefficient;
       game.votedPeople.push(req.session.user.userName);
+
       game.save(function (err) {
         if (err) throw err;
         console.log('successfully set average rating');
@@ -439,24 +441,30 @@ app.get('/games', function (req, res) {
   if (req.session.tempPassword || req.session.user && req.session.user.interests.length < 3) {
     return res.redirect('/account');
   }
-  Game.find(function (err, games) {
-    if (!req.session.user) {
-      return res.render('games', {
-        heading: 'All Games',
-        lead: 'Game titles listed in alphabetical order',
-        games: games
-      });
-    }
-    User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
-      res.render('games', {
-        heading: 'All Games',
-        lead: 'Game titles listed in alphabetical order',
-        user: user,
-        games: games
+  Game
+    .find()
+    .limit(25)
+    .sort('-weightedScore')
+    .exec(function (err, games) {
+      if (!req.session.user) {
+        return res.render('games', {
+          heading: 'All Games',
+          lead: 'Game titles listed in alphabetical order',
+          games: games
+        });
+      }
+      User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
+        res.render('games', {
+          heading: 'All Games',
+          lead: 'Game titles listed in alphabetical order',
+          user: user,
+          games: games
+        });
       });
     });
-  });
 });
+
+
 
 app.get('/games/:detail', function (req, res) {
   if (req.session.tempPassword || req.session.user.interests.length < 3) {
@@ -487,6 +495,28 @@ app.get('/games/:detail', function (req, res) {
   });
 });
 
+app.get('/games/genre/:genre', function (req, res) {
+  if (req.session.tempPassword || req.session.user && req.session.user.interests.length < 3) {
+    return res.redirect('/account');
+  }
+  Game.find(function (err, games) {
+    if (!req.session.user) {
+      return res.render('games', {
+        heading: 'All Games',
+        lead: 'Game titles listed in alphabetical order',
+        games: games
+      });
+    }
+    User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
+      res.render('games', {
+        heading: 'All Games',
+        lead: 'Game titles listed in alphabetical order',
+        user: user,
+        games: games
+      });
+    });
+  });
+});
 
 app.post('/games/:detail', function (req, res) {
   console.log(req.body.comment);
@@ -520,6 +550,24 @@ app.post('/admin/comment/ignore', function (req, res) {
 });
 
 
+app.post('/admin/comment/warn', function (req, res) {
+  Comment
+    .findOne({ '_id': req.body.commentId })
+    .populate('creator')
+    .exec(function (err, comment) {
+      if (err) throw err;
+      console.log(comment.creator.userName);
+
+      User.findOne({ 'userName': comment.creator.userName }, function (err, user) {
+        user.warningCount++;
+        user.save(function(err) {
+          req.session.user = user;
+          console.log('user warning count has been incremented by one');
+        });
+      });
+    });
+});
+
 
 app.post('/admin/comment/delete', function (req, res) {
   Comment.remove({ _id: req.body.commentId }, function (err) {
@@ -549,21 +597,30 @@ app.post('/comment/report', function (req, res) {
 
 
 app.get('/admin', function (req, res) {
+  if (!req.session.user || req.session.user.isAdmin == false) {
+    console.log('here');
+    return res.redirect('/');
+  }
+
   User.find(function (err, users) {
     if (err) throw err;
-    console.log(users);
-
     Comment
       .find({ 'flagged': true })
       .populate('game')
       .exec(function (err, comments) {
-        res.render('admin', {
-          heading: 'Admin Dashboard',
-          lead: 'Manage users, system analytics..',
-          user: req.session.user,
-          users: users,
-          flaggedComments: comments
+        User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
+          if (err) throw err;
+          req.session.user = user;
+          res.render('admin', {
+            heading: 'Admin Dashboard',
+            lead: 'Manage users, system analytics..',
+            user: req.session.user,
+            flagCount: req.session.flagCount,
+            users: users,
+            flaggedComments: comments
+          });
         });
+
       });
 
   });
@@ -675,14 +732,15 @@ app.post('/login', function (req, res) {
           req.session.user = user;
 
           // create session to keep track of votes
-          req.session.user.voteCount = 0;
-          req.session.user.avgRating = 0;
-          req.session.user.rating = 0;
-          req.session.user.weight = 1;
+          req.session.flagCount = 0;
+          req.session.voteCount = 0;
+          req.session.avgRating = 0;
+          req.session.rating = 0;
 
           res.redirect('/');
-          // incorrect login
+
         } else {
+          // incorrect login
           req.session.incorrectLogin = true;
           res.redirect('/login');
         }

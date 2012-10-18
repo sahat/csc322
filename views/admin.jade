@@ -3,50 +3,82 @@ extends layout
 block content
   legend Reported Comments
   table.table
-    thead
-      tr
-        th Text
-        th.span4 Game URL
-        th.span3 Actions
       tbody
         for comment in flaggedComments
           tr(id='tr-#{comment.id}')
-            td #{comment.body}
             td
+              i.icon-comment
+              |  Posted by
+              strong  #{user.userName}
+              |  under&nbsp;
               a(href='/games/#{comment.game.slug}') #{comment.game.title}
-            td
-              btn.btn.btn-small(id='ignore-#{comment.id}') Ignore
-              btn.btn.btn-small.btn-danger(id='delete-#{comment.id}') Delete & Warn User
-              script(type='text/javascript')
-                $('#delete-#{comment.id}').click(function() {
-                  console.log('clicked on delete');
-                  $.post('/admin/comment/delete', { commentId: '#{comment.id}' });
-                  $('#tr-#{comment.id}').remove();
-                  humane.log('Comment has been removed');
-                  return false;
-                });
+              br
+              p
+                blockquote= comment.body
+              btn.btn.btn-small(id='ignore-#{comment.id}')
+                i.icon.icon-ok-circle
+                |  Ignore Report
+              btn.btn.btn-small.btn-warning(id='warn-#{comment.id}')
+                i.icon-flag.icon-white
+                |  Send Warning to User
+              btn.btn.btn-small.btn-danger(id='delete-#{comment.id}')
+                i.icon-trash.icon-white
+                |  Delete Comment
 
               script(type='text/javascript')
                 $('#ignore-#{comment.id}').click(function() {
-                  console.log('clicked on ignore');
                   $.post('/admin/comment/ignore', { commentId: '#{comment.id}' });
                   $('#tr-#{comment.id}').remove();
                   humane.log('Comment has been ignored');
                   return false;
                 });
 
+              script(type='text/javascript')
+                $('#warn-#{comment.id}').click(function() {
+                  $.post('/admin/comment/warn', { commentId: '#{comment.id}' });
+                  $(this).remove();
+                  humane.log('Warning has been sent to the user');
+                  return false;
+                });
+
+              script(type='text/javascript')
+                $('#delete-#{comment.id}').click(function() {
+                   $.post('/admin/comment/delete', { commentId: '#{comment.id}' });
+                   $('#tr-#{comment.id}').remove();
+                   humane.log('Comment has been removed');
+                   return false;
+                 });
+
 
 
 
   legend List of Users
-  table.table.table-striped
-    tbody
-      for usr in users
-        tr
-          td
-            p #{usr.userName}
-          td
-            p #{usr.firstName}
-  btn.btn.btn-primary Send message to user
-  btn.btn.btn-danger Delete User
+  table.table
+    thead
+      tr
+        th Username
+        th Suspected Spammer
+        th Warnings
+        th Status
+      tbody
+        tr.success
+          td #{user.userName}
+          td #{flagCount} times
+          td #{user.warningCount}
+          td OK
+        tr.warning
+          td 2
+          td Jacob
+          td Thornton
+          td Suspected
+        tr.error
+          td 3
+          td Larry
+          td the Bird
+          td Spammer
+        tr.error
+          td 3
+          td Larry
+          td the Bird
+          td Suspended
 
