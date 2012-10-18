@@ -12,9 +12,9 @@
     "should": ">= 1.2.0",
     "jsdom": ">= 0.2.15",
     "request": ">= 2.11.4",
-    "moment": "*",
     "jade": "*",
     "mocha": "*",
-    "underscore": "*"
+    "underscore": "*",
+    "underscore.string": "*"
   }
 }

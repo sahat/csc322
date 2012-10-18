@@ -1,16 +1,29 @@
 ![Node](http://upload.wikimedia.org/wikipedia/en/thumb/a/a7/Nodejs_logo_light.png/150px-Nodejs_logo_light.png)
+![Mongo](http://www.mongodb.org/download/attachments/132305/logo-mongodb-onwhite.png)
+![Redis](http://redis.io/images/redis-300dpi.png)
 
 Infrastructure
 ==============
-1. Node.js
-2. Express
-3. Mongoose (Hibernate :: Java or ActiveRecord :: Ruby on Rails)
-4. Mocha
+1. node.js
+2. express - web framework for node.js
+3. mongoose - mongodb document mapper
+4. mocha - testing framework
+4.5 should.js - testing library
+5. bcrypt - encrypting and hashing user passwords
+6. redis-store - Redis bridge for storing sessions
+7. request - used for initiating requests to parse the website
+8. jsdom - used to actually parse the website
+9. socket.io - real-time websocket communication
+10. underscore.js - helper functions for JavaScript arrays and objects
+11. underscore.strin - helper functions for JavaScript strings
+12. emails = sends e-mail via designated SMTP server
 
 Tools
 =====
 1. JetBrains WebStorm
 2. GitHub
+
+
 
 Design and other stuff
 ======================
