@@ -1,4 +1,4 @@
-![Node](http://upload.wikimedia.org/wikipedia/en/thumb/a/a7/Nodejs_logo_light.png/150px-Nodejs_logo_light.png)
+![Node](http://upload.wikimedia.org/wikipedia/en/a/a7/Nodejs_logo_light.png)
 ![Mongo](http://www.mongodb.org/download/attachments/132305/logo-mongodb-onwhite.png)
 ![Redis](http://redis.io/images/redis-300dpi.png)
 
