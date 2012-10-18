@@ -7,7 +7,7 @@ block content
       tr
         th Text
         th.span4 Game URL
-        th.span2 Actions
+        th.span3 Actions
       tbody
         for comment in flaggedComments
           tr(id='tr-#{comment.id}')
@@ -16,20 +16,20 @@ block content
               a(href='/games/#{comment.game.slug}') #{comment.game.title}
             td
               btn.btn.btn-small(id='ignore-#{comment.id}') Ignore
-              btn.btn.btn-small.btn-danger(id='delete-#{comment.id}') Delete
-              // notify user on delete
+              btn.btn.btn-small.btn-danger(id='delete-#{comment.id}') Delete & Warn User
               script(type='text/javascript')
                 $('#delete-#{comment.id}').click(function() {
                   console.log('clicked on delete');
-                  $.post('/comment/delete', { commentId: '#{comment.id}' });
+                  $.post('/admin/comment/delete', { commentId: '#{comment.id}' });
                   $('#tr-#{comment.id}').remove();
                   humane.log('Comment has been removed');
                   return false;
                 });
 
+              script(type='text/javascript')
                 $('#ignore-#{comment.id}').click(function() {
                   console.log('clicked on ignore');
-                  $.post('/comment/ignore', { commentId: '#{comment.id}' });
+                  $.post('/admin/comment/ignore', { commentId: '#{comment.id}' });
                   $('#tr-#{comment.id}').remove();
                   humane.log('Comment has been ignored');
                   return false;

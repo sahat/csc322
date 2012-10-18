@@ -63,38 +63,28 @@ block content
     div Our recommendation engine has picked the following games that you may also enjoy.
   table.table
       tbody
-        tr
-          td.span1
-            img.img-polaroid(src='/games/img/wow.jpeg')
-          td
-            a(href='#')
-              strong World of Warcraft
-
-            div
-              i.icon-star
-              i.icon-star
-              i.icon-star
-              i.icon-star
-              i.icon-star
-              i.icon-star
-              i.icon-star
-              i.icon-star
-              i.icon-star
-            div
-              small.muted Release Date: Nov 23, 2004 | Genre: Fantasy Online Role-Playing
+        for game in similarGames
           tr
+            td.span1
+              img.img-polaroid(src=game.thumbnail)
             td
-              img.img-polaroid(src='/games/img/lol.jpeg')
-            td
-              a(href='#')
-                strong League of Legends
+              a(href='/games/#{game.slug}')
+                strong #{game.title}
+              div
+                span(id='_' + game.slug)
+                span(id='votes', name='votes')
+                  small  (#{game.votes} votes)
+              script(type='text/javascript')
+                $('#_#{game.slug}').raty({
+                  path: '/img/',
+                  round: { down: .25, full: .6, up: .76 },
+                  score: #{game.rating}/#{game.votes},
+                  space: false,
+                  readOnly: true,
+                });
+              div
+                small.muted Release Date: #{game.releaseDate} | Genre: #{game.genre}
 
-              div
-                strong
-                  small Recommendations:
-                    |  18
-              div
-                small.muted Release Date: Oct 27, 2009 | Genre: MOBA
 
   .alert.alert-info
     if comments.length == 1
@@ -125,10 +115,6 @@ block content
             div#result
 
             .btn-group
-              a.btn.btn-mini(href='#')
-                i.icon-thumbs-up
-                |  Like (35)
-
               a.btn.btn-mini(href='#', id='report-#{comment._id}')
                 i.icon-flag
                 |  Report

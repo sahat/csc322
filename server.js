@@ -5,12 +5,8 @@
 // TODO: Recommend based on interests during the registration
 // TODO: Recommend based on other users with similar interests
 
-// TODO: Creative feature: Video reviews from IGN? Latest stories about the game from Gamespot?
+// TODO: Social feed, user avatars
 
-// TODO: Users and visitors can submit complaint about inappropriate comment
-// TODO: Create a page where admin can process these inappropriate comments: Ignore or (Erase & Send warning to user)
-// TODO: Spammers who were warned/suspected twice will be given 1 last chance to clean up their bad comments
-// TODO: After 24 hours, user will be removed from the system
 
 
 var fs = require('fs');
@@ -64,8 +60,8 @@ var User = new mongoose.Schema({
   comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }],
   isAdmin: { type: Boolean, default: false },
   suspendedAccount: { type: Boolean, default: false },
-  suspendedRating: { type: Boolean, default: false }
-
+  suspendedRating: { type: Boolean, default: false },
+  spammerFlagCount: Number
 });
 
 // Comment schema
@@ -207,11 +203,11 @@ app.post('/add', function (req, res) {
       console.log($('#btAsinTitle').html());
 
       // price
-      var price = $('#listPriceValue').html();
-      console.log($('#listPriceValue').html());
+      var price = $('#listPriceValue').html() || $('#actualPriceValue').text() ;
+      console.log(price);
 
       function slugify(text) {
-        text = text.replace(/[^-a-zA-Z0-9,&\s]+/ig, '');
+        text = text.replace(/[^-a-zA-Z0-9\s]+/ig, '');
         text = text.replace(/-/gi, "_");
         text = text.replace(/\s/gi, "-");
         text = text.toLowerCase();
@@ -219,8 +215,8 @@ app.post('/add', function (req, res) {
       }
 
       // slug
-      var slug = slugify(title);
-      console.log(slugify(title));
+      var slug = slugify(title).replace('amp', 'and');
+      console.log(slug);
 
       // long game summary with screenshots
       if (!$('.productDescriptionWrapper .aplus').html()) {
@@ -369,44 +365,45 @@ app.post('/buy', function (req, res) {
 
 
 app.post('/games/rating', function (req, res) {
-
+  console.log(req.body.rating);
   Game.update({ 'slug': req.body.slug }, { $inc: { rating: req.body.rating, votes: 1 } }, function (err) {
     if (err) throw err;
     console.log('updated rating!');
-
   });
+  User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
 
-  Game.findOne({ 'slug': req.body.slug }, function (err, game) {
-    req.session.userVoteCount++;
-    req.session.userRating += req.body.rating;
-    req.session.userAvgRating = req.session.userRating / req.session.userVoteCount;
+    Game.findOne({ 'slug': req.body.slug }, function (err, game) {
+      req.session.user.voteCount++;
+      req.session.user.rating += req.body.rating;
+      req.session.user.avgRating = req.session.user.rating / req.session.user.voteCount;
 
-    if (req.session.userVoteCount == 5 && (req.session.userAvgRating <= 1.5 || req.session.userAvgRating >= 4.5)) {
-      req.session.user.flagCount = 1;
-      req.session.user.weight = 0.75;
-      console.log('user rating flag count has been increased to 1');
-    }
-    else if (req.session.userVoteCount == 10 && (req.session.userAvgRating <= 1.5 || req.session.userAvgRating >= 4.5)) {
-      req.session.user.flagCount = 2;
-      req.session.user.weight = 0.5;
-      console.log('user rating flag count has been increased to 2');
-    }
-    else if (req.session.userVoteCount == 15 && (req.session.userAvgRating <= 1.5 || req.session.userAvgRating >= 4.5)) {
-      req.session.user.flagCount = 3;
-      user.suspendedRating = true;
-      console.log('Suspended rating privilleges. No longer can rate.')
-    }
+      if (req.session.userVoteCount == 5 && (req.session.userAvgRating <= 1.5 || req.session.userAvgRating >= 4.5)) {
+        req.session.user.flagCount = 1;
+        req.session.user.weight = 0.75;
+        console.log('user rating flag count has been increased to 1');
+      }
+      else if (req.session.userVoteCount == 10 && (req.session.userAvgRating <= 1.5 || req.session.userAvgRating >= 4.5)) {
+        req.session.user.flagCount = 2;
+        req.session.user.weight = 0.5;
+        console.log('user rating flag count has been increased to 2');
+      }
+      else if (req.session.userVoteCount == 15 && (req.session.userAvgRating <= 1.5 || req.session.userAvgRating >= 4.5)) {
+        req.session.user.flagCount = 3;
+        user.suspendedRating = true;
+        console.log('Suspended rating privilleges. No longer can rate.')
+      }
 
-    game.weightedScore = game.rating + req.body.rating * req.session.user.weight;
-    game.votedPeople.push(req.session.user.userName);
-    game.save(function (err) {
-      if (err) throw err;
-      console.log('successfully set average rating');
-    });
+      console.log('db game rating ' + game.rating);
+      console.log('post game rating ' + req.body.rating);
+      console.log('user weight ' + req.session.user.weight);
 
-    User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
+      game.weightedScore = game.rating + req.body.rating * user.weight;
+      game.votedPeople.push(req.session.user.userName);
+      game.save(function (err) {
+        if (err) throw err;
+        console.log('successfully set average rating');
+      });
 
-      // if the user purchased the game, update rating in there as well
       for (var i = 0; i < user.purchasedGames.length; i++) {
         if (user.purchasedGames[i].slug == req.body.slug) {
           user.purchasedGames[i].rating = req.body.rating;
@@ -419,10 +416,12 @@ app.post('/games/rating', function (req, res) {
         rating: req.body.rating
       });
 
-      user.save();
+      user.save(function (err) {
+        if (err) throw err;
+        return res.redirect('/games');
+      });
     });
   });
-  return res.redirect('/games');
 });
 
 
@@ -464,17 +463,26 @@ app.get('/games/:detail', function (req, res) {
     return res.redirect('/account');
   }
   Game.findOne({ 'slug': req.params.detail }, function (err, game) {
-    Comment
-      .find({ game: game._id })
-      .populate('creator')
-      .exec(function (err, comments) {
-        res.render('detail', {
-          heading: game.title,
-          lead: game.publisher,
-          game: game,
-          comments: comments,
-          user: req.session.user
-        });
+    Game
+      .find()
+      .where('genre').equals(game.genre)
+      .limit(6)
+      .sort('title')
+      .exec(function(err, similarGames) {
+        if (err) throw err;
+        Comment
+          .find({ game: game._id })
+          .populate('creator')
+          .exec(function (err, comments) {
+            res.render('detail', {
+              heading: game.title,
+              lead: game.publisher,
+              game: game,
+              similarGames: similarGames,
+              comments: comments,
+              user: req.session.user
+            });
+          });
       });
   });
 });
@@ -500,7 +508,7 @@ app.post('/games/:detail', function (req, res) {
 });
 
 
-app.post('/comment/ignore', function (req, res) {
+app.post('/admin/comment/ignore', function (req, res) {
   Comment.findOne({ _id: req.body.commentId }, function (err, comment) {
     if (err) throw err;
     comment.flagged = false;
@@ -508,6 +516,15 @@ app.post('/comment/ignore', function (req, res) {
       if (err) throw err;
       console.log('Comment has been unflagged');
     });
+  });
+});
+
+
+
+app.post('/admin/comment/delete', function (req, res) {
+  Comment.remove({ _id: req.body.commentId }, function (err) {
+    if (err) throw err;
+    console.log('Comment has been removed');
   });
 });
 
@@ -629,6 +646,7 @@ app.get('/logout', function(req, res) {
   });
 });
 
+
 app.get('/login', function(req, res) {
   if (req.session.user) {
     res.redirect('/');
@@ -643,6 +661,7 @@ app.get('/login', function(req, res) {
   });
 });
 
+
 app.post('/login', function (req, res) {
   User.findOne({ 'userName': req.body.userName }, function (err, user) {
     if (!user) {
@@ -656,9 +675,9 @@ app.post('/login', function (req, res) {
           req.session.user = user;
 
           // create session to keep track of votes
-          req.session.userVoteCount = 0;
-          req.session.userAvgRating = 0;
-          req.session.userRating = 0;
+          req.session.user.voteCount = 0;
+          req.session.user.avgRating = 0;
+          req.session.user.rating = 0;
           req.session.user.weight = 1;
 
           res.redirect('/');
