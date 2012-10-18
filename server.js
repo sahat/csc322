@@ -61,7 +61,8 @@ var Comment = new mongoose.Schema({
   likes: { count: { type: Number }, user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' } },
   body: {type: String, required: true },
   date: {type: Date, default: Date.now },
-  flagged: { type: Boolean, default: false }
+  flagged: { type: Boolean, default: false },
+  hasBeenWarned: { type: Boolean, default: false }
 });
 
 // Here we create a schema called Game with the following fields.
@@ -170,6 +171,9 @@ app.configure('development', function() {
  */
 
 app.get('/add', function (req, res) {
+  if (!req.session.user || req.session.user.isAdmin == false) {
+    res.redirect('/');
+  }
   res.render('add');
 });
 
@@ -391,7 +395,7 @@ app.post('/games/rating', function (req, res) {
       else if (req.session.userVoteCount == 15 && (req.session.userAvgRating <= 1.5 || req.session.userAvgRating >= 4.5)) {
         req.session.flagCount = 3;
         user.suspendedRating = true; // have to save to work
-        console.log('Suspended rating privilleges. No longer can rate.')
+        console.log('Suspended rating privileges. No longer can rate.')
       }
 
       console.log('db game rating ' + game.rating);
@@ -538,6 +542,37 @@ app.post('/games/:detail', function (req, res) {
 });
 
 
+app.get('/admin', function (req, res) {
+  if (!req.session.user || req.session.user.isAdmin == false) {
+    console.log('here');
+    return res.redirect('/');
+  }
+
+  User.find(function (err, users) {
+    if (err) throw err;
+    Comment
+      .find({ 'flagged': true })
+      .populate('game')
+      .populate('creator')
+      .exec(function (err, comments) {
+        User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
+          if (err) throw err;
+          req.session.user = user;
+          res.render('admin', {
+            heading: 'Admin Dashboard',
+            lead: 'Manage users, system analytics..',
+            user: req.session.user,
+            flagCount: req.session.flagCount,
+            users: users,
+            flaggedComments: comments
+          });
+        });
+
+      });
+  });
+});
+
+
 app.post('/admin/comment/ignore', function (req, res) {
   Comment.findOne({ _id: req.body.commentId }, function (err, comment) {
     if (err) throw err;
@@ -556,6 +591,11 @@ app.post('/admin/comment/warn', function (req, res) {
     .populate('creator')
     .exec(function (err, comment) {
       if (err) throw err;
+      comment.hasBeenWarned = true;
+      comment.save(function (err) {
+        if (err) throw err;
+        console.log('User has been warned. Setting warned flag to TRUE');
+      });
       console.log(comment.creator.userName);
 
       User.findOne({ 'userName': comment.creator.userName }, function (err, user) {
@@ -596,35 +636,7 @@ app.post('/comment/report', function (req, res) {
 });
 
 
-app.get('/admin', function (req, res) {
-  if (!req.session.user || req.session.user.isAdmin == false) {
-    console.log('here');
-    return res.redirect('/');
-  }
 
-  User.find(function (err, users) {
-    if (err) throw err;
-    Comment
-      .find({ 'flagged': true })
-      .populate('game')
-      .exec(function (err, comments) {
-        User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
-          if (err) throw err;
-          req.session.user = user;
-          res.render('admin', {
-            heading: 'Admin Dashboard',
-            lead: 'Manage users, system analytics..',
-            user: req.session.user,
-            flagCount: req.session.flagCount,
-            users: users,
-            flaggedComments: comments
-          });
-        });
-
-      });
-
-  });
-});
 
 
 app.get('/account', function (req, res) {
@@ -789,6 +801,13 @@ app.post('/register', function(req, res) {
     } else {
       req.session.user = newUser;
       req.session.tempPassword = true;
+
+      // create session to keep track of votes
+      req.session.flagCount = 0;
+      req.session.voteCount = 0;
+      req.session.avgRating = 0;
+      req.session.rating = 0;
+
       res.redirect('/account');
     }
   });

@@ -9,7 +9,7 @@ block content
             td
               i.icon-comment
               |  Posted by
-              strong  #{user.userName}
+              strong  #{comment.creator.userName}
               |  under&nbsp;
               a(href='/games/#{comment.game.slug}') #{comment.game.title}
               br
@@ -18,9 +18,10 @@ block content
               btn.btn.btn-small(id='ignore-#{comment.id}')
                 i.icon.icon-ok-circle
                 |  Ignore Report
-              btn.btn.btn-small.btn-warning(id='warn-#{comment.id}')
-                i.icon-flag.icon-white
-                |  Send Warning to User
+              if !comment.hasBeenWarned
+                btn.btn.btn-small.btn-warning(id='warn-#{comment.id}')
+                  i.icon-flag.icon-white
+                  |  Send Warning to User
               btn.btn.btn-small.btn-danger(id='delete-#{comment.id}')
                 i.icon-trash.icon-white
                 |  Delete Comment
@@ -49,9 +50,6 @@ block content
                    return false;
                  });
 
-
-
-
   legend List of Users
   table.table
     thead
@@ -61,24 +59,38 @@ block content
         th Warnings
         th Status
       tbody
-        tr.success
-          td #{user.userName}
-          td #{flagCount} times
-          td #{user.warningCount}
-          td OK
-        tr.warning
-          td 2
-          td Jacob
-          td Thornton
-          td Suspected
-        tr.error
-          td 3
-          td Larry
-          td the Bird
-          td Spammer
-        tr.error
-          td 3
-          td Larry
-          td the Bird
-          td Suspended
+        for user in users
+          if user.warningCount === 0 && flagCount === 0
+            tr.success
+              td #{user.userName}
+              td #{flagCount} times
+              td #{user.warningCount}
+              td OK
 
+          if user.warningCount === 1
+            tr.warning
+              td #{user.userName}
+              td #{flagCount} times
+              td #{user.warningCount}
+              td Warning
+
+          if user.warningCount > 1
+            tr.error
+              td #{user.userName}
+              td #{flagCount} times
+              td #{user.warningCount}
+              td Suspended
+
+          if user.warningCount === 0 && (flagCount >= 5 && flagCount < 15)
+            tr.warning
+              td #{user.userName}
+              td #{flagCount} times
+              td #{user.warningCount}
+              td Suspected
+
+          if user.warningCount === 0 && flagCount >= 15
+            tr.error
+              td #{user.userName}
+              td #{flagCount} times
+              td #{user.warningCount}
+              td Spammer
