@@ -55,36 +55,38 @@ block content
     thead
       tr
         th Username
-        th Suspected Spammer
-        th Warnings
+        th Rating Warnings
+        th Comment Warnings
         th Status
       tbody
         for user in users
           if user.warningCount === 0 && flagCount === 0
             tr.success
               td #{user.userName}
-              td #{flagCount} times
+              td #{flagCount}
               td #{user.warningCount}
               td OK
 
           if user.warningCount === 1
             tr.warning
               td #{user.userName}
-              td #{flagCount} times
+              td #{flagCount}
               td #{user.warningCount}
               td Warning
 
           if user.warningCount > 1
             tr.error
               td #{user.userName}
-              td #{flagCount} times
+              td #{flagCount}
               td #{user.warningCount}
-              td Suspended
+              td
+                | Suspended
+                btn.btn.btn-primary.btn-mini Ignore
 
           if user.warningCount === 0 && (flagCount >= 5 && flagCount < 15)
             tr.warning
               td #{user.userName}
-              td #{flagCount} times
+              td #{flagCount}
               td #{user.warningCount}
               td Suspected
 

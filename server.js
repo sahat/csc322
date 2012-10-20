@@ -1,3 +1,17 @@
+// kick for ratings -> 2 suspected spammer warnings (3 flags), 1 flag per session at most
+// after 3 flags, suspectedCounter = 1, admin can ignore or leave it suspended for further rating
+// kick 2 bad comment warnings
+
+// add more games
+
+// Status: Warning - either comment warning or 1 to 2 rating flag warnings
+// Status: OK - Everything is 0
+// Suspended: Rating Warnings is 3
+// Disabled: Comment Warnings is 2
+
+// multiple comment reports is the same as one report, i.e. flagged or not flagged
+// for that Comment ID is all that matters
+
 var fs = require('fs');
 var express = require('express');
 var path = require('path');
@@ -52,7 +66,9 @@ var User = new mongoose.Schema({
   suspendedAccount: { type: Boolean, default: false },
   suspendedRating: { type: Boolean, default: false },
   warningCount: { type: Number, default: 0 },
-  weightCoefficient: { type: Number, default: 1}
+  weightCoefficient: { type: Number, default: 1},
+  flagCount: { type: Number, default: 0 }
+
 });
 
 // Comment schema
@@ -249,7 +265,9 @@ app.post('/add', function (req, res) {
           // thumbnail image
           var thumbnail = $('.boxshot a img').attr('src');
           request(thumbnail).pipe(fs.createWriteStream('./public/img/games/' + slug + '-thumb.jpg'));
+          var thumbnail = slug + '-thumb.jpg';
           console.log(thumbnail);
+
 
           // large cover for the game
           // I used a regular expression 'replace' to replace thumb with front to match valid Gamespot URL
@@ -257,6 +275,7 @@ app.post('/add', function (req, res) {
           var largeImage = tempLarge.replace('thumb', 'front');
           request(largeImage).pipe(fs.createWriteStream('./public/img/games/' + slug + '-large.jpg'));
           console.log(largeImage);
+          var largeImage = slug + '-large.jpg';
 
           // save all above data to MongoDB
           var game = new Game({
