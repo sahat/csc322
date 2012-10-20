@@ -8,7 +8,12 @@ block content
       div You must select a new password and add at least
         strong  three interests
         |  before continuing!
-
+  if isSuspended
+    br
+    .alert.alert-error
+      h4 Your account has been suspended
+      div You are given one last chance to clean up your account, afterwards your account will be terminated.
+  
   form#registration.form-horizontal(method='post')
     br
     div.lead#getting-started Type your interests below to get started...

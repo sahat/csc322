@@ -62,7 +62,7 @@ block content
       else
         for game in games
           .span4
-            img.img-polaroid.large(src=game.largeImage)
+            img.img-polaroid.large(src='/img/games/#{game.largeImage}')
             h4
               a(href='/games/#{game.slug}') #{game.title}
             span(id='_' + game.slug)

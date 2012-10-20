@@ -319,7 +319,7 @@ app.get('/', function(req, res) {
       .exec(function (err, games) {
         if (err) throw err;
         res.render('index', {
-          heading: 'N7 Online Store',
+          heading: 'CL4P-TP Online Store',
           lead: 'The leading next generation video games recommendation engine',
           user: req.session.user,
           customgames: games
@@ -333,7 +333,7 @@ app.get('/', function(req, res) {
       .exec(function(err, game) {
         if (err) throw err;
         res.render('index', {
-          heading: 'N7 Online Store',
+          heading: 'CL4P-TP Online Store',
           lead: 'The leading next generation video games recommendation engine',
           user: req.session.user,
           games: game
@@ -491,9 +491,12 @@ app.get('/games', function (req, res) {
 
 
 app.get('/games/:detail', function (req, res) {
-  if (req.session.tempPassword || req.session.user.interests.length < 3) {
-    return res.redirect('/account');
+  if (req.session.user) {
+    if (req.session.tempPassword || req.session.user.interests.length < 3) {
+      return res.redirect('/account');
+    }
   }
+
   Game.findOne({ 'slug': req.params.detail }, function (err, game) {
     if (err) {
       return res.send(500, 'no game that match slug of the detail page');
@@ -626,6 +629,9 @@ app.post('/admin/comment/warn', function (req, res) {
       console.log(comment.creator.userName);
       User.findOne({ 'userName': comment.creator.userName }, function (err, user) {
         user.warningCount++;
+        if (user.warningCount >= 2) {
+          user.suspendedAccount = true;
+        }
         user.save(function(err) {
           req.session.user = user;
           console.log('user warning count has been incremented by one');
@@ -680,7 +686,8 @@ app.get('/account', function (req, res) {
         lead: 'View purchase history, update account, choose interests',
         user: req.session.user,
         tags: tagArray,
-        tempPassword: req.session.tempPassword
+        tempPassword: req.session.tempPassword,
+        isSuspended: user.suspendedAccount
       });
     });
   });
@@ -733,6 +740,13 @@ app.post('/account/tag/delete', function (req, res) {
 
 
 app.get('/logout', function(req, res) {
+  if (req.session.user.suspendedAccount) {
+      User.remove({ 'userName': req.session.user.userName }, function (err) {
+        if (err) throw err;
+        console.log('User account has been removed');
+      });
+    }
+
   req.session.destroy(function (){
     res.redirect('/');
   });
@@ -763,14 +777,19 @@ app.post('/login', function (req, res) {
       user.comparePassword(req.body.password, function(err, isMatch) {
         // correct login
         if (isMatch) {
-          delete req.session.incorrectLogin;
-          req.session.user = user;
-          // create session to keep track of votes
-          req.session.flagCount = 0;
-          req.session.voteCount = 0;
-          req.session.avgRating = 0;
-          req.session.rating = 0;
-          res.redirect('/');
+          if (user.suspendedAccount) {
+            res.redirect('/account');
+          }
+          else {
+            delete req.session.incorrectLogin;
+            req.session.user = user;
+            // create session to keep track of votes
+            req.session.flagCount = 0;
+            req.session.voteCount = 0;
+            req.session.avgRating = 0;
+            req.session.rating = 0;
+            res.redirect('/');
+          }
         } else {
           // incorrect login
           req.session.incorrectLogin = true;
