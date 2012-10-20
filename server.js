@@ -495,6 +495,9 @@ app.get('/games/:detail', function (req, res) {
     return res.redirect('/account');
   }
   Game.findOne({ 'slug': req.params.detail }, function (err, game) {
+    if (err) {
+      return res.send(500, 'no game that match slug of the detail page');
+    }
     Game
       .find()
       .where('genre').equals(game.genre)

@@ -16,7 +16,7 @@ block content
       else
         for game in customgames
           .span2
-            img.img-polaroid.medium(src=game.largeImage)
+            img.img-polaroid.medium(src='/img/games/#{game.largeImage}')
             strong
               a(href='/games/#{game.slug}') #{game.title}
             div

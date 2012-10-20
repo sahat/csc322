@@ -63,27 +63,27 @@ block content
     div Our recommendation engine has picked the following games that you may also enjoy.
   table.table
       tbody
-        for game in similarGames
+        for similarGame in similarGames
           tr
             td.span1
-              img.img-polaroid(src=game.thumbnail)
+              img.img-polaroid(src='/img/games/#{similarGame.thumbnail}')
             td
-              a(href='/games/#{game.slug}')
-                strong #{game.title}
+              a(href='/games/#{similarGame.slug}')
+                strong #{similarGame.title}
               div
-                span(id='_' + game.slug)
+                span(id='_' + similarGame.slug)
                 span(id='votes', name='votes')
-                  small  (#{game.votes} votes)
+                  small  (#{similarGame.votes} votes)
               script(type='text/javascript')
                 $('#_#{game.slug}').raty({
                   path: '/img/',
                   round: { down: .25, full: .6, up: .76 },
-                  score: #{game.rating}/#{game.votes},
+                  score: #{similarGame.rating}/#{similarGame.votes},
                   space: false,
                   readOnly: true,
                 });
               div
-                small.muted Release Date: #{game.releaseDate} | Genre: #{game.genre}
+                small.muted Release Date: #{similarGame.releaseDate} | Genre: #{similarGame.genre}
 
 
   .alert.alert-info
