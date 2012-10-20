@@ -17,6 +17,7 @@ var express = require('express');
 var path = require('path');
 var http = require('http');
 var mongoose = require('mongoose');
+var email = require('emailjs');
 var bcrypt = require('bcrypt');
 var RedisStore = require('connect-redis')(express);
 var jsdom = require('jsdom');
@@ -25,7 +26,6 @@ var io = require('socket.io');
 var _ = require('underscore');
 _.str = require('underscore.string');
 _.mixin(_.str.exports());
-var email = require('emailjs');
 
 /*
   __  __                         ____  ____
@@ -592,7 +592,6 @@ app.get('/admin', function (req, res) {
             flaggedComments: comments
           });
         });
-
       });
   });
 });
@@ -622,7 +621,6 @@ app.post('/admin/comment/warn', function (req, res) {
         console.log('User has been warned. Setting warned flag to TRUE');
       });
       console.log(comment.creator.userName);
-
       User.findOne({ 'userName': comment.creator.userName }, function (err, user) {
         user.warningCount++;
         user.save(function(err) {
@@ -659,9 +657,6 @@ app.post('/comment/report', function (req, res) {
     });
   });
 });
-
-
-
 
 
 app.get('/account', function (req, res) {
@@ -767,15 +762,12 @@ app.post('/login', function (req, res) {
         if (isMatch) {
           delete req.session.incorrectLogin;
           req.session.user = user;
-
           // create session to keep track of votes
           req.session.flagCount = 0;
           req.session.voteCount = 0;
           req.session.avgRating = 0;
           req.session.rating = 0;
-
           res.redirect('/');
-
         } else {
           // incorrect login
           req.session.incorrectLogin = true;
@@ -826,13 +818,11 @@ app.post('/register', function(req, res) {
     } else {
       req.session.user = newUser;
       req.session.tempPassword = true;
-
       // create session to keep track of votes
       req.session.flagCount = 0;
       req.session.voteCount = 0;
       req.session.avgRating = 0;
       req.session.rating = 0;
-
       res.redirect('/account');
     }
   });
