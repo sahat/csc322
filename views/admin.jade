@@ -2,7 +2,11 @@ extends layout
 
 block content
   legend Reported Comments
-  table.table
+  if flaggedComments.length == 0
+    .alert.alert-warning
+      | Nothing has been reported.
+  else
+    table.table
       tbody
         for comment in flaggedComments
           tr(id='tr-#{comment.id}')
@@ -84,6 +88,14 @@ block content
               td #{user.warningCount}
               td
                 | Suspended
+                
+          if user.warningCount === 0 && flagCount >= 15
+            tr.error
+              td #{user.userName}
+              td #{flagCount} times
+              td #{user.warningCount}
+              td 
+                | Spammer
                 btn.btn.btn-primary.btn-mini(id='unsuspend-#{user.userName}')
                   | Ignore
                 
@@ -95,16 +107,4 @@ block content
                      return false;
                    });
 
-          if user.warningCount === 0 && (flagCount >= 5 && flagCount < 15)
-            tr.warning
-              td #{user.userName}
-              td #{flagCount}
-              td #{user.warningCount}
-              td Suspected
 
-          if user.warningCount === 0 && flagCount >= 15
-            tr.error
-              td #{user.userName}
-              td #{flagCount} times
-              td #{user.warningCount}
-              td Spammer

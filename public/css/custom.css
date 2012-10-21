@@ -39,6 +39,6 @@ a:active {
 .modal {
   width:450px;
 }
-.navbar .container { 
-  height: 2em;
+.navbar { 
+  height: 21em;
 }
