@@ -369,6 +369,9 @@ app.post('/buy', function (req, res) {
 
 app.post('/games/rating', function (req, res) {
 
+  // Default weight coefficient for all users
+  req.session.weight = 1;
+
   Game.update({ 'slug': req.body.slug }, { $inc: { rating: req.body.rating, votes: 1 } }, function (err) {
     if (err) {
       console.log(err);
@@ -387,7 +390,6 @@ app.post('/games/rating', function (req, res) {
         console.log(err);
         return res.send(500, 'No results for the rated game');
       }
-
 
       req.session.voteCount++;
       console.log('Session Vote Count: ' + req.session.voteCount);
@@ -422,7 +424,7 @@ app.post('/games/rating', function (req, res) {
 
       game.save(function (err) {
         if (err) throw err;
-        console.log('successfully set average rating');
+        console.log('Successfully Set New Average Rating');
       });
 
       for (var i = 0; i < user.purchasedGames.length; i++) {

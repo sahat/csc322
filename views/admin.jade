@@ -65,39 +65,42 @@ block content
         th Rating Warnings
         th Comment Warnings
         th Status
+        th Action
       tbody
         for user in users
-          if user.warningCount === 0 && flagCount === 0
+          if user.warningCount === 0 && user.flagCount === 0
             tr.success
               td #{user.userName}
-              td #{flagCount}
+              td #{user.flagCount}
               td #{user.warningCount}
               td OK
+              td None
 
-          if user.warningCount >= 1 && !user.suspendedAccount
+          if (user.warningCount >= 1 && !user.suspendedAccount) || (user.flagCount > 0 && user.flagCount < 3)
             tr.warning
               td #{user.userName}
-              td #{flagCount}
+              td #{user.flagCount}
               td #{user.warningCount}
               td Warning
+              td None
 
           if user.suspendedAccount
             tr.error
               td #{user.userName}
-              td #{flagCount}
+              td #{user.flagCount}
               td #{user.warningCount}
-              td
-                | Termination
+              td Termination
+              td None
                 
-          if user.warningCount === 0 && flagCount >= 15
+          if user.flagCount >= 3
             tr.error
               td #{user.userName}
-              td #{flagCount} times
+              td #{user.flagCount}
               td #{user.warningCount}
+              td Spammer
               td 
-                | Spammer
-                btn.btn.btn-primary.btn-mini(id='unsuspend-#{user.userName}')
-                  | Ignore
+                btn.btn.btn-success.btn-mini(id='unsuspend-#{user.userName}')
+                  | Pardon
                 
                 script(type='text/javascript')
                   $('#unsuspend-#{user.userName}').click(function() {
