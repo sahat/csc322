@@ -116,16 +116,33 @@ block content
           td
             div#result
 
-            .btn-group
-              a.btn.btn-mini(href='#', id='report-#{comment._id}')
-                i.icon-flag
-                |  Report
+            
+
+              if comment.creator
+                if comment.creator.userName == user.userName
+                  a.btn.btn-mini(href='#', id=comment._id)
+                    i.icon-trash
+                    |  Delete
+                else if user.isAdmin
+                  .btn-group
+                    a.btn.btn-mini(href='#', id='report-#{comment._id}')
+                      i.icon-flag
+                      |  Report
+                    a.btn.btn-mini(href='#', id=comment._id)
+                      i.icon-trash
+                      |  Delete
+                else
+                  a.btn.btn-mini(href='#', id='report-#{comment._id}')
+                    i.icon-flag
+                    |  Report
 
 
-              if comment.creator && comment.creator.userName == user.userName || user.isAdmin
-                a.btn.btn-mini(href='#', id=comment._id)
-                  i.icon-trash
-                  |  Delete
+              else
+                .btn-group
+                  a.btn.btn-mini(href='#', id='report-#{comment._id}')
+                    i.icon-flag
+                    |  Report
+
 
     script(type='text/javascript')
       $('##{comment._id}').click(function() {
