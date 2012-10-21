@@ -302,7 +302,7 @@ app.get('/', function(req, res) {
   if (req.session.user) {
     Game
       .find()
-      .where('genre').in(req.session.user.interests)
+      .or([{ title: { $in: req.session.user.interests } }, { genre: { $in: req.session.user.interests } }])
       .limit(6)
       .sort('-weightedScore')
       .exec(function (err, games) {
