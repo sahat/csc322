@@ -32,6 +32,7 @@ body
   .navbar.navbar-inverse.navbar-fixed-top
     .navbar-inner
       .container
+        a.brand(href="/") CL4P-TP        
         button.btn.btn-navbar(type='button', data-toggle='collapse', data-target='.nav-collapse')
           span.icon-bar
           span.icon-bar
@@ -52,7 +53,7 @@ body
             else
               if user.isAdmin
                 li
-                  a(href='/admin') Admin
+                  a(href='/admin') Admin Panel
               li
                 a(href='/account')
                   = user.firstName
@@ -60,7 +61,7 @@ body
                   = user.lastName
               li
                 a(href='/logout') Sign Out
-
+            
   header#overview.jumbotron.subhead
     .container
       h1= heading
