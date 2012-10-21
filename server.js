@@ -1,10 +1,10 @@
-// kick for ratings -> 2 suspected spammer warnings (3 flags), 1 flag per session at most
-// after 3 flags, suspectedCounter = 1, admin can ignore or leave it suspended for further rating
+// kick for ratings -> 2 suspected spammer warnings (3 flags),
+// 1 flag per session at most
+// after 3 flags, suspectedCounter = 1, admin can ignore or
+// leave it suspended for further rating
 // kick 2 bad comment warnings
 
-// add more games
 
-// Status: Warning - either comment warning or 1 to 2 rating flag warnings
 // Status: OK - Everything is 0
 // Suspended: Rating Warnings is 3
 // Disabled: Comment Warnings is 2
@@ -368,50 +368,56 @@ app.post('/buy', function (req, res) {
 
 
 app.post('/games/rating', function (req, res) {
+
   Game.update({ 'slug': req.body.slug }, { $inc: { rating: req.body.rating, votes: 1 } }, function (err) {
-    if (err) throw err;
-    console.log('updated game rating');
+    if (err) {
+      console.log(err);
+      return res.send(500, 'Could not increment game rating and vote count');
+    }
+    console.log('Successfully updated game rating and vote count');
   });
+
   User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
     if (err) {
-      return res.send(500, 'Could not find the user');
+      console.log(err);
+      return res.send(500, 'Could not find the user for rating POST request');
     }
-
     Game.findOne({ 'slug': req.body.slug }, function (err, game) {
       if (err) {
-        return res.send(500, 'No results for such game');
+        console.log(err);
+        return res.send(500, 'No results for the rated game');
       }
+
 
       req.session.voteCount++;
+      console.log('Session Vote Count: ' + req.session.voteCount);
+
       req.session.rating = parseInt(req.session.rating) + parseInt(req.body.rating);
+      console.log('Session Rating: ' + req.session.rating);
+
       req.session.avgRating = req.session.rating / req.session.voteCount;
+      console.log('Session Avg Rating: ' + req.session.avgRating);
 
-      console.log('voteCount is now: ' + req.session.voteCount);
-      console.log('rating is now: ' + req.session.rating);
-      console.log('avgRating is now: ' + req.session.avgRating);
-
-
-      if (req.session.userVoteCount == 5 && (req.session.userAvgRating <= 1.5 || req.session.userAvgRating >= 4.5)) {
-        req.session.flagCount = 1;
-        req.session.weight = 0.75;
-        console.log('user rating flag count has been increased to 1');
-      }
-      else if (req.session.userVoteCount == 10 && (req.session.userAvgRating <= 1.5 || req.session.userAvgRating >= 4.5)) {
-        req.session.flagCount = 2;
+      // Rating spam protection
+      if (req.session.voteCount >= 5 && (req.session.avgRating <= 1.75 || req.session.avgRating >= 4.75)) {
+        req.session.flagCount = true;
         req.session.weight = 0.5;
-        console.log('user rating flag count has been increased to 2');
+        console.log('User\'s rating flag counter has been incremented');
+        console.log('Weight coefficient is set to 0.5');
       }
-      else if (req.session.userVoteCount == 15 && (req.session.userAvgRating <= 1.5 || req.session.userAvgRating >= 4.5)) {
-        req.session.flagCount = 3;
-        user.suspendedRating = true; // have to save to work
+
+      if (user.flagCount == 3) {
+        user.suspendedRating = true;
         console.log('Suspended rating privileges. No longer can rate.')
       }
 
-      console.log('db game rating ' + game.rating);
-      console.log('POSTed game rating ' + req.body.rating);
-      console.log('user weight ' + user.weightCoefficient);
+      console.log('MongoDB Game Rating: ' + game.rating);
+      console.log('POST Game Rating: ' + req.body.rating);
+      console.log('User Weight Coefficient: ' + req.session.weight);
 
-      game.weightedScore = game.rating + req.body.rating * user.weightCoefficient;
+      game.weightedScore = game.rating + req.body.rating * req.session.weight;
+      console.log('Game Weighted Score: ' + game.weightedScore);
+
       game.votedPeople.push(req.session.user.userName);
 
       game.save(function (err) {
@@ -739,6 +745,13 @@ app.post('/account/tag/delete', function (req, res) {
 
 
 app.get('/logout', function(req, res) {
+  if (req.session.flagCount) {
+    User.update({ 'userName': req.session.user.userName },
+                { $inc: { flagCount: 1 } },
+                function (err) {
+                  if (err) throw err;
+                });
+  }
   if (req.session.user.suspendedAccount) {
       User.remove({ 'userName': req.session.user.userName }, function (err) {
         if (err) throw err;
@@ -783,7 +796,6 @@ app.post('/login', function (req, res) {
             delete req.session.incorrectLogin;
             req.session.user = user;
             // create session to keep track of votes
-            req.session.flagCount = 0;
             req.session.voteCount = 0;
             req.session.avgRating = 0;
             req.session.rating = 0;

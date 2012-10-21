@@ -74,7 +74,7 @@ block content
               td #{user.warningCount}
               td OK
 
-          if user.warningCount >= 1
+          if user.warningCount >= 1 && !user.suspendedAccount
             tr.warning
               td #{user.userName}
               td #{flagCount}
@@ -87,7 +87,7 @@ block content
               td #{flagCount}
               td #{user.warningCount}
               td
-                | Suspended
+                | Termination
                 
           if user.warningCount === 0 && flagCount >= 15
             tr.error
