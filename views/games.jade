@@ -120,10 +120,11 @@ block content
                   a(href='/games/#{game.slug}')
                     strong
                       = game.title
-                  button.btn.btn-primary.btn-mini(id='price-#{game.slug}', href='#modal-#{game.slug}', role='button', data-toggle='modal')
-                    i.icon-shopping-cart.icon-white
-                    =  game.price
+                  
                   if user.userName
+                    button.btn.btn-primary.btn-mini(id='price-#{game.slug}', href='#modal-#{game.slug}', role='button', data-toggle='modal')
+                      i.icon-shopping-cart.icon-white
+                      =  game.price
                     if user.purchasedGames.length > 0
                       for mygame in user.purchasedGames
                         if mygame.slug == game.slug

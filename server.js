@@ -603,6 +603,16 @@ app.get('/admin', function (req, res) {
 });
 
 
+app.post('/admin/unsuspend', function (req, res) {
+  User.findOne({ 'userName': req.body.username }, function (err, user) {
+    user.suspendedAccount = false;
+    user.save(function() {
+      req.session.user = user;
+    });
+  });
+});
+
+
 app.post('/admin/comment/ignore', function (req, res) {
   Comment.findOne({ _id: req.body.commentId }, function (err, comment) {
     if (err) throw err;
