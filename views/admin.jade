@@ -92,7 +92,7 @@ block content
               td Termination
               td None
                 
-          if user.flagCount >= 3 && user.suspendedRating
+          if user.flagCount >= 3 && user.suspendedRating && !user.suspendedAccount
             tr.error
               td #{user.userName}
               td #{user.flagCount}

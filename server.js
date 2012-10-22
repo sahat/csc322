@@ -413,6 +413,12 @@ app.post('/games/rating', function (req, res) {
         console.log('Suspended rating privileges. No longer can rate.')
       }
 
+      if (user.flagCount >= 6) {
+        user.suspendedRating = true;
+        user.suspendedAccount = true;
+        console.log('Suspended rating privileges. Account scheduled for termination.');
+      }
+
       console.log('MongoDB Game Rating: ' + game.rating);
       console.log('POST Game Rating: ' + req.body.rating);
       console.log('User Weight Coefficient: ' + req.session.weight);
