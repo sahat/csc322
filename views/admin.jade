@@ -92,7 +92,7 @@ block content
               td Termination
               td None
                 
-          if user.flagCount >= 3
+          if user.flagCount >= 3 && user.suspendedRating
             tr.error
               td #{user.userName}
               td #{user.flagCount}
@@ -103,7 +103,7 @@ block content
                   | Pardon
                 
                 script(type='text/javascript')
-                  $('#unsuspend-#{user.userName}').click(function() {
+                  $('#unsuspend-#{user.userName}').click(function () {
                      $.post('/admin/unsuspend', { username: '#{user.userName}' });
                      $(this).remove();
                      humane.log('User has been unsuspended.');

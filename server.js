@@ -602,7 +602,7 @@ app.get('/admin', function (req, res) {
 
 app.post('/admin/unsuspend', function (req, res) {
   User.findOne({ 'userName': req.body.username }, function (err, user) {
-    user.suspendedAccount = false;
+    user.suspendedRating = false;
     user.save(function() {
       req.session.user = user;
     });
