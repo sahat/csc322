@@ -76,7 +76,7 @@ block content
               td OK
               td None
 
-          if (user.warningCount >= 1 && !user.suspendedAccount) || (user.flagCount > 0 && user.flagCount < 3)
+          if (user.warningCount >= 1 && !user.suspendedAccount) || (user.flagCount > 0 && !user.suspendedRating)
             tr.warning
               td #{user.userName}
               td #{user.flagCount}
