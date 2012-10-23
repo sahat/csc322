@@ -89,7 +89,8 @@ var Game = new mongoose.Schema({
   votedPeople: [String],
   summary: String,
   description: String,
-  price: String
+  price: String,
+  purchaseCounter: { type: Number, default: 0 }
 });
 
 // Express middleware that hashes a password before it is saved to database
@@ -309,21 +310,56 @@ app.get('/', function(req, res) {
     return res.redirect('/account');
   }
 
-  // If user is logged in then display 6 items based on interests and previous purchases
+  // If user is logged in, display 3 items based on interests and 3 based on previous purchases
   if (req.session.user) {
     Game
       .find()
       .or([{ title: { $in: req.session.user.interests } }, { genre: { $in: req.session.user.interests } }])
-      .limit(6)
+      .limit(3)
       .sort('-weightedScore')
-      .exec(function (err, games) {
+      .exec(function (err, interestGames) {
         if (err) throw err;
-        res.render('index', {
-          heading: 'CL4P-TP Online Store',
-          lead: 'The leading next generation video games recommendation engine',
-          user: req.session.user,
-          customgames: games
+        Game
+        .find()
+        .sort('-purchaseCounter')
+        .limit(3)
+        .exec(function (err, purchasedGames) {
+          res.render('index', {
+            heading: 'CL4P-TP Online Store',
+            lead: 'The leading next generation video games recommendation engine',
+            user: req.session.user,
+            interestGames: interestGames,
+            purchasedGames: purchasedGames
+          });
         });
+
+        /*
+          User
+          .find()
+          .where('userName').ne(req.session.user.userName)
+          .select('purchasedGames')
+          .exec(function (err, users) {
+            var tempArr = [];
+
+            _.each(users, function(user) {
+              tempArr.push(user.purchasedGames)
+            });
+
+            var tempPurchasedGames = _.flatten(tempArr);
+            var purchasedGames = [];
+
+            _.each(tempPurchasedGames, function (game) {
+              purchasedGames.push(game.title);
+            });
+
+
+            console.log(purchasedGames.sort());
+            });
+            */
+
+
+
+
       });
   }
   // Visitors (guests) get 3 most popular game titles instead
@@ -348,6 +384,7 @@ app.get('/', function(req, res) {
 app.post('/buy', function (req, res) {
   User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
     Game.findOne({ 'slug': req.body.slug }, function (err, game) {
+
       var rating = 0;
       for (var i = 0; i < user.ratedGames.length; i++) {
         if (game.slug == user.ratedGames[i].slug) {
@@ -355,13 +392,24 @@ app.post('/buy', function (req, res) {
           var rating = user.ratedGames[i].rating;
         }
       }
+
+
       user.purchasedGames.push({
         title: game.title,
         slug: game.slug,
         rating: rating,
         thumbnail: game.thumbnail
       });
+
+
       req.session.user = user;
+
+      game.purchaseCounter++;
+
+      game.save(function (err) {
+        console.log('Purchase counter incremented by 1');
+      });
+
       user.save(function (err) {
         console.log('Purchased game added to the list');
         var server = email.server.connect({
@@ -370,6 +418,8 @@ app.post('/buy', function (req, res) {
           host:    "smtp.gmail.com",
           ssl:     true
         });
+
+
         server.send({
           text: 'Thank you for purchasing ' + game.title + '. Your game will be shipped within 2 to 3 business days.',
           from: 'Sahat Yalkabov <sakhat@gmail.com>',
@@ -378,6 +428,7 @@ app.post('/buy', function (req, res) {
         }, function(err, message) {
           console.log(err || message);
         });
+
       });
     });
   });
@@ -904,16 +955,33 @@ app.get('/:profile', function (req, res) {
 
     request('http://360api.chary.us/?gamertag=' + user.gamertag, function (error, response, body) {
       if (!error && response.statusCode == 200) {
+
         var xbox_api = JSON.parse(body);
+
         req.session.user = user;
+
         res.render('public_profile', {
           heading: user.firstName + '\'s Profile',
           lead: 'View your Xbox live achievements, interests, game purchases...',
           user: req.session.user,
           xbox: xbox_api
         });
-      } else {
+
+      }
+      else {
+        // continue as if the user does not have the Xbox gamertag
+
         console.log('Error getting Xbox Live data');
+
+        req.session.user = user;
+
+        res.render('public_profile', {
+          heading: user.firstName + '\'s Profile',
+          lead: 'View your Xbox live achievements, interests, game purchases...',
+          user: req.session.user,
+          xbox: false
+        });
+
       }
     });
 

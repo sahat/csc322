@@ -4,7 +4,7 @@ block content
   br
   .row
     .span3.pagination-centered
-      if user.gamertag
+      if user.gamertag && xbox
         span.lead
           strong#xbox-gamertag #{xbox.Gamertag}
         .lead
@@ -25,6 +25,13 @@ block content
         span.muted  Joined on
         span  #{user.joined_on.toLocaleDateString().substr(8)}
     .span9
+
+      if user.gamertag && xbox == false
+        .alert
+          strong Problem with an Xbox gamertag Information
+          div Due to a possible network connection error, we were unable to retrieve your Xbox Live gamertag information.
+          div Try refreshing a page in a few moments to see if that will remedy the problem.
+
       legend My Profile
       ul#tabs
         li
@@ -53,7 +60,7 @@ block content
 
     
       legend Xbox Live Achievements
-      if user.gamertag
+      if user.gamertag && xbox
         for lastPlayedGame in xbox.LastPlayed
           table.table.table-condensed
             tbody
@@ -62,14 +69,23 @@ block content
                   img.pull-left(src='#{lastPlayedGame.Pictures.Tile32px}')
                   span.lead &nbsp;#{lastPlayedGame.Title}
               tr
-                td Game Score: #{lastPlayedGame.EarnedGamerscore}
-                td Achievements: #{lastPlayedGame.EarnedAchievements}
+                td
+                  i.icon-th-large
+                  |  Game Score: #{lastPlayedGame.EarnedGamerscore}
+                td 
+                  i.icon-ok
+                  |  Achievements: #{lastPlayedGame.EarnedAchievements}
               tr
-                td Available Game Score: #{lastPlayedGame.AvailableGamerscore}
-                td Total Achievements: #{lastPlayedGame.AvailableAchievements}
+                td 
+                  i.icon-th
+                  |  Available Game Score: #{lastPlayedGame.AvailableGamerscore}
+                td 
+                  i.icon-star
+                  |  Total Achievements: #{lastPlayedGame.AvailableAchievements}
               tr
                 td(colspan='2') 
-                  strong Percentage Complete: #{lastPlayedGame.PercentageComplete}
+                  i.icon-ok-circle
+                  strong  Completed: #{lastPlayedGame.PercentageComplete}
                   .progress.progress-success.active.progress-striped
                     .bar(style='width: #{lastPlayedGame.PercentageComplete};')
       else
