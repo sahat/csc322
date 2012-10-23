@@ -58,7 +58,8 @@ var User = new mongoose.Schema({
   suspendedRating: { type: Boolean, default: false },
   warningCount: { type: Number, default: 0 },
   weightCoefficient: { type: Number, default: 1},
-  flagCount: { type: Number, default: 0 }
+  flagCount: { type: Number, default: 0 },
+  gamertag: String
 
 });
 
@@ -730,6 +731,7 @@ app.post('/account', function (req, res) {
     user.firstName = req.body.firstName;
     user.lastName = req.body.lastName;
     user.password = (!req.body.newpassword) ? req.session.user.password : req.body.newpassword;
+    user.gamertag = req.body.gamertag;
     if (req.body.newpassword) {
       user.password = req.body.newpassword;
       delete req.session.tempPassword;
@@ -888,20 +890,28 @@ app.post('/register', function(req, res) {
 });
 
 app.get('/:profile', function (req, res) {
-  User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
-    request('http://360api.chary.us/?gamertag=EpicYakDiesel', function (error, response, body) {
+  if (req.session.user) {
+    if (req.session.tempPassword || req.session.user.interests.length < 3) {
+      return res.redirect('/account');
+    }
+  }
+
+  User.findOne({ 'userName': req.params.profile }, function (err, user) {
+    if (!user) {
+      console.log('Profile not found');
+      return res.send(500, 'User profile does not exist');
+    }
+
+    request('http://360api.chary.us/?gamertag=' + user.gamertag, function (error, response, body) {
       if (!error && response.statusCode == 200) {
         var xbox_api = JSON.parse(body);
-        //console.log(xbox_api.Gamertag);
-
         req.session.user = user;
         res.render('public_profile', {
-          heading: 'Profile',
-          lead: 'User profile information',
+          heading: user.firstName + '\'s Profile',
+          lead: 'View your Xbox live achievements, interests, game purchases...',
           user: req.session.user,
           xbox: xbox_api
         });
-
       } else {
         console.log('Error getting Xbox Live data');
       }

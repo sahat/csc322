@@ -4,11 +4,15 @@ block content
   br
   .row
     .span3.pagination-centered
-      span.lead
-        img(src='/img/gamerscore.png')      
-        small  2035
-      br
-      img(src='#{xbox.Pictures.FullBody}')
+      if user.gamertag
+        span.lead
+          strong#xbox-gamertag #{xbox.Gamertag}
+        .lead
+          img(src='/img/gamerscore.png')      
+          small  #{xbox.Gamerscore}
+        img(src='#{xbox.Pictures.FullBody}')
+      else
+        img.img-rounded(src='/img/anonymous_avatar.gif')
       br
       span.lead 
         strong #{user.firstName} #{user.lastName}
@@ -36,31 +40,42 @@ block content
                   i.icon-tag.icon-white
                   span &nbsp;#{interest}
         #tab2
-          ul.thumbnails
-            for purchasedGame in user.purchasedGames
-              li.span1
-                a.thumbnail(href='/games/#{purchasedGame.slug}') 
-                  img(src='/img/games/#{purchasedGame.thumbnail}')
+          if user.purchasedGames.length > 0
+            ul.thumbnails
+              for purchasedGame in user.purchasedGames
+                li.span1
+                  a.thumbnail(href='/games/#{purchasedGame.slug}') 
+                    img(src='/img/games/#{purchasedGame.thumbnail}')
+          else
+            .alert
+              strong No Purchased Games
+              div You haven't purchased any games yet. Go to a Games tab to purchase a game.
+
     
       legend Xbox Live Achievements
-      for lastPlayedGame in xbox.LastPlayed
-        table.table.table-condensed
-          tbody
-            tr.info
-              td(colspan='2')
-                img.pull-left(src='#{lastPlayedGame.Pictures.Tile32px}')
-                span.lead &nbsp;#{lastPlayedGame.Title}
-            tr
-              td Game Score: #{lastPlayedGame.EarnedGamerscore}
-              td Achievements: #{lastPlayedGame.EarnedAchievements}
-            tr
-              td Available Game Score: #{lastPlayedGame.AvailableGamerscore}
-              td Total Achievements: #{lastPlayedGame.AvailableAchievements}
-            tr
-              td(colspan='2') 
-                strong Percentage Complete: #{lastPlayedGame.PercentageComplete}
-                .progress.progress-success.active.progress-striped
-                  .bar(style='width: #{lastPlayedGame.PercentageComplete};')
+      if user.gamertag
+        for lastPlayedGame in xbox.LastPlayed
+          table.table.table-condensed
+            tbody
+              tr.info
+                td(colspan='2')
+                  img.pull-left(src='#{lastPlayedGame.Pictures.Tile32px}')
+                  span.lead &nbsp;#{lastPlayedGame.Title}
+              tr
+                td Game Score: #{lastPlayedGame.EarnedGamerscore}
+                td Achievements: #{lastPlayedGame.EarnedAchievements}
+              tr
+                td Available Game Score: #{lastPlayedGame.AvailableGamerscore}
+                td Total Achievements: #{lastPlayedGame.AvailableAchievements}
+              tr
+                td(colspan='2') 
+                  strong Percentage Complete: #{lastPlayedGame.PercentageComplete}
+                  .progress.progress-success.active.progress-striped
+                    .bar(style='width: #{lastPlayedGame.PercentageComplete};')
+      else
+        .alert.alert-info
+          strong Gamertag Required
+          div Add Gamertag on the account page to view your last played game achievements on Xbox Live.
 
                 
       script(type='text/javascript')

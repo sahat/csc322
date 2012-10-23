@@ -56,7 +56,10 @@ body
                   a(href='/admin') Admin Panel
               li
                 a(href='/#{user.userName}')
-                  img.img-rounded(id='tiny-avatar', src='http://avatar.xboxlive.com/avatar/EpicYakDiesel/avatarpic-s.png')
+                  if user.gamertag
+                    img.img-rounded(id='tiny-avatar', src='http://avatar.xboxlive.com/avatar/' + user.gamertag + '/avatarpic-s.png')
+                  else
+                    img.img-rounded(id='tiny-avatar', src='/img/anonymous_avatar.gif', height='32', width='32')
                   span &nbsp;&nbsp;
                   = user.firstName
                   |&nbsp;
