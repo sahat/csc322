@@ -704,7 +704,7 @@ app.post('/admin/unsuspend', function (req, res) {
 });
 
 
-app.post('/admin/comment/ignore', function (req, res) {
+app.post('/admin/comment/ignore', function (req,  res) {
   Comment.findOne({ _id: req.body.commentId }, function (err, comment) {
     if (err) {
       throw err;

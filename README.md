@@ -55,3 +55,8 @@ Game ratings retrieved from the database and displayed next to the game title
 ---
 
 ![Rating](https://raw.github.com/sahat/csc322/master/screenshots/ratings.png)
+
+Xbox Live Achievements and User information for those who have a Gamertag
+----
+
+![Xboxlive](https://raw.github.com/sahat/csc322/master/screenshots/xbox-live.png)
