@@ -1,177 +1,131 @@
 extends layout
 
 block content
-  if tempPassword
-    br
-    .alert.alert-error
-      h4 Important Announcement
-      div You must select a new password and add at least
-        strong  three interests
-        |  before continuing!
-  if isSuspended
-    br
-    .alert.alert-error
-      h4 Your account has been suspended
-      div You are given one last chance to clean up your account, afterwards your account will be terminated.
-  
-  if user.suspendedRating
-    br
-    .alert.alert-error
-      h4 Flagged as a spammer
-      div  Our system has detected that you are spammer. You are no longer able to rate any more games.
+  br
+  .row
+    .span3.pagination-centered
+      if userProfile.gamertag && xbox
+        span.lead
+          strong#xbox-gamertag #{xbox.Gamertag}
+        .lead
+          img(src='/img/gamerscore.png')      
+          small  #{xbox.Gamerscore}
+        img(src='#{xbox.Pictures.FullBody}')
+      else
+        img.img-rounded(src='/img/anonymous_avatar.gif')
+      br
+      span.lead 
+        strong #{userProfile.firstName} #{userProfile.lastName}
+      br
+      span.lead.muted
+        small #{userProfile.userName}
+      hr
+      p
+        i.icon-time
+        span.muted  Joined on
+        span  #{userProfile.joined_on.toLocaleDateString().substr(8)}
+    .span9
+
+      if userProfile.gamertag && xbox == false
+        .alert
+          strong Problem with an Xbox gamertag Information
+          div Due to a possible network connection error, we were unable to retrieve your Xbox Live gamertag information.
+          div Try refreshing a page in a few moments to see if that will remedy the problem.
+
+      legend My Profile
+      ul#tabs
+        li
+          a(href='#', name='#tab1') My Interests
+        li
+          a(href='#', name='#tab2') Purchased Games
+      #content
+        #tab1
+          ul.nav.nav-pills
+            for interest in userProfile.interests
+              li.active
+                a 
+                  i.icon-tag.icon-white
+                  span &nbsp;#{interest}
+        #tab2
+          if userProfile.purchasedGames.length > 0
+            ul.thumbnails
+              for purchasedGame in userProfile.purchasedGames
+                li.span1
+                  a.thumbnail(href='/games/#{purchasedGame.slug}') 
+                    img(src='/img/games/#{purchasedGame.thumbnail}')
+          else
+            .alert
+              strong No Purchased Games
+              div You haven't purchased any games yet. Go to a Games tab to purchase a game.
+
     
-  form#registration.form-horizontal(method='post')
-    br
-    div.lead#getting-started Type your interests below to get started...
-    ul#interests
-      for i in user.interests
-        li= i
-    legend Account Information
-    .control-group
-      label.control-label(for='userName') Username
-      .controls
-        input#userName(value=user.userName, name='userName', type='text', placeholder='Username', disabled='disabled')
-    .control-group
-      label.control-label(for='firstName') First Name
-      .controls
-        input#firstName(value=user.firstName, name='firstName', type='text', placeholder='First Name')
-          
-    .control-group
-      label.control-label(for='lastName') Last Name
-      .controls
-        input#lastName(value=user.lastName, name='lastName', type='text', placeholder='Last Name')
-          
-    .control-group
-      label.control-label(for='gamertag') Xbox Gamertag
-      .controls
-        input#gamertag(value=user.gamertag, name='gamertag', type='text', placeholder='Gamertag')
-             
-    .control-group
-      label.control-label(for='userEmail') Email
-      .controls
-        input#userEmail(value=user.email, name='userEmail', type='text', placeholder='Email')
-    .control-group
-      label.control-label(for='newpassword') New Password
-      .controls
-        input#newpassword(name='newpassword', type='password', placeholder='New Password')
-    .control-group
-      label.control-label(for='newconfirm') Confirm Password
-      .controls
-        input#newconfirm(name='newconfirm', type='password', placeholder='Confirm Password')
-    .control-group
-      .controls
-        button.btn.btn-primary.btn-large(type='submit') Update Profile
+      legend Xbox Live Achievements
+      if userProfile.gamertag && xbox
+        for lastPlayedGame in xbox.LastPlayed
+          table.table.table-condensed
+            tbody
+              tr.info
+                td(colspan='2')
+                  img.pull-left(src='#{lastPlayedGame.Pictures.Tile32px}')
+                  span.lead &nbsp;#{lastPlayedGame.Title}
+              tr
+                td
+                  i.icon-th-large
+                  |  Game Score: #{lastPlayedGame.EarnedGamerscore}
+                td 
+                  i.icon-ok
+                  |  Achievements: #{lastPlayedGame.EarnedAchievements}
+              tr
+                td 
+                  i.icon-th
+                  |  Available Game Score: #{lastPlayedGame.AvailableGamerscore}
+                td 
+                  i.icon-star
+                  |  Total Achievements: #{lastPlayedGame.AvailableAchievements}
+              tr
+                td(colspan='2') 
+                  i.icon-ok-circle
+                  strong  Completed: #{lastPlayedGame.PercentageComplete}
+                  .progress.progress-success.active.progress-striped
+                    .bar(style='width: #{lastPlayedGame.PercentageComplete};')
+      else
+        .alert.alert-info
+          strong Gamertag Required
+          div Add Gamertag on the account page to view your last played game achievements on Xbox Live.
 
-  legend Order History
-  if user.purchasedGames.length > 0
-    table.table.table-condensed
-      thead
-        tr
-          th Title
-          th Purchase Date
-          th Your Rating
-        tbody
-          for game in user.purchasedGames
-            tr
-              td
-                a(href='/games/#{game.slug}') #{game.title}
-              td #{game.date.toDateString()}
-              td
-                if game.rating == 0
-                  | You haven't rated this game yet
-                else
-                  div(id='_'+game.slug)
-                  script(type='text/javascript')
-                    $('#_#{game.slug}').raty({
-                      round : { down: .25, full: .6, up: .76 },
-                      score: #{game.rating},
-                      readOnly: true,
-                      path: '/img/'
-                    });
-  else
-    .alert.alert-info You haven't purchased anything yet.
+                
+      script(type='text/javascript')
+        function resetTabs(){
+            $("#content > div").hide(); //Hide all content
+            $("#tabs a").attr("id",""); //Reset id's      
+        }
 
+        var myUrl = window.location.href; //get URL
+        var myUrlTab = myUrl.substring(myUrl.indexOf("#")); // For localhost/tabs.html#tab2, myUrlTab = #tab2     
+        var myUrlTabName = myUrlTab.substring(0,4); // For the above example, myUrlTabName = #tab
 
-  script(type='text/javascript')
-    var tagCount;
-    if ($('#interests li').length == 0) {
-      tagCount = 0;
-    } else {
-      tagCount = $('#interests li').length - 1;
-    }
+        (function(){
+            $("#content > div").hide(); // Initially hide all content
+            $("#tabs li:first a").attr("id","current"); // Activate first tab
+            $("#content > div:first").fadeIn(); // Show first tab content
+            
+            $("#tabs a").on("click",function(e) {
+                e.preventDefault();
+                if ($(this).attr("id") == "current"){ //detection for current tab
+                 return       
+                }
+                else{             
+                resetTabs();
+                $(this).attr("id","current"); // Activate this
+                $($(this).attr('name')).fadeIn(); // Show content for current tab
+                }
+            });
 
-    $("#interests").tagit({
-      allowSpaces: true,
-      availableTags: "#{tags}".split(','),
-      onTagRemoved: function (event, tag) {
-        var tagCount = $('#interests li').length - 1;
-        tagCount--;
-        if (tagCount < 0) {
-          tagCount = 0;
-        }
-        if (tagCount == 0) {
-          $('#getting-started').fadeOut(200, function() {
-            $(this).text('Type your interests below to get started...').fadeIn(200);
-          });
-        }
-        if (tagCount == 1) {
-          $('#getting-started').fadeOut(200, function() {
-            $(this).text('We need two more interests.').fadeIn(200);
-          });
-        }
-        if (tagCount == 2) {
-          $('#getting-started').fadeOut(200, function() {
-            $(this).text('One more interest.').fadeIn(200);
-          });
-        }
-        if (tagCount == 3) {
-          $('#getting-started').fadeOut(200, function() {
-            $(this).text('Thanks! Please feel free to add more interests if you wish.').fadeIn(200);
-          });
-        }
-        if (tagCount > 3) {
-          $('#getting-started').hide();
-        }
-        var tempTag = $(tag).text();
-        var myTag = tempTag.substring(0, tempTag.length-1);
-        $.post('/account/tag/delete', { removedTag: myTag });
-      },
-      onTagAdded: function (event, tag) {
-        tagCount++;
-        if (tagCount == 0) {
-          $('#getting-started').fadeOut(200, function() {
-            $(this).text('Type your interests below to get started...').fadeIn(200);
-          });
-        }
-        if (tagCount == 1) {
-          $('#getting-started').fadeOut(200, function() {
-            $(this).text('We need two more interests.').fadeIn(200);
-          });
-        }
-        if (tagCount == 2) {
-          $('#getting-started').fadeOut(200, function() {
-            $(this).text('One more interest.').fadeIn(200);
-          });
-        }
-        if (tagCount == 3) {
-          $('#getting-started').fadeOut(200, function() {
-            $(this).text('Thanks! Please feel free to add more interests if you wish.').fadeIn(200);
-          });
-        }
-        if (tagCount > 3) {
-          $('#getting-started').hide();
-        }
-      }
-    });
-
-    $("button[type=submit]").click(function () {
-      $.post('/account/tag/add', { tags: $('#interests').tagit('assignedTags') }, function (data) {
-        console.log("Data loaded: " + data);
-      });
-    });
-
-
-
-
-
-
+            for (i = 1; i <= $("#tabs li").length; i++) {
+              if (myUrlTab == myUrlTabName + i) {
+                  resetTabs();
+                  $("a[name='"+myUrlTab+"']").attr("id","current"); // Activate url tab
+                  $(myUrlTab).fadeIn(); // Show url tab content        
+              }
+            }
+        })()

@@ -795,8 +795,8 @@ app.get('/account', function (req, res) {
       });
       req.session.user = user;
       console.log(user.purchasedGames);
-      res.render('profile', {
-        heading: 'Profile',
+      res.render('account', {
+        heading: 'Account Information',
         lead: 'View purchase history, update account, choose interests',
         user: req.session.user,
         tags: tagArray,
@@ -993,12 +993,10 @@ app.get('/:profile', function (req, res) {
 
         var xbox_api = JSON.parse(body);
 
-        req.session.user = user;
-
-        res.render('public_profile', {
+        res.render('profile', {
           heading: user.firstName + '\'s Profile',
           lead: 'View your Xbox live achievements, interests, game purchases...',
-          user: req.session.user,
+          userProfile: user,
           xbox: xbox_api
         });
 
