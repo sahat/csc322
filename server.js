@@ -60,7 +60,6 @@ var User = new mongoose.Schema({
   weightCoefficient: { type: Number, default: 1},
   flagCount: { type: Number, default: 0 },
   gamertag: String
-
 });
 
 // Comment schema
@@ -162,7 +161,7 @@ app.use(express.favicon());
 app.use(express.logger('dev'));
 app.use(express.bodyParser());
 app.use(express.cookieParser('s3cr3t'));
-app.use(express.session({ store: new RedisStore, secret: 's3cr3t' }));
+app.use(express.session({ store: new RedisStore(), secret: 's3cr3t' }));
 app.use(express.methodOverride());
 app.use(app.router);
 app.use(express.static(path.join(__dirname, 'public')));
@@ -181,7 +180,7 @@ app.configure('development', function() {
 app.get('/add', function (req, res) {
 
   // only admin should be able to view Add Game page
-  if (!req.session.user || req.session.user.isAdmin == false) {
+  if (!req.session.user || req.session.user.isAdmin === false) {
     res.redirect('/');
   }
 
@@ -192,7 +191,9 @@ app.post('/add', function (req, res) {
 
   // create a client request to amazon.com
   request({ uri: req.body.gameURL }, function (err, response, body) {
-    if (err && response.statusCode !== 200) return;
+    if (err && response.statusCode !== 200) {
+      return;
+    }
 
     // using jQuery to extract DOM information from Amazon.com
     jsdom.env({ html: body, scripts: ['http://code.jquery.com/jquery-1.6.min.js'] }, function (err, window) {
@@ -279,13 +280,14 @@ app.post('/add', function (req, res) {
             price: price,
             summary: summary,
             description: description,
-            releaseDate: releaseDate,
+            releaseDate: releaseDate
           });
 
           // Prevents adding the same game twice
           Game.findOne({ 'slug': slug }, function (err, game) {
-            if (game)
+            if (game) {
               res.send(500, 'Halt: Games already exists');
+            }
           });
 
           // Save game object into database as a document of db.games collection
@@ -318,7 +320,9 @@ app.get('/', function(req, res) {
       .limit(3)
       .sort('-weightedScore')
       .exec(function (err, interestGames) {
-        if (err) throw err;
+        if (err) {
+            throw err;
+        }
         Game
         .find()
         .sort('-purchaseCounter')
@@ -369,7 +373,9 @@ app.get('/', function(req, res) {
       .limit(3)
       .sort('-weightedScore')
       .exec(function(err, game) {
-        if (err) throw err;
+        if (err) {
+          throw err;
+        }
         res.render('index', {
           heading: 'CL4P-TP Online Store',
           lead: 'The leading next generation video games recommendation engine',
@@ -387,7 +393,7 @@ app.post('/buy', function (req, res) {
 
       var rating = 0;
       for (var i = 0; i < user.ratedGames.length; i++) {
-        if (game.slug == user.ratedGames[i].slug) {
+        if (game.slug === user.ratedGames[i].slug) {
           console.log("I have already voted on this game");
           var rating = user.ratedGames[i].rating;
         }
@@ -463,7 +469,7 @@ app.post('/games/rating', function (req, res) {
       req.session.voteCount++;
       console.log('Session Vote Count: ' + req.session.voteCount);
 
-      req.session.rating = parseInt(req.session.rating) + parseInt(req.body.rating);
+      req.session.rating = parseInt(req.session.rating, 10) + parseInt(req.body.rating, 10);
       console.log('Session Rating: ' + req.session.rating);
 
       req.session.avgRating = req.session.rating / req.session.voteCount;
@@ -477,9 +483,9 @@ app.post('/games/rating', function (req, res) {
         console.log('Weight coefficient is set to 0.5');
       }
 
-      if (user.flagCount == 3) {
+      if (user.flagCount === 3) {
         user.suspendedRating = true;
-        console.log('Suspended rating privileges. No longer can rate.')
+        console.log('Suspended rating privileges. No longer can rate.');
       }
 
       if (user.flagCount >= 6) {
@@ -498,12 +504,14 @@ app.post('/games/rating', function (req, res) {
       game.votedPeople.push(req.session.user.userName);
 
       game.save(function (err) {
-        if (err) throw err;
+        if (err) {
+          throw err;
+        }
         console.log('Successfully Set New Average Rating');
       });
 
       for (var i = 0; i < user.purchasedGames.length; i++) {
-        if (user.purchasedGames[i].slug == req.body.slug) {
+        if (user.purchasedGames[i].slug === req.body.slug) {
           user.purchasedGames[i].rating = req.body.rating;
         }
       }
@@ -515,7 +523,9 @@ app.post('/games/rating', function (req, res) {
       });
 
       user.save(function (err) {
-        if (err) throw err;
+        if (err) {
+          throw err;
+        }
         return res.redirect('/games');
       });
     });
@@ -561,14 +571,16 @@ app.get('/games', function (req, res) {
 });
 
 
-
 app.get('/games/:detail', function (req, res) {
+
+  // newly registered users must first change their password and add 3 interests before viewing this page
   if (req.session.user) {
     if (req.session.tempPassword || req.session.user.interests.length < 3) {
       return res.redirect('/account');
     }
   }
 
+  //
   Game.findOne({ 'slug': req.params.detail }, function (err, game) {
     if (err) {
       return res.send(500, 'no game that match slug of the detail page');
@@ -576,10 +588,13 @@ app.get('/games/:detail', function (req, res) {
     Game
       .find()
       .where('genre').equals(game.genre)
+      .where('slug').ne(req.params.detail)
       .limit(6)
-      .sort('title')
-      .exec(function(err, similarGames) {
-        if (err) throw err;
+      .exec(function (err, similarGames) {
+        if (err) {
+          throw err;
+        }
+
         Comment
           .find({ game: game._id })
           .populate('creator')
@@ -588,7 +603,7 @@ app.get('/games/:detail', function (req, res) {
               heading: game.title,
               lead: game.publisher,
               game: game,
-              similarGames: similarGames,
+              similarGames:_.shuffle(similarGames),
               comments: comments,
               user: req.session.user
             });
@@ -646,20 +661,24 @@ app.post('/games/:detail', function (req, res) {
 
 
 app.get('/admin', function (req, res) {
-  if (!req.session.user || req.session.user.isAdmin == false) {
+  if (!req.session.user || req.session.user.isAdmin === false) {
     console.log('here');
     return res.redirect('/');
   }
 
   User.find(function (err, users) {
-    if (err) throw err;
+    if (err) {
+      throw err;
+    }
     Comment
       .find({ 'flagged': true })
       .populate('game')
       .populate('creator')
       .exec(function (err, comments) {
         User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
-          if (err) throw err;
+          if (err) {
+            throw err;
+          }
           req.session.user = user;
           res.render('admin', {
             heading: 'Admin Dashboard',
@@ -687,10 +706,14 @@ app.post('/admin/unsuspend', function (req, res) {
 
 app.post('/admin/comment/ignore', function (req, res) {
   Comment.findOne({ _id: req.body.commentId }, function (err, comment) {
-    if (err) throw err;
+    if (err) {
+      throw err;
+    }
     comment.flagged = false;
     comment.save(function (err) {
-      if (err) throw err;
+      if (err) {
+        throw err;
+      }
       console.log('Comment has been unflagged');
     });
   });
@@ -702,10 +725,14 @@ app.post('/admin/comment/warn', function (req, res) {
     .findOne({ '_id': req.body.commentId })
     .populate('creator')
     .exec(function (err, comment) {
-      if (err) throw err;
+      if (err) {
+          throw err;
+      }
       comment.hasBeenWarned = true;
       comment.save(function (err) {
-        if (err) throw err;
+        if (err) {
+            throw err;
+        }
         console.log('User has been warned. Setting warned flag to TRUE');
       });
       console.log(comment.creator.userName);
@@ -725,7 +752,9 @@ app.post('/admin/comment/warn', function (req, res) {
 
 app.post('/admin/comment/delete', function (req, res) {
   Comment.remove({ _id: req.body.commentId }, function (err) {
-    if (err) throw err;
+    if (err) {
+        throw err;
+    }
     console.log('Comment has been removed');
   });
 });
@@ -733,7 +762,9 @@ app.post('/admin/comment/delete', function (req, res) {
 
 app.post('/comment/delete', function (req, res) {
   Comment.remove({ _id: req.body.commentId }, function (err) {
-    if (err) throw err;
+    if (err) {
+      throw err;
+    }
     console.log('Comment has been removed');
   });
 });
@@ -828,12 +859,16 @@ app.get('/logout', function(req, res) {
     User.update({ 'userName': req.session.user.userName },
                 { $inc: { flagCount: 1 } },
                 function (err) {
-                  if (err) throw err;
+                  if (err) {
+                      throw err;
+                  }
                 });
   }
   if (req.session.user.suspendedAccount) {
       User.remove({ 'userName': req.session.user.userName }, function (err) {
-        if (err) throw err;
+        if (err) {
+            throw err;
+        }
         console.log('User account has been removed');
       });
     }
@@ -954,7 +989,7 @@ app.get('/:profile', function (req, res) {
     }
 
     request('http://360api.chary.us/?gamertag=' + user.gamertag, function (error, response, body) {
-      if (!error && response.statusCode == 200) {
+      if (!error && response.statusCode === 200) {
 
         var xbox_api = JSON.parse(body);
 
