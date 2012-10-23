@@ -691,6 +691,7 @@ app.post('/comment/report', function (req, res) {
 });
 
 
+
 app.get('/account', function (req, res) {
   if (!req.session.user) {
     return res.redirect('/login');
@@ -876,6 +877,17 @@ app.post('/register', function(req, res) {
       req.session.rating = 0;
       res.redirect('/account');
     }
+  });
+});
+
+app.get('/:profile', function (req, res) {
+  User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
+
+    res.render('public_profile', {
+      heading: 'Profile',
+      lead: 'User profile information',
+      user: user
+    });
   });
 });
 
