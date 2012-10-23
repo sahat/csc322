@@ -2,104 +2,99 @@ extends layout
 
 block content
   br
-  .span3
-    img.img.img-polaroid(src='https://secure.gravatar.com/avatar/e345bcfa4059c6caebedec1597f9eb5f?s=420&d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-user-420.png')
-    br
-    span.lead 
-      strong #{user.firstName} #{user.lastName}
-    br
-    span.lead
-      small #{user.userName}
-      
-  .span6
-    legend Interests
-    ul.nav.nav-pills.nav-stacked
-      for interest in user.interests
+  .row
+    .span3.pagination-centered
+      span.lead
+        img(src='/img/gamerscore.png')      
+        small  2035
+      br
+      img(src='#{xbox.Pictures.FullBody}')
+      br
+      span.lead 
+        strong #{user.firstName} #{user.lastName}
+      br
+      span.lead.muted
+        small #{user.userName}
+      hr
+      p
+        i.icon-time
+        span.muted  Joined on
+        span  #{user.joined_on.toLocaleDateString().substr(8)}
+    .span9
+      legend My Profile
+      ul#tabs
         li
-          a(href='#') #{interest}
-    legend Purchased Games
+          a(href='#', name='#tab1') My Interests
+        li
+          a(href='#', name='#tab2') Purchased Games
+      #content
+        #tab1
+          ul.nav.nav-pills
+            for interest in user.interests
+              li.active
+                a 
+                  i.icon-tag.icon-white
+                  span &nbsp;#{interest}
+        #tab2
+          ul.thumbnails
+            for purchasedGame in user.purchasedGames
+              li.span1
+                a.thumbnail(href='/games/#{purchasedGame.slug}') 
+                  img(src='/img/games/#{purchasedGame.thumbnail}')
     
-    ul.nav.nav-pulls.nav-stacked
-      for purchasedGame in user.purchasedGames
-        li
-          a(href='#') #{purchasedGame.title}
+      legend Xbox Live Achievements
+      for lastPlayedGame in xbox.LastPlayed
+        table.table.table-condensed
+          tbody
+            tr.info
+              td(colspan='2')
+                img.pull-left(src='#{lastPlayedGame.Pictures.Tile32px}')
+                span.lead &nbsp;#{lastPlayedGame.Title}
+            tr
+              td Game Score: #{lastPlayedGame.EarnedGamerscore}
+              td Achievements: #{lastPlayedGame.EarnedAchievements}
+            tr
+              td Available Game Score: #{lastPlayedGame.AvailableGamerscore}
+              td Total Achievements: #{lastPlayedGame.AvailableAchievements}
+            tr
+              td(colspan='2') 
+                strong Percentage Complete: #{lastPlayedGame.PercentageComplete}
+                .progress.progress-success.active.progress-striped
+                  .bar(style='width: #{lastPlayedGame.PercentageComplete};')
 
-    ul#tabs
-      li
-        a(href='#', name='#interests') Interests
-      li
-        a(href='#', name='#purchased') Purchased Games
-      li
-        a(href='#', name='#tab3') Three
-      li
-        a(href='#', name='#tab4') Four
-    #content
-      #tab1
-        h2 Lorem ipsum sit amet
-        p
-          | Praesent risus nisi, iaculis nec condimentum vel, rhoncus vel dolor. Aenean nisi lectus, varius nec tempus id, dapibus non quam.
-        p
-          | Suspendisse ac libero mauris. Cras lacinia porttitor urna, vitae molestie libero posuere et. Mauris turpis tortor, mollis non vulputate sit amet, rhoncus vitae purus.
-        h3 Pellentesque habitant
-        p
-          | Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae.
-      #tab2
-        h2 Vivamus fringilla suscipit justo
-        p
-          | Aenean dui nulla, egestas sit amet auctor vitae, facilisis id odio. Donec dictum gravida feugiat.
-        p
-          | Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Cras pretium elit et erat condimentum et volutpat lorem vehicula
-        p
-          | Morbi tincidunt pharetra orci commodo molestie. Praesent ut leo nec dolor tempor eleifend.
-      #tab3
-        h2 Phasellus non nibh
-        p
-          | Non erat laoreet ullamcorper. Pellentesque magna metus, feugiat eu elementum sit amet, cursus sed diam. Curabitur posuere porttitor lorem, eu malesuada tortor faucibus sed.
-        h3 Duis pulvinar nibh vel urna
-        p
-          | Donec purus leo, porttitor eu molestie quis, porttitor sit amet ipsum. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Donec accumsan ornare elit id imperdiet.
-        p
-          | Suspendisse ac libero mauris. Cras lacinia porttitor urna, vitae molestie libero posuere et.
-      #tab4
-        h2 Cum sociis natoque penatibus
-        p
-          | Magnis dis parturient montes, nascetur ridiculus mus. Nullam ac massa quis nisi porta mollis venenatis sit amet urna. Ut in mauris velit, sed bibendum turpis.
-        p
-          | Nam ornare vulputate risus, id volutpat elit porttitor non. In consequat nisi vel lectus dapibus sodales. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Praesent bibendum sagittis libero.
-        h3 Imperdiet sem interdum nec
-        p Mauris rhoncus tincidunt libero quis fringilla.
-    script(type='text/javascript')
-      function resetTabs(){
-          $("#content > div").hide(); //Hide all content
-          $("#tabs a").attr("id",""); //Reset id's      
-      }
+                
+      script(type='text/javascript')
+        function resetTabs(){
+            $("#content > div").hide(); //Hide all content
+            $("#tabs a").attr("id",""); //Reset id's      
+        }
 
-      var myUrl = window.location.href; //get URL
-      var myUrlTab = myUrl.substring(myUrl.indexOf("#")); // For localhost/tabs.html#tab2, myUrlTab = #tab2     
-      var myUrlTabName = myUrlTab.substring(0,4); // For the above example, myUrlTabName = #tab
+        var myUrl = window.location.href; //get URL
+        var myUrlTab = myUrl.substring(myUrl.indexOf("#")); // For localhost/tabs.html#tab2, myUrlTab = #tab2     
+        var myUrlTabName = myUrlTab.substring(0,4); // For the above example, myUrlTabName = #tab
 
-      (function(){
-          $("#content > div").hide(); // Initially hide all content
-          $("#tabs li:first a").attr("id","current"); // Activate first tab
-          $("#content > div:first").fadeIn(); // Show first tab content
-          
-          $("#tabs a").on("click",function(e) {
-              e.preventDefault();
-              if ($(this).attr("id") == "current"){ //detection for current tab
-               return       
-              }
-              else{             
-              resetTabs();
-              $(this).attr("id","current"); // Activate this
-              $($(this).attr('name')).fadeIn(); // Show content for current tab
-              }
-          });
-
-          for (i = 1; i <= $("#tabs li").length; i++) {
-            if (myUrlTab == myUrlTabName + i) {
+        (function(){
+            $("#content > div").hide(); // Initially hide all content
+            $("#tabs li:first a").attr("id","current"); // Activate first tab
+            $("#content > div:first").fadeIn(); // Show first tab content
+            
+            $("#tabs a").on("click",function(e) {
+                e.preventDefault();
+                if ($(this).attr("id") == "current"){ //detection for current tab
+                 return       
+                }
+                else{             
                 resetTabs();
-                $("a[name='"+myUrlTab+"']").attr("id","current"); // Activate url tab
-                $(myUrlTab).fadeIn(); // Show url tab content        
+                $(this).attr("id","current"); // Activate this
+                $($(this).attr('name')).fadeIn(); // Show content for current tab
+                }
+            });
+
+            for (i = 1; i <= $("#tabs li").length; i++) {
+              if (myUrlTab == myUrlTabName + i) {
+                  resetTabs();
+                  $("a[name='"+myUrlTab+"']").attr("id","current"); // Activate url tab
+                  $(myUrlTab).fadeIn(); // Show url tab content        
+              }
             }
-          }
-      })()
+        })()

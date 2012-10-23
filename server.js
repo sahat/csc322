@@ -35,7 +35,9 @@ var User = new mongoose.Schema({
   userName: { type: String, required: true, index: { unique: true } },
   firstName: { type: String, required: true },
   lastName: { type: String, required: true },
+  joined_on: { type: Date, default: Date.now() },
   purchasedGames: [{
+    thumbnail: String,
     title: String,
     slug: String,
     rating: { type: Number, default: 0 },
@@ -352,7 +354,12 @@ app.post('/buy', function (req, res) {
           var rating = user.ratedGames[i].rating;
         }
       }
-      user.purchasedGames.push({ title: game.title, slug: game.slug, rating: rating });
+      user.purchasedGames.push({
+        title: game.title,
+        slug: game.slug,
+        rating: rating,
+        thumbnail: game.thumbnail
+      });
       req.session.user = user;
       user.save(function (err) {
         console.log('Purchased game added to the list');
@@ -882,13 +889,25 @@ app.post('/register', function(req, res) {
 
 app.get('/:profile', function (req, res) {
   User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
+    request('http://360api.chary.us/?gamertag=EpicYakDiesel', function (error, response, body) {
+      if (!error && response.statusCode == 200) {
+        var xbox_api = JSON.parse(body);
+        //console.log(xbox_api.Gamertag);
 
-    res.render('public_profile', {
-      heading: 'Profile',
-      lead: 'User profile information',
-      user: user
+        req.session.user = user;
+        res.render('public_profile', {
+          heading: 'Profile',
+          lead: 'User profile information',
+          user: req.session.user,
+          xbox: xbox_api
+        });
+
+      } else {
+        console.log('Error getting Xbox Live data');
+      }
     });
-  });
+
+   });
 });
 
 

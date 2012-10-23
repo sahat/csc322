@@ -55,10 +55,14 @@ body
                 li
                   a(href='/admin') Admin Panel
               li
-                a(href='/account')
+                a(href='/#{user.userName}')
+                  img.img-rounded(id='tiny-avatar', src='http://avatar.xboxlive.com/avatar/EpicYakDiesel/avatarpic-s.png')
+                  span &nbsp;&nbsp;
                   = user.firstName
                   |&nbsp;
                   = user.lastName
+              li
+                a(href='/account') My Account
               li
                 a(href='/logout') Sign Out
             
