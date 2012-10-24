@@ -483,6 +483,10 @@ app.post('/games/rating', function (req, res) {
         console.log('Weight coefficient is set to 0.5');
       }
 
+      if (req.session.flagCount) {
+        req.session.weight = 0.5;
+      }
+
       if (user.flagCount === 3) {
         user.suspendedRating = true;
         console.log('Suspended rating privileges. No longer can rate.');
@@ -996,6 +1000,7 @@ app.get('/:profile', function (req, res) {
         res.render('profile', {
           heading: user.firstName + '\'s Profile',
           lead: 'View your Xbox live achievements, interests, game purchases...',
+          user: req.session.user,
           userProfile: user,
           xbox: xbox_api
         });
