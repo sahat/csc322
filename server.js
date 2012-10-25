@@ -785,7 +785,6 @@ app.post('/comment/report', function (req, res) {
 });
 
 
-
 app.get('/account', function (req, res) {
   if (!req.session.user) {
     return res.redirect('/login');
@@ -978,6 +977,7 @@ app.post('/register', function(req, res) {
     }
   });
 });
+
 
 app.get('/:profile', function (req, res) {
   if (req.session.user) {

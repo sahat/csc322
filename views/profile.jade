@@ -23,7 +23,8 @@ block content
       p
         i.icon-time
         span.muted  Joined on
-        span  #{userProfile.joined_on.toLocaleDateString().substr(8)}
+        - var firstComma = userProfile.joined_on.toLocaleDateString().indexOf(',')
+        span  #{userProfile.joined_on.toLocaleDateString().substr(firstComma + 1)}
     .span9
 
       if userProfile.gamertag && xbox == false
