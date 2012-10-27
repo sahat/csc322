@@ -18,7 +18,7 @@ var io = require('socket.io');
 var _ = require('underscore');
 _.str = require('underscore.string');
 _.mixin(_.str.exports());
-var routes = require('./routes');
+//var routes = require('./routes');
 
 /*
   __  __                         ____  ____
@@ -36,14 +36,12 @@ var db = mongoose.connect('mongodb://localhost/test');
 // Here we create a schema called User with the following fields.
 // Each field requires a type and optional additional properties, e.g. unique field? required field?
 var User = new mongoose.Schema({
-    userName: { type: String, required: true, index: { unique: true } },
-    firstName: { type: String, required: true },
-    lastName: { type: String, required: true },
-    joined_on: { type: Date, default: Date.now() },
-    purchasedGames: [{
+  userName: { type: String, required: true, index: { unique: true } },
+  firstName: { type: String, required: true },
+  lastName: { type: String, required: true },
+  joined_on: { type: Date, default: Date.now() },
+  purchasedGames: [{
     thumbnail: String,
-    title: String,
-    slug: String,
     rating: { type: Number, default: 0 },
     date: { type: Date, default: Date.now() }
   }],
@@ -54,7 +52,7 @@ var User = new mongoose.Schema({
     date: { type: Date, default: Date.now() }
   }],
   email: { type: String, required: true },
-  password: String,
+  password: { type: String, required: true },
   interests: [String],
   comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }],
   isAdmin: { type: Boolean, default: false },
@@ -369,7 +367,7 @@ app.get('/', function(req, res) {
 
       });
   }
-  // Visitors (guests) get 3 most popular game titles instead
+  // Visitors get 3 most popular game titles instead
   else {
     Game
       .find()
@@ -391,7 +389,7 @@ app.get('/', function(req, res) {
 
 app.post('/buy', function (req, res) {
   User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
-    Game.findOne({ 'slug': r
+    Game.findOne({ 'slug': req.body.slug }, function (err, game) {
       var rating = 0;
       for (var i = 0; i < user.ratedGames.length; i++) {
         if (game.slug === user.ratedGames[i].slug) {
@@ -399,6 +397,7 @@ app.post('/buy', function (req, res) {
           var rating = user.ratedGames[i].rating;
         }
       }
+
       user.purchasedGames.push({
         title: game.title,
         slug: game.slug,
@@ -406,9 +405,7 @@ app.post('/buy', function (req, res) {
         thumbnail: game.thumbnail
       });
 
-
-      req.session.user = user;
-
+      // keep track of how many people bought the game
       game.purchaseCounter++;
 
       game.save(function (err) {
@@ -416,8 +413,13 @@ app.post('/buy', function (req, res) {
       });
 
       user.save(function (err) {
-        if (err) throw err;
+        if (err) {
+          return res.send(500, err);
+        }
+
         console.log('Purchased game added to the list');
+
+        // E-mail server settings
         var server = email.server.connect({
           user:    "username",
           password:"password",
@@ -425,17 +427,17 @@ app.post('/buy', function (req, res) {
           ssl:     true
         });
 
-
+        // Send the following e-mail message after purchasing a game
         server.send({
           text: 'Thank you for purchasing ' + game.title + '. Your game will be shipped within 2 to 3 business days.',
           from: 'Sahat Yalkabov <sakhat@gmail.com>',
           to: user.firstName + ' ' + user.lastName + ' <' + user.email + '>',
           subject: 'Order Confirmation'
-        }, function(err, message) {
+          }, function(err, message) {
           console.log(err || message);
         });
-
       });
+      req.session.user = user;
     });
   });
   res.redirect('/games');
@@ -548,14 +550,21 @@ app.get('/games/api', function (req, res) {
 
 
 app.get('/games', function (req, res) {
+
+  // users who have just registered must change temporary password before proceeding
+  // also users who have less than 3 indicates intersts
   if (req.session.tempPassword || req.session.user && req.session.user.interests.length < 3) {
     return res.redirect('/account');
   }
+
+  // Returns top 25 most popular games from all categories
   Game
     .find()
     .limit(25)
     .sort('-weightedScore')
     .exec(function (err, games) {
+
+      // to avoid issues, guests get a Games page without user
       if (!req.session.user) {
         return res.render('games', {
           heading: 'All Games',
@@ -563,6 +572,7 @@ app.get('/games', function (req, res) {
           games: games
         });
       }
+
       User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
         res.render('games', {
           heading: 'Top 25',
@@ -571,6 +581,7 @@ app.get('/games', function (req, res) {
           games: games
         });
       });
+
     });
 });
 
@@ -587,22 +598,27 @@ app.get('/games/:detail', function (req, res) {
   //
   Game.findOne({ 'slug': req.params.detail }, function (err, game) {
     if (err) {
-      return res.send(500, 'no game that match slug of the detail page');
+      return res.send(500, err);
     }
+
+    // we can ommit .find() because .where() method implicitly uses .find()
     Game
-      .find()
       .where('genre').equals(game.genre)
       .where('slug').ne(req.params.detail)
       .limit(6)
       .exec(function (err, similarGames) {
         if (err) {
-          throw err;
+          return res.send(500, err);
         }
 
+        // returns comments posted under the particular game
         Comment
           .find({ game: game._id })
           .populate('creator')
           .exec(function (err, comments) {
+            if (err) {
+              return res.send(500, err);
+            }
             res.render('detail', {
               heading: game.title,
               lead: game.publisher,
@@ -850,8 +866,14 @@ app.post('/account/tag/delete', function (req, res) {
     var index = user.interests.indexOf(req.body.removedTag);
     user.interests.splice(index, 1);
     user.save(function (err) {
+      if (err) {
+        return res.send(500, err);
+      }
       console.log('Saved!');
     });
+
+    // update user session object to avoid inconsistency
+    req.session.user = user;
     console.log('Removed ' + req.body.removedTag + ' from interests.');
   });
 });

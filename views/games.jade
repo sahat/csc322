@@ -195,6 +195,7 @@ block content
               else
                 script(type='text/javascript')
                   $('#_#{game.slug}').raty({
+                    path: '/img',
                     round : { down: .25, full: .6, up: .76 },
                     score: #{game.rating}/#{game.votes},
                     readOnly: true
