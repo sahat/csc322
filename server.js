@@ -1,5 +1,8 @@
-// By Sahat Yalkabov & Co.
-// CL4P-TP Online Store and Recommendation Engine
+// TODO: user hasn't purchased 3 games yet, so list 6 games based on interests only
+// after 3 purchases, list 3 similar games to the purchased games
+
+// TODO: recommendation: find all users with similar interests, look at what
+// they purchased, return 3 games in highest rated order
 
 var fs = require('fs');
 var express = require('express');
@@ -32,11 +35,11 @@ var db = mongoose.connect('mongodb://localhost/test');
 // Here we create a schema called User with the following fields.
 // Each field requires a type and optional additional properties, e.g. unique field? required field?
 var User = new mongoose.Schema({
-  userName: { type: String, required: true, index: { unique: true } },
-  firstName: { type: String, required: true },
-  lastName: { type: String, required: true },
-  joined_on: { type: Date, default: Date.now() },
-  purchasedGames: [{
+    userName: { type: String, required: true, index: { unique: true } },
+    firstName: { type: String, required: true },
+    lastName: { type: String, required: true },
+    joined_on: { type: Date, default: Date.now() },
+    purchasedGames: [{
     thumbnail: String,
     title: String,
     slug: String,
@@ -417,6 +420,7 @@ app.post('/buy', function (req, res) {
       });
 
       user.save(function (err) {
+        if (err) throw err;
         console.log('Purchased game added to the list');
         var server = email.server.connect({
           user:    "username",
