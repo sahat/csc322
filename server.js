@@ -18,6 +18,7 @@ var io = require('socket.io');
 var _ = require('underscore');
 _.str = require('underscore.string');
 _.mixin(_.str.exports());
+var routes = require('./routes');
 
 /*
   __  __                         ____  ____
@@ -69,7 +70,6 @@ var User = new mongoose.Schema({
 var Comment = new mongoose.Schema({
   creator: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   game: { type: mongoose.Schema.Types.ObjectId, ref: 'Game' },
-  likes: { count: { type: Number }, user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' } },
   body: {type: String, required: true },
   date: {type: Date, default: Date.now },
   flagged: { type: Boolean, default: false },
@@ -78,20 +78,20 @@ var Comment = new mongoose.Schema({
 
 // Here we create a schema called Game with the following fields.
 var Game = new mongoose.Schema({
-  slug: { type: String, index: { unique: true } },
   title: String,
   publisher: String,
   thumbnail: String,
   largeImage: String,
   releaseDate: String,
   genre: String,
-  weightedScore: { type: Number, default: 0 },
-  rating: { type: Number, default: 0 },
-  votes: { type: Number, default: 0 },
-  votedPeople: [String],
   summary: String,
   description: String,
   price: String,
+  votedPeople: [String],
+  slug: { type: String, index: { unique: true } },
+  weightedScore: { type: Number, default: 0 },
+  rating: { type: Number, default: 0 },
+  votes: { type: Number, default: 0 },
   purchaseCounter: { type: Number, default: 0 }
 });
 
@@ -389,11 +389,9 @@ app.get('/', function(req, res) {
   }
 });
 
-
 app.post('/buy', function (req, res) {
   User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
-    Game.findOne({ 'slug': req.body.slug }, function (err, game) {
-
+    Game.findOne({ 'slug': r
       var rating = 0;
       for (var i = 0; i < user.ratedGames.length; i++) {
         if (game.slug === user.ratedGames[i].slug) {
@@ -401,8 +399,6 @@ app.post('/buy', function (req, res) {
           var rating = user.ratedGames[i].rating;
         }
       }
-
-
       user.purchasedGames.push({
         title: game.title,
         slug: game.slug,

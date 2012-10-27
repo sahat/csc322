@@ -58,7 +58,13 @@ block content
         }
       });
   h3 Product Summary
-  != game.summary
+  if user.userName
+    != game.summary
+  else
+    .alert
+        strong Login Required
+        br
+        Please Please sign-in to view detailed game description and screenshots.
   hr
   .alert.alert-success
     h4 Recommended Games
