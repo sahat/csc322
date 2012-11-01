@@ -208,6 +208,7 @@ app.post('/add', function (req, res) {
       var price = $('#listPriceValue').html() || $('#actualPriceValue').text() ;
       console.log(price);
 
+
       // helper function to create a slug (e.g. Mass Effect 2 --> mass-effect-2)
       function slugify(text) {
         text = text.replace(/[^-a-zA-Z0-9\s]+/ig, '');
