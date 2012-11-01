@@ -310,7 +310,7 @@ app.post('/add', function (req, res) {
 app.get('/', function(req, res) {
 
   // users with less than 3 intersts or who still use temp. password should not be able to view this page
-  if (req.session.tempPassword || req.session.user && req.session.user.interests.length < 3) {
+  if (req.session.tempPassword || (req.session.user && req.session.user.interests.length < 3)) {
     return res.redirect('/account');
   }
 
@@ -368,7 +368,7 @@ app.get('/', function(req, res) {
 
       });
   }
-  // Visitors get 3 most popular game titles instead
+  // Visitors get 3 most popular game titles instead
   else {
     Game
       .find()
@@ -379,8 +379,9 @@ app.get('/', function(req, res) {
           throw err;
         }
         res.render('index', {
-          heading: 'CL4P-TP Online Store',
+          heading: 'Welcome to CL4P-TP',
           lead: 'The leading next generation video games recommendation engine',
+          frontpage: true,
           user: req.session.user,
           games: game
         });

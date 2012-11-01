@@ -73,6 +73,11 @@ body
     .container
       h1= heading
         p.lead= lead
+        if typeof frontpage != 'undefined'
+          p.lead
+            a(href='/login') Login 
+            | / 
+            a(href='/register')  Signup
 
   .container
     block content

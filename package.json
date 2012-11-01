@@ -15,6 +15,7 @@
     "jade": "*",
     "mocha": "*",
     "underscore": "*",
-    "underscore.string": "*"
+    "underscore.string": "*",
+    "sylvester": "*"
   }
 }
