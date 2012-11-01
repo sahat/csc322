@@ -8,7 +8,6 @@ var fs = require('fs');
 var express = require('express');
 var path = require('path');
 var http = require('http');
-var mongoose = require('mongoose');
 var email = require('emailjs');
 var bcrypt = require('bcrypt');
 var RedisStore = require('connect-redis')(express);
@@ -18,130 +17,14 @@ var io = require('socket.io');
 var _ = require('underscore');
 _.str = require('underscore.string');
 _.mixin(_.str.exports());
-//var routes = require('./routes');
+// routes
+var login = require('./routes/login');
+var account = require('./routes/account');
 
-/*
-  __  __                         ____  ____
- |  \/  | ___  _ __   __ _  ___ |  _ \| __ )
- | |\/| |/ _ \| '_ \ / _` |/ _ \| | | |  _ \
- | |  | | (_) | | | | (_| | (_) | |_| | |_) |
- |_|  |_|\___/|_| |_|\__, |\___/|____/|____/
-                     |___/
- */
+var db = require('./db');
 
-// Establishes a connection with MongoDB database
-// localhost is db-host and test is db-name
-var db = mongoose.connect('mongodb://localhost/test');
-// In Mongoose everything is derived from Schema.
-// Here we create a schema called User with the following fields.
-// Each field requires a type and optional additional properties, e.g. unique field? required field?
-var User = new mongoose.Schema({
-  userName: { type: String, required: true, index: { unique: true } },
-  firstName: { type: String, required: true },
-  lastName: { type: String, required: true },
-  joined_on: { type: Date, default: Date.now() },
-  purchasedGames: [{
-    thumbnail: String,
-    rating: { type: Number, default: 0 },
-    date: { type: Date, default: Date.now() }
-  }],
-  ratedGames: [{
-    title: String,
-    slug: String,
-    rating: Number,
-    date: { type: Date, default: Date.now() }
-  }],
-  email: { type: String, required: true },
-  password: { type: String, required: true },
-  interests: [String],
-  comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }],
-  isAdmin: { type: Boolean, default: false },
-  suspendedAccount: { type: Boolean, default: false },
-  suspendedRating: { type: Boolean, default: false },
-  warningCount: { type: Number, default: 0 },
-  weightCoefficient: { type: Number, default: 1},
-  flagCount: { type: Number, default: 0 },
-  gamertag: String
-});
 
-// Comment schema
-var Comment = new mongoose.Schema({
-  creator: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  game: { type: mongoose.Schema.Types.ObjectId, ref: 'Game' },
-  body: {type: String, required: true },
-  date: {type: Date, default: Date.now },
-  flagged: { type: Boolean, default: false },
-  hasBeenWarned: { type: Boolean, default: false }
-});
 
-// Here we create a schema called Game with the following fields.
-var Game = new mongoose.Schema({
-  title: String,
-  publisher: String,
-  thumbnail: String,
-  largeImage: String,
-  releaseDate: String,
-  genre: String,
-  summary: String,
-  description: String,
-  price: String,
-  votedPeople: [String],
-  slug: { type: String, index: { unique: true } },
-  weightedScore: { type: Number, default: 0 },
-  rating: { type: Number, default: 0 },
-  votes: { type: Number, default: 0 },
-  purchaseCounter: { type: Number, default: 0 }
-});
-
-// Express middleware that hashes a password before it is saved to database
-// The following function is invoked right when we called MongoDB save() method
-// We can define middleware once and it will work everywhere that we use save() to save data to MongoDB
-// The purpose of this middleware is to hash the password before saving to database, because
-// we don't want to save password as plain text for security reasons
-User.pre('save', function(next) {
-  var user = this;
-
-  // only hash the password if it has been modified (or is new)
-  if (!user.isModified('password')) {
-    return next();
-  }
-
-  // generate a salt with 10 rounds
-  bcrypt.genSalt(10, function(err, salt) {
-    if (err) {
-      return next(err);
-    }
-
-    // hash the password along with our new salt
-    bcrypt.hash(user.password, salt, function(err, hash) {
-      if (err) {
-        return next(err);
-      }
-
-      // override the cleartext password with the hashed one
-      user.password = hash;
-      next();
-    });
-  });
-});
-
-// This middleware compares user's typed-in password during login with the password stored in database
-User.methods.comparePassword = function(candidatePassword, callback) {
-  bcrypt.compare(candidatePassword, this.password, function(err, isMatch) {
-    if (err) {
-      return callback(err);
-    }
-    callback(null, isMatch);
-  });
-};
-
-// After we create a schema, the next step is to create a model based on that schema.
-// A model is a class with which we construct documents.
-// In this case, each document will be a user with properties and behaviors as declared in our schema.
-
-var User = mongoose.model('User', User);
-var Game = mongoose.model('Game', Game);
-var Comment = mongoose.model('Comment', Comment);
 
 /*
   ____       _   _   _
@@ -316,7 +199,7 @@ app.get('/', function(req, res) {
 
   // If user is logged in, display 3 items based on interests and 3 based on previous purchases
   if (req.session.user) {
-    Game
+    db.Game
       .find()
       .or([{ title: { $in: req.session.user.interests } }, { genre: { $in: req.session.user.interests } }])
       .limit(3)
@@ -325,7 +208,7 @@ app.get('/', function(req, res) {
         if (err) {
             throw err;
         }
-        Game
+        db.Game
         .find()
         .sort('-purchaseCounter')
         .limit(3)
@@ -803,82 +686,13 @@ app.post('/comment/report', function (req, res) {
 });
 
 
-app.get('/account', function (req, res) {
-  if (!req.session.user) {
-    return res.redirect('/login');
-  }
-  console.log(req.session.user.purchasedGames);
-  User.findOne({ userName: req.session.user.userName }, function (err, user) {
-    Game.find(function (err, games) {
-      var tagArray = [];
-      _.each(games, function (game) {
-        tagArray.push(game.title);
-      });
-      req.session.user = user;
-      console.log(user.purchasedGames);
-      res.render('account', {
-        heading: 'Account Information',
-        lead: 'View purchase history, update account, choose interests',
-        user: req.session.user,
-        tags: tagArray,
-        tempPassword: req.session.tempPassword,
-        isSuspended: user.suspendedAccount
-      });
-    });
-  });
-});
+app.get('/account', account.get);
 
+app.post('/account', account.post);
 
-app.post('/account', function (req, res) {
-  User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
-    user.firstName = req.body.firstName;
-    user.lastName = req.body.lastName;
-    user.password = (!req.body.newpassword) ? req.session.user.password : req.body.newpassword;
-    user.gamertag = req.body.gamertag;
-    if (req.body.newpassword) {
-      user.password = req.body.newpassword;
-      delete req.session.tempPassword;
-    }
-    user.save(function(err) {
-      req.session.user = user;
-      res.redirect('/account');
-    });
-  });
-});
+app.post('/account/tag/add', account.addTag);
 
-
-app.post('/account/tag/add', function (req, res) {
-  User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
-    _.each(req.body.tags, function (tag) {
-      user.interests.push(tag);
-    });
-    var flatArray = _.flatten(user.interests);
-    var uniqueArray = _.uniq(flatArray);
-    user.interests = uniqueArray;
-    user.save(function (err) {
-      console.log('Saved ' + uniqueArray);
-    });
-
-  });
-});
-
-
-app.post('/account/tag/delete', function (req, res) {
-  User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
-    var index = user.interests.indexOf(req.body.removedTag);
-    user.interests.splice(index, 1);
-    user.save(function (err) {
-      if (err) {
-        return res.send(500, err);
-      }
-      console.log('Saved!');
-    });
-
-    // update user session object to avoid inconsistency
-    req.session.user = user;
-    console.log('Removed ' + req.body.removedTag + ' from interests.');
-  });
-});
+app.post('/account/tag/delete', account.removeTag);
 
 
 app.get('/logout', function(req, res) {
@@ -906,51 +720,9 @@ app.get('/logout', function(req, res) {
 });
 
 
-app.get('/login', function(req, res) {
-  if (req.session.user) {
-    res.redirect('/');
-  }
+app.get('/login', login.get);
 
-  res.render('login', {
-    heading: 'Sign In',
-    lead: 'Use the login form if you are an existing user',
-    user: req.session.user,
-    incorrectLogin: req.session.incorrectLogin,
-    message: { success: req.session.message }
-  });
-});
-
-
-app.post('/login', function (req, res) {
-  User.findOne({ 'userName': req.body.userName }, function (err, user) {
-    if (!user) {
-      req.session.incorrectLogin = true;
-      res.redirect('/login');
-    } else {
-      user.comparePassword(req.body.password, function(err, isMatch) {
-        // correct login
-        if (isMatch) {
-          if (user.suspendedAccount) {
-            res.redirect('/account');
-          }
-          else {
-            delete req.session.incorrectLogin;
-            req.session.user = user;
-            // create session to keep track of votes
-            req.session.voteCount = 0;
-            req.session.avgRating = 0;
-            req.session.rating = 0;
-            res.redirect('/');
-          }
-        } else {
-          // incorrect login
-          req.session.incorrectLogin = true;
-          res.redirect('/login');
-        }
-      });
-    }
-  });
-});
+app.post('/login', login.post);
 
 
 app.get('/register', function(req, res) {
