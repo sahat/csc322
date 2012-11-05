@@ -50,9 +50,9 @@ var User = new mongoose.Schema({
 // Comment schema
 var Comment = new mongoose.Schema({
   creator: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  game: { type: mongoose.Schema.Types.ObjectId, ref: 'Game' },
-  body: {type: String, required: true },
-  date: {type: Date, default: Date.now },
+  game : { type: mongoose.Schema.Types.ObjectId, ref: 'Game' },
+  body : { type: String, required: true, trim: true },
+  date: { type: Date, default: Date.now },
   flagged: { type: Boolean, default: false },
   hasBeenWarned: { type: Boolean, default: false }
 });
@@ -81,7 +81,7 @@ var Game = new mongoose.Schema({
 // We can define middleware once and it will work everywhere that we use save() to save data to MongoDB
 // The purpose of this middleware is to hash the password before saving to database, because
 // we don't want to save password as plain text for security reasons
-User.pre('save', function(next) {
+User.pre('save', function (next) {
   var user = this;
 
   // only hash the password if it has been modified (or is new)

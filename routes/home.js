@@ -1,8 +1,8 @@
 var db = require('../db');
 
-exports.get = function(req, res) {
+exports.get = function (req, res) {
 
-  // users with less than 3 intersts or who still use temp. password should not be able to view this page
+  // users with less than 3 interests or who still use temp. password should not be able to view this page
   if (req.session.tempPassword || (req.session.user && req.session.user.interests.length < 3)) {
     return res.redirect('/account');
   }
@@ -12,7 +12,7 @@ exports.get = function(req, res) {
     db.Game
       .find()
       .or([{ title: { $in: req.session.user.interests } }, { genre: { $in: req.session.user.interests } }])
-      .limit(3)
+      .limit(6)
       .sort('-weightedScore')
       .exec(function (err, interestGames) {
         if (err) {
@@ -27,7 +27,8 @@ exports.get = function(req, res) {
               heading: 'CL4P-TP Online Store',
               lead: 'The leading next generation video games recommendation engine',
               user: req.session.user,
-              interestGames: interestGames,
+              interestGames3: interestGames.slice(0,2),
+              interestGames6: interestGames,
               purchasedGames: purchasedGames
             });
           });

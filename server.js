@@ -16,6 +16,8 @@ var io = require('socket.io');
 var _ = require('underscore');
 _.str = require('underscore.string');
 _.mixin(_.str.exports());
+var sylvester = require('sylvester');
+
 
 // routes
 var login = require('./routes/login');
@@ -30,6 +32,7 @@ var logout = require('./routes/logout');
 var comment = require('./routes/comment');
 var home = require('./routes/home');
 var profile = require('./routes/profile');
+
 
 var db = require('./db');
 
@@ -108,7 +111,6 @@ app.get('/register', signup.get);
 app.post('/register', signup.post);
 
 app.get('/:profile', profile.get);
-
 
 var server = http.createServer(app).listen(app.get('port'), function() {
   console.log('Express server listening on port ' + app.get('port'));
