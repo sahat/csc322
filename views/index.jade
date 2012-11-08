@@ -9,7 +9,7 @@ block content
         small.muted How it works: 
         small
           | First 3 games are based on your interests, the last 3 games are
-          | based on what similar users have purchased
+          | based on your game purchases
       else
         strong Welcome Visitor,
         small  here's the top 3 most popular games for you
@@ -17,7 +17,7 @@ block content
   .row 
     // remove later
 
-    // make sure used is logged in
+    // make sure user is logged in
     if user.userName
       // if user hasn't entered any interests, although he shouldn't even be on this page
       if interestGames6.length == 0

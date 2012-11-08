@@ -100,7 +100,7 @@ block content
 
     $("#interests").tagit({
       allowSpaces: true,
-      availableTags: "#{tags}".split(','),
+      availableTags: ["Action", "Adventure", "Driving", "Puzzle", "Role-Playing", "Simulation", "Strategy", "Sports"],
       onTagRemoved: function (event, tag) {
         var tagCount = $('#interests li').length - 1;
         tagCount--;
@@ -167,9 +167,3 @@ block content
         console.log("Data loaded: " + data);
       });
     });
-
-
-
-
-
-
