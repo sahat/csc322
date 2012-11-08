@@ -116,7 +116,7 @@ UserSchema.pre('save', function (next) {
   }
 
   // generate a salt with 10 rounds
-  bcrypt.genSalt(10, function(err, salt) {
+  bcrypt.genSalt(10, function (err, salt) {
     if (err) {
       return next(err);
     }
@@ -160,11 +160,6 @@ var Comment = mongoose.model('Comment', CommentSchema);
  |____/ \___|\__|\__|_|_| |_|\__, |___/
                              |___/
  */
-
-var app = express();
-var server = require('http').createServer(app);
-var io = require('socket.io').listen(server);
-
 app.configure(function () {
   app.set('port', process.env.PORT || 3000);
   app.set('views', __dirname + '/views');
@@ -872,9 +867,7 @@ app.get('/logout', function(req, res) {
   }
   if (req.session.user.suspendedAccount) {
     User.remove({ 'userName': req.session.user.userName }, function (err) {
-      if (err) {
-        throw err;
-      }
+      if (err) throw err;
       console.log('User account has been removed');
     });
   }
@@ -885,9 +878,7 @@ app.get('/logout', function(req, res) {
 });
 
 app.get('/login', function(req, res) {
-  if (req.session.user) {
-    res.redirect('/');
-  }
+  if (req.session.user) res.redirect('/');
 
   res.render('login', {
     heading: 'Sign In',
@@ -939,6 +930,7 @@ app.get('/register', function(req, res) {
     message: req.session.message
   });
 });
+
 app.post('/register', function(req, res) {
   var firstLetterOfFirstName = req.body.firstName[0].toLowerCase();
   var lastName = req.body.lastName.toLowerCase();
