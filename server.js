@@ -920,17 +920,21 @@ app.post('/login', function (req, res) {
   });
 });
 
+/**
+ * GET /register
+ */
 app.get('/register', function(req, res) {
-  if (req.session.user) {
-    res.redirect('/');
-  }
+  if (req.session.user) res.redirect('/');
+
   res.render('register', {
     heading: 'Create Account',
     lead: 'Register with us to get your own personalized profile',
-    message: req.session.message
   });
 });
 
+/**
+ * POST /register
+ */
 app.post('/register', function(req, res) {
   var firstLetterOfFirstName = req.body.firstName[0].toLowerCase();
   var lastName = req.body.lastName.toLowerCase();

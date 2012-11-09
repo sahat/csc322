@@ -3,8 +3,6 @@ extends layout
 block content
   form#registration.form-horizontal(method='post')
     legend Don't have an account? Register!
-    if (message)
-      != message
     .control-group
       label.control-label(for='firstName') First Name
       .controls
