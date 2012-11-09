@@ -936,29 +936,38 @@ app.get('/register', function(req, res) {
  * POST /register
  */
 app.post('/register', function(req, res) {
-  var firstLetterOfFirstName = req.body.firstName[0].toLowerCase();
-  var lastName = req.body.lastName.toLowerCase();
-  var randomNumber = Math.floor(Math.random() * 1000);
-  var userName = firstLetterOfFirstName + lastName + randomNumber;
+  function usernamify(first, last) {
+    first = first[0].toLowerCase();
+    last = last.replace(/[^-a-zA-Z0-9\s]+/ig, '');
+    last = last.replace(/-/gi, '');
+    last = last.replace(/\s/gi, '');
+    last = last.toLowerCase();
+    return first + last + Math.floor(Math.random() * 1000);
+  }
 
-  var newUser = new User({
-    userName: userName,
-    password: userName,
-    firstName: req.body.firstName,
-    lastName: req.body.lastName,
-    email: req.body.userEmail
-  });
+  var firstName = req.body.firstName;
+  var lastName = req.body.lastName;
+  var userName = usernamify(firstName, lastName);
 
   User.findOne({'isAdmin': true }, function (err, user) {
+    var newUser = new User({
+      userName: userName,
+      password: userName,
+      firstName: req.body.firstName,
+      lastName: req.body.lastName,
+      email: req.body.userEmail
+    });
+
     if (!user) {
-      console.log('no users that are admin');
+      // The first registered user is automatically given admin privileges
       newUser.isAdmin = true;
     } else {
-      console.log('admin already exists');
+      // Every subsequent registrant is just a regular user
       newUser.isAdmin = false;
     }
   });
 
+  // Commit changes to database
   newUser.save(function (err) {
     if (err) {
       console.log(err);
@@ -976,6 +985,9 @@ app.post('/register', function(req, res) {
   });
 });
 
+/**
+ * GET /profile
+ */
 app.get('/:profile', function (req, res) {
   if (req.session.user) {
     if (req.session.tempPassword || req.session.user.interests.length < 3) {
