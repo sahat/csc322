@@ -2,19 +2,22 @@ extends layout
 
 block content
   br
-  div.hero-unit
-    h2 Listing Overview
-    p
-      strong Price:
-      |  #{game.price}
-      br
-      strong Rating:&nbsp;
-      span(id='_' + game.slug)
-      span(id='votes', name='votes')
-        |  (#{game.votes} votes)
-      br
-      strong Comments:
-      |  #{comments.length}
+  .hero-unit
+    .row
+      .span2
+        img.img-polaroid(src='http://localhost:3000/img/games/battlefield-bad-company-2-large.jpg')
+      .span6
+        p
+          strong Price:
+          |  #{game.price}
+          br
+          strong Rating:&nbsp;
+          span(id='_' + game.slug)
+          span(id='votes', name='votes')
+            |  #{game.votes} votes
+          br
+          strong Comments:
+          |  #{comments.length}
 
     if user.userName
       p
@@ -35,6 +38,9 @@ block content
         round: { down: .25, full: .6, up: .76 },
         score: #{game.rating}/#{game.votes},
         readOnly: true,
+        starHalf  : 'star-half-big.png',
+        starOff   : 'star-off-big.png',
+        starOn    : 'star-on-big.png',
         click: function (score, event) {
           var self = this;
           $.meow({

@@ -577,6 +577,9 @@ app.get('/games', function (req, res) {
     });
 });
 
+/**
+ * GET /games/detail
+ */
 app.get('/games/:detail', function (req, res) {
 
   // newly registered users must first change their password and add 3 interests
