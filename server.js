@@ -31,136 +31,11 @@ var app = express();
 var server = require('http').createServer(app);
 var io = require('socket.io').listen(server);
 
-/**
- * MongoDB Settings
- */
-
-// Establishes a connection with MongoDB database
-// localhost is db-host and test is db-name
-var db = mongoose.connect('localhost', 'test');
-
-// Here we create a schema called Game with the following fields.
-var GameSchema = new mongoose.Schema({
-  title: String,
-  publisher: String,
-  thumbnail: String,
-  largeImage: String,
-  releaseDate: String,
-  genre: String,
-  summary: String,
-  description: String,
-  price: String,
-  votedPeople: [String],
-  slug: { type: String, index: { unique: true } },
-  weightedScore: { type: Number, default: 0 },
-  rating: { type: Number, default: 0 },
-  votes: { type: Number, default: 0 },
-  purchaseCounter: { type: Number, default: 0 }
-});
-
-// In Mongoose everything is derived from Schema.
-// Here we create a schema called User with the following fields.
-// Each field requires a type and optional additional properties, e.g. unique field? required field?
-var UserSchema = new mongoose.Schema({
-  userName: { type: String, required: true, index: { unique: true } },
-  password: { type: String, required: true },
-  firstName: { type: String, required: true },
-  lastName: { type: String, required: true },
-  email: { type: String, required: true },
-  joined_on: { type: Date, default: Date.now() },
-  comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }],
-  interests: [String],
-  isAdmin: Boolean,
-  gamertag: String,
-  tempPassword: Boolean,
-  purchasedGames: [{
-    title: String,
-    slug: String,
-    thumbnail: String,
-    rating: { type: Number, default: 0 },
-    date: { type: Date, default: Date.now() }
-  }],
-  ratedGames: [{
-    title: String,
-    slug: String,
-    rating: Number,
-    date: { type: Date, default: Date.now() }
-  }]
-});
-
-// Comment schema
-var CommentSchema = new mongoose.Schema({
-  creator: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  game : { type: mongoose.Schema.Types.ObjectId, ref: 'Game' },
-  body : { type: String, required: true, trim: true },
-  date: { type: Date, default: Date.now },
-  flagged: { type: Boolean, default: false },
-  hasBeenWarned: { type: Boolean, default: false }
-});
-
-// Express middleware that hashes a password before it is saved to database
-// The following function is invoked right when we called MongoDB save() method
-// We can define middleware once and it will work everywhere that we use save() to save data to MongoDB
-// The purpose of this middleware is to hash the password before saving to database, because
-// we don't want to save password as plain text for security reasons
-UserSchema.pre('save', function (next) {
-  var user = this;
-
-  // only hash the password if it has been modified (or is new)
-  if (!user.isModified('password')) {
-    return next();
-  }
-
-  // generate a salt with 10 rounds
-  bcrypt.genSalt(10, function (err, salt) {
-    if (err) {
-      return next(err);
-    }
-
-    // hash the password along with our new salt
-    bcrypt.hash(user.password, salt, function(err, hash) {
-      if (err) {
-        return next(err);
-      }
-
-      // override the cleartext password with the hashed one
-      user.password = hash;
-      next();
-    });
-  });
-});
-
-// This middleware compares user's typed-in password during login with the password stored in database
-UserSchema.methods.comparePassword = function(candidatePassword, callback) {
-  bcrypt.compare(candidatePassword, this.password, function(err, isMatch) {
-    if (err) {
-      return callback(err);
-    }
-    callback(null, isMatch);
-  });
-};
-
-// After we create a schema, the next step is to create a model based on that schema.
-// A model is a class with which we construct documents.
-// In this case, each document will be a user with properties and behaviors as declared in our schema.
-
-var User = mongoose.model('User', UserSchema);
-var Game = mongoose.model('Game', GameSchema);
-var Comment = mongoose.model('Comment', CommentSchema);
-
-/*
-  ____       _   _   _
- / ___|  ___| |_| |_(_)_ __   __ _ ___
- \___ \ / _ \ __| __| | '_ \ / _` / __|
-  ___) |  __/ |_| |_| | | | | (_| \__ \
- |____/ \___|\__|\__|_|_| |_|\__, |___/
-                             |___/
- */
 app.configure(function () {
-  app.set('port', process.env.PORT || 3000);
+  app.set('port', process.env.PORT || 4000);
   app.set('views', __dirname + '/views');
   app.set('view engine', 'jade');
-  app.locals.pretty = true;
+  app.set.pretty = true;
   app.use(express.favicon());
   app.use(express.logger('dev'));
   app.use(express.bodyParser());
@@ -173,6 +48,123 @@ app.configure(function () {
 app.configure('development', function() {
   app.use(express.errorHandler());
 });
+
+/**
+ * MongoDB
+ */
+
+// Establishes a connection with MongoDB database
+// localhost is db-host and test is db-name
+var db = mongoose.connect('localhost', 'test');
+
+// Here we create a schema called Game with the following fields.
+var GameSchema = new mongoose.Schema({
+    title: String,
+    publisher: String,
+    thumbnail: String,
+    largeImage: String,
+    releaseDate: String,
+    genre: String,
+    summary: String,
+    description: String,
+    price: String,
+    votedPeople: [String],
+    slug: { type: String, index: { unique: true } },
+    weightedScore: { type: Number, default: 0 },
+    rating: { type: Number, default: 0 },
+    votes: { type: Number, default: 0 },
+    purchaseCounter: { type: Number, default: 0 }
+});
+
+// In Mongoose everything is derived from Schema.
+// Here we create a schema called User with the following fields.
+// Each field requires a type and optional additional properties, e.g. unique field? required field?
+var UserSchema = new mongoose.Schema({
+    userName: { type: String, required: true, index: { unique: true } },
+    password: { type: String, required: true },
+    firstName: { type: String, required: true },
+    lastName: { type: String, required: true },
+    email: { type: String, required: true },
+    joined_on: { type: Date, default: Date.now() },
+    comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }],
+    interests: [String],
+    isAdmin: Boolean,
+    gamertag: String,
+    tempPassword: Boolean,
+    purchasedGames: [{
+        title: String,
+        slug: String,
+        thumbnail: String,
+        rating: { type: Number, default: 0 },
+        date: { type: Date, default: Date.now() }
+    }],
+    ratedGames: [{
+        title: String,
+        slug: String,
+        rating: Number,
+        date: { type: Date, default: Date.now() }
+    }]
+});
+
+// Comment schema
+var CommentSchema = new mongoose.Schema({
+    creator: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    game : { type: mongoose.Schema.Types.ObjectId, ref: 'Game' },
+    body : { type: String, required: true, trim: true },
+    date: { type: Date, default: Date.now },
+    flagged: { type: Boolean, default: false },
+    hasBeenWarned: { type: Boolean, default: false }
+});
+
+// Express middleware that hashes a password before it is saved to database
+// The following function is invoked right when we called MongoDB save() method
+// We can define middleware once and it will work everywhere that we use save() to save data to MongoDB
+// The purpose of this middleware is to hash the password before saving to database, because
+// we don't want to save password as plain text for security reasons
+UserSchema.pre('save', function (next) {
+    var user = this;
+
+    // only hash the password if it has been modified (or is new)
+    if (!user.isModified('password')) {
+        return next();
+    }
+
+    // generate a salt with 10 rounds
+    bcrypt.genSalt(10, function (err, salt) {
+        if (err) {
+            return next(err);
+        }
+
+        // hash the password along with our new salt
+        bcrypt.hash(user.password, salt, function(err, hash) {
+            if (err) {
+                return next(err);
+            }
+
+            // override the cleartext password with the hashed one
+            user.password = hash;
+            next();
+        });
+    });
+});
+
+// This middleware compares user's typed-in password during login with the password stored in database
+UserSchema.methods.comparePassword = function(candidatePassword, callback) {
+    bcrypt.compare(candidatePassword, this.password, function(err, isMatch) {
+        if (err) {
+            return callback(err);
+        }
+        callback(null, isMatch);
+    });
+};
+
+// After we create a schema, the next step is to create a model based on that schema.
+// A model is a class with which we construct documents.
+// In this case, each document will be a user with properties and behaviors as declared in our schema.
+
+var User = mongoose.model('User', UserSchema);
+var Game = mongoose.model('Game', GameSchema);
+var Comment = mongoose.model('Comment', CommentSchema);
 
 /*
   ____             _
@@ -795,15 +787,20 @@ app.get('/account', function (req, res) {
 
 app.post('/account', function (req, res) {
   User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
+    if (err) res.send(500, err);
+
     user.firstName = req.body.firstName;
     user.lastName = req.body.lastName;
-    user.password = (!req.body.newpassword) ? req.session.user.password : req.body.newpassword;
     user.gamertag = req.body.gamertag;
-    if (req.body.newpassword) {
+    if (!req.body.newpassword) {
+      user.password = req.session.user.password;
+    } else {
       user.password = req.body.newpassword;
-      delete req.session.tempPassword;
+      user.tempPassword = false;
     }
-    user.save(function(err) {
+
+    user.save(function (err) {
+      if (err) res.send(500, err);
       req.session.user = user;
       res.redirect('/account');
     });
