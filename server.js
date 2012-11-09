@@ -63,9 +63,16 @@ var GameSchema = new mongoose.Schema({
 // Each field requires a type and optional additional properties, e.g. unique field? required field?
 var UserSchema = new mongoose.Schema({
   userName: { type: String, required: true, index: { unique: true } },
+  password: { type: String, required: true },
   firstName: { type: String, required: true },
   lastName: { type: String, required: true },
+  email: { type: String, required: true },
   joined_on: { type: Date, default: Date.now() },
+  interests: [String],
+  comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }],
+  isAdmin: Boolean,
+  gamertag: String,
+  tempPassword: Boolean,
   purchasedGames: [{
     title: String,
     slug: String,
@@ -78,18 +85,7 @@ var UserSchema = new mongoose.Schema({
     slug: String,
     rating: Number,
     date: { type: Date, default: Date.now() }
-  }],
-  email: { type: String, required: true },
-  password: { type: String, required: true },
-  interests: [String],
-  comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }],
-  isAdmin: { type: Boolean, default: false },
-  suspendedAccount: { type: Boolean, default: false },
-  suspendedRating: { type: Boolean, default: false },
-  warningCount: { type: Number, default: 0 },
-  weightCoefficient: { type: Number, default: 1},
-  flagCount: { type: Number, default: 0 },
-  gamertag: String
+  }]
 });
 
 // Comment schema
@@ -315,8 +311,10 @@ app.post('/add', function (req, res) {
   });
 });
 
+/**
+ * GET /
+ */
 app.get('/', function (req, res) {
-
   // users with less than 3 interests or who still use temp. password should not be able to view this page
   if (req.session.tempPassword || (req.session.user && req.session.user.interests.length < 3)) {
     return res.redirect('/account');
@@ -808,6 +806,7 @@ app.get('/account', function (req, res) {
     });
   });
 });
+
 app.post('/account', function (req, res) {
   User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
     user.firstName = req.body.firstName;
@@ -824,6 +823,7 @@ app.post('/account', function (req, res) {
     });
   });
 });
+
 app.post('/account/tag/add', function (req, res) {
   User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
     _.each(req.body.tags, function (tag) {
@@ -855,26 +855,28 @@ app.post('/account/tag/delete', function (req, res) {
   });
 });
 
-app.get('/logout', function(req, res) {
-  if (req.session.flagCount) {
-    User.update({ 'userName': req.session.user.userName },
-      { $inc: { flagCount: 1 } },
-      function (err) {
-        if (err) {
-          throw err;
-        }
-      });
+/**
+ * GET /logout
+ */
+app.get('/logout', function (req, res) {
+  if (!req.session.user) {
+    res.redirect('/');
   }
-  if (req.session.user.suspendedAccount) {
-    User.remove({ 'userName': req.session.user.userName }, function (err) {
-      if (err) throw err;
-      console.log('User account has been removed');
+  else {
+    // fix for per user flag count
+    if (req.session.flagCount) {
+      User.update({ 'userName': req.session.user.userName }, { $inc: { flagCount: 1 } });
+    }
+
+    if (req.session.user.suspendedAccount) {
+      User.remove({ 'userName': req.session.user.userName });
+    }
+
+    req.session.destroy(function () {
+      res.redirect('/');
     });
   }
 
-  req.session.destroy(function (){
-    res.redirect('/');
-  });
 });
 
 app.get('/login', function(req, res) {
@@ -936,6 +938,7 @@ app.get('/register', function(req, res) {
  * POST /register
  */
 app.post('/register', function(req, res) {
+  // Helper function to generate a unique username
   function usernamify(first, last) {
     first = first[0].toLowerCase();
     last = last.replace(/[^-a-zA-Z0-9\s]+/ig, '');
@@ -947,41 +950,33 @@ app.post('/register', function(req, res) {
 
   var firstName = req.body.firstName;
   var lastName = req.body.lastName;
+  var email = req.body.userEmail;
   var userName = usernamify(firstName, lastName);
 
-  User.findOne({'isAdmin': true }, function (err, user) {
-    var newUser = new User({
-      userName: userName,
-      password: userName,
-      firstName: req.body.firstName,
-      lastName: req.body.lastName,
-      email: req.body.userEmail
-    });
-
-    if (!user) {
-      // The first registered user is automatically given admin privileges
-      newUser.isAdmin = true;
-    } else {
-      // Every subsequent registrant is just a regular user
-      newUser.isAdmin = false;
-    }
+  var user = new User({
+    userName: userName,
+    password: userName,
+    firstName: firstName,
+    lastName: lastName,
+    email: email
   });
 
-  // Commit changes to database
-  newUser.save(function (err) {
-    if (err) {
-      console.log(err);
-      res.send(500, 'Halt: Duplicate Username Detected');
-    } else {
-      req.session.user = newUser;
+  User.findOne({ 'isAdmin': true }, function (err, admin) {
+    if (err) res.send(500);
+
+    user.isAdmin = !admin;
+
+    user.save(function (err) {
+      if (err) res.send(500, 'Duplicate username detected. Try again.');
+
+      req.session.user = user;
       req.session.tempPassword = true;
-      // create session to keep track of votes
       req.session.flagCount = 0;
       req.session.voteCount = 0;
       req.session.avgRating = 0;
       req.session.rating = 0;
       res.redirect('/account');
-    }
+    });
   });
 });
 
