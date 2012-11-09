@@ -68,8 +68,8 @@ var UserSchema = new mongoose.Schema({
   lastName: { type: String, required: true },
   email: { type: String, required: true },
   joined_on: { type: Date, default: Date.now() },
-  interests: [String],
   comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }],
+  interests: [String],
   isAdmin: Boolean,
   gamertag: String,
   tempPassword: Boolean,
@@ -312,11 +312,11 @@ app.post('/add', function (req, res) {
 });
 
 /**
- * GET /
+ * GET /index
  */
 app.get('/', function (req, res) {
   // users with less than 3 interests or who still use temp. password should not be able to view this page
-  if (req.session.tempPassword || (req.session.user && req.session.user.interests.length < 3)) {
+  if (req.session.user && (req.session.user.tempPassword || req.session.user.interests.length < 3)) {
     return res.redirect('/account');
   }
   // If user is logged in, display 3 items based on interests and 3 based on previous purchases
@@ -338,9 +338,9 @@ app.get('/', function (req, res) {
     Game
       .find()
       .or([
-      { title: { $in: req.session.user.interests } },
-      { genre: { $in: req.session.user.interests } }
-    ])
+        { title: { $in: req.session.user.interests } },
+        { genre: { $in: req.session.user.interests } }
+      ])
       .limit(6)
       .sort('-weightedScore')
       .exec(function (err, interestGames) {
@@ -362,14 +362,12 @@ app.get('/', function (req, res) {
             });
           });
       });
-  }
-  // Visitors get 3 most popular game titles instead
-  else {
+  } else {
     Game
       .find()
       .limit(3)
       .sort('-weightedScore')
-      .exec(function(err, game) {
+      .exec(function (err, game) {
         if (err) {
           throw err;
         }
@@ -545,7 +543,7 @@ app.get('/games/api', function (req, res) {
 app.get('/games', function (req, res) {
   // users who have just registered must change temporary password before proceeding
   // also users who have less than 3 indicates interests
-  if (req.session.tempPassword || (req.session.user && req.session.user.interests.length < 3)) {
+  if (req.session.user && (req.session.user.tempPassword || req.session.user.interests.length < 3)) {
     return res.redirect('/account');
   }
 
@@ -581,13 +579,8 @@ app.get('/games', function (req, res) {
  * GET /games/detail
  */
 app.get('/games/:detail', function (req, res) {
-
-  // newly registered users must first change their password and add 3 interests
-  // before viewing this page
-  if (req.session.user) {
-    if (req.session.tempPassword || req.session.user.interests.length < 3) {
-      return res.redirect('/account');
-    }
+  if (req.session.user && (req.session.user.tempPassword || req.session.user.interests.length < 3)) {
+    return res.redirect('/account');
   }
 
   Game.findOne({ 'slug': req.params.detail }, function (err, game) {
@@ -648,8 +641,8 @@ app.get('/games/genre/:genre', function (req, res) {
   if (req.session.tempPassword || (req.session.user && req.session.user.interests.length < 3)) {
     return res.redirect('/account');
   }
+
   Game
-    .find()
     .where('genre').equals(new RegExp(req.params.genre, 'i'))
     .sort('-weightedScore')
     .exec(function (err, games) {
@@ -785,28 +778,18 @@ app.post('/comment/report', function (req, res) {
   });
 });
 
+/**
+ * GET /account
+ */
 app.get('/account', function (req, res) {
-  if (!req.session.user) {
-    return res.redirect('/login');
-  }
-  console.log(req.session.user.purchasedGames);
-  User.findOne({ userName: req.session.user.userName }, function (err, user) {
-    Game.find(function (err, games) {
-      var tagArray = [];
-      _.each(games, function (game) {
-        tagArray.push(game.title);
-      });
-      req.session.user = user;
-      console.log(user.purchasedGames);
-      res.render('account', {
-        heading: 'Account Information',
-        lead: 'View purchase history, update account, choose interests',
-        user: req.session.user,
-        tags: tagArray,
-        tempPassword: req.session.tempPassword,
-        isSuspended: user.suspendedAccount
-      });
-    });
+  if (!req.session.user) res.redirect('/login');
+
+  res.render('account', {
+    heading: 'Account Information',
+    lead: 'View purchase history, update account, choose interests',
+    user: req.session.user,
+    tempPassword: req.session.user.tempPassword,
+    isSuspended: req.session.user.suspendedAccount
   });
 });
 
@@ -957,11 +940,12 @@ app.post('/register', function(req, res) {
   var userName = usernamify(firstName, lastName);
 
   var user = new User({
-    userName: userName,
-    password: userName,
     firstName: firstName,
     lastName: lastName,
-    email: email
+    email: email,
+    userName: userName,
+    password: userName,
+    tempPassword: true
   });
 
   User.findOne({ 'isAdmin': true }, function (err, admin) {
@@ -973,7 +957,6 @@ app.post('/register', function(req, res) {
       if (err) res.send(500, 'Duplicate username detected. Try again.');
 
       req.session.user = user;
-      req.session.tempPassword = true;
       req.session.flagCount = 0;
       req.session.voteCount = 0;
       req.session.avgRating = 0;
@@ -987,10 +970,8 @@ app.post('/register', function(req, res) {
  * GET /profile
  */
 app.get('/:profile', function (req, res) {
-  if (req.session.user) {
-    if (req.session.tempPassword || req.session.user.interests.length < 3) {
-      return res.redirect('/account');
-    }
+  if (req.session.user && (req.session.user.tempPassword || req.session.user.interests.length < 3)) {
+    return res.redirect('/account');
   }
 
   User.findOne({ 'userName': req.params.profile }, function (err, user) {

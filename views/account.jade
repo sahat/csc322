@@ -1,13 +1,16 @@
 extends layout
 
 block content
-  if tempPassword
+  if user.tempPassword
     br
     .alert.alert-error
       h4 Important Announcement
-      div You must select a new password and add at least
+      div You must select a
+        strong  new password
+        |  and add at least
         strong  three interests
         |  before continuing!
+
   if isSuspended
     br
     .alert.alert-error
