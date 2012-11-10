@@ -76,7 +76,7 @@ block content
             tr
               td
                 a(href='/games/#{game.slug}') #{game.title}
-              td #{game.date.toDateString()}
+              td #{new Date(game.date).toLocaleDateString()}
               td
                 if game.rating == 0
                   | You haven't rated this game yet

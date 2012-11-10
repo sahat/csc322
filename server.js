@@ -59,61 +59,58 @@ var db = mongoose.connect('localhost', 'test');
 
 // Here we create a schema called Game with the following fields.
 var GameSchema = new mongoose.Schema({
-    title: String,
-    publisher: String,
-    thumbnail: String,
-    largeImage: String,
-    releaseDate: String,
-    genre: String,
-    summary: String,
-    description: String,
-    price: String,
-    votedPeople: [String],
-    slug: { type: String, index: { unique: true } },
-    weightedScore: { type: Number, default: 0 },
-    rating: { type: Number, default: 0 },
-    votes: { type: Number, default: 0 },
-    purchaseCounter: { type: Number, default: 0 }
+  title: String,
+  publisher: String,
+  thumbnail: String,
+  largeImage: String,
+  releaseDate: String,
+  genre: String,
+  summary: String,
+  description: String,
+  price: String,
+  votedPeople: [String],
+  slug: { type: String, index: { unique: true } },
+  weightedScore: { type: Number, default: 0 },
+  rating: { type: Number, default: 0 },
+  votes: { type: Number, default: 0 },
+  purchaseCounter: { type: Number, default: 0 }
 });
 
 // In Mongoose everything is derived from Schema.
 // Here we create a schema called User with the following fields.
 // Each field requires a type and optional additional properties, e.g. unique field? required field?
 var UserSchema = new mongoose.Schema({
-    userName: { type: String, required: true, index: { unique: true } },
-    password: { type: String, required: true },
-    firstName: { type: String, required: true },
-    lastName: { type: String, required: true },
-    email: { type: String, required: true },
-    joined_on: { type: Date, default: Date.now() },
-    comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }],
-    interests: [String],
-    isAdmin: Boolean,
-    gamertag: String,
-    tempPassword: Boolean,
-    purchasedGames: [{
-        title: String,
-        slug: String,
-        thumbnail: String,
-        rating: { type: Number, default: 0 },
-        date: { type: Date, default: Date.now() }
-    }],
-    ratedGames: [{
-        title: String,
-        slug: String,
-        rating: Number,
-        date: { type: Date, default: Date.now() }
-    }]
+  userName: { type: String, required: true, index: { unique: true } },
+  password: { type: String, required: true },
+  firstName: { type: String, required: true },
+  lastName: { type: String, required: true },
+  email: { type: String, required: true },
+  joined_on: { type: Date, default: Date.now() },
+  interests: [String],
+  isAdmin: Boolean,
+  gamertag: String,
+  tempPassword: Boolean,
+  warningCount: {type: Number, default: 0 },
+  flagCount: { type: Number, default: 0 },
+  comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }],
+  ratedGames: [{
+    game: { type: mongoose.Schema.Types.ObjectId, ref: 'Game' },
+    myRating: Number
+  }],
+  purchasedGames: [{
+    game: { type: mongoose.Schema.Types.ObjectId, ref: 'Game' },
+    date: { type: Date, default: Date.now() }
+  }]
 });
 
 // Comment schema
 var CommentSchema = new mongoose.Schema({
-    creator: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    game : { type: mongoose.Schema.Types.ObjectId, ref: 'Game' },
-    body : { type: String, required: true, trim: true },
-    date: { type: Date, default: Date.now },
-    flagged: { type: Boolean, default: false },
-    hasBeenWarned: { type: Boolean, default: false }
+  creator: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  game : { type: mongoose.Schema.Types.ObjectId, ref: 'Game' },
+  body : { type: String, required: true, trim: true },
+  date: { type: Date, default: Date.now },
+  flagged: { type: Boolean, default: false },
+  hasBeenWarned: { type: Boolean, default: false }
 });
 
 // Express middleware that hashes a password before it is saved to database
@@ -307,52 +304,93 @@ app.post('/add', function (req, res) {
  * GET /index
  */
 app.get('/', function (req, res) {
-  // users with less than 3 interests or who still use temp. password should not be able to view this page
   if (req.session.user && (req.session.user.tempPassword || req.session.user.interests.length < 3)) {
-    return res.redirect('/account');
+    res.redirect('/account');
   }
-  // If user is logged in, display 3 items based on interests and 3 based on previous purchases
   if (req.session.user) {
-
-    // find all users with similar interests, meaning at least one interest matches
     User
-      .find()
       .where('interests').in(req.session.user.interests)
       .where('userName').ne(req.session.user.userName)
-      .exec(function (err, users) {
-        // TODO look at purchased Games
-        _.each(users, function(user) {
-          console.log(user.userName + '   ' + user.purchasedGames);
+      .populate('purchasedGames.game')
+      .populate('ratedGames.game')
+      .exec(function (err, similarUsers) {
+        if (err) res.send(500, err);
+
+        var accumulator = 0;
+        _.each(similarUsers, function(user) {
+          _.each(user.ratedGames, function () {
+            accumulator++;
+          });
+          _.each(user.purchasedGames, function () {
+            accumulator++;
+          });
         });
-      });
 
-
-    Game
-      .find()
-      .or([
-        { title: { $in: req.session.user.interests } },
-        { genre: { $in: req.session.user.interests } }
-      ])
-      .limit(6)
-      .sort('-weightedScore')
-      .exec(function (err, interestGames) {
-        if (err) {
-          throw err;
-        }
         Game
-          .find()
-          .sort('-purchaseCounter')
-          .limit(3)
-          .exec(function (err, purchasedGames) {
+          .where('genre').in(req.session.user.interests)
+          .sort('-weightedScore')
+          .limit(6)
+          .exec(function (err, interestGames) {
+            if (err) res.send(500, err);
+
+            // Helper functions
+            function games_union (arr1, arr2) {
+              var union = arr1.concat(arr2);
+              for (var i = 0; i < union.length; i++) {
+                for (var j = i+1; j < union.length; j++) {
+                  if (are_games_equal(union[i], union[j])) {
+                    union.splice(i, 1);
+                  }
+                }
+              }
+              return union;
+            }
+            function are_games_equal(g1, g2) {
+              return g1.title === g2.title;
+            }
+
+            var myInterestGames = [];
+            var temp2 = [];
+
+            // games 1, 2, 3
+            _.each(interestGames, function (interestGame) {
+              myInterestGames.push(interestGame);
+            });
+
+            // games 4, 5, 6
+            _.each(similarUsers, function(user) {
+              _.each(user.ratedGames, function (ratedGame) {
+                if (ratedGame.myRating >= 4)
+                  temp2.push(ratedGame.game);
+              });
+              _.each(user.purchasedGames, function (purchasedGame) {
+                temp2.push(purchasedGame.game);
+              });
+            });
+
+
+//            _.each(temp2, function(e){
+//              console.log(e.weightedScore);
+//            });
+
+//            temp2 = _.shuffle(temp2);
+
+            var recommendedGames;
+
+            if (accumulator < 3) {
+              recommendedGames = _.shuffle(myInterestGames);
+            } else {
+              recommendedGames = games_union(myInterestGames.slice(0,3), temp2);
+            }
+
             res.render('index', {
               heading: 'CL4P-TP Online Store',
               lead: 'The leading next generation video games recommendation engine',
               user: req.session.user,
-              interestGames3: interestGames.slice(0,2),
-              interestGames6: interestGames,
-              purchasedGames: purchasedGames
+              recommendedGames: recommendedGames
             });
-          });
+
+        });
       });
   } else {
     Game
@@ -374,9 +412,14 @@ app.get('/', function (req, res) {
   }
 });
 
+/**
+ * POST /buy
+ */
 app.post('/buy', function (req, res) {
   User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
+    if (err) res.send(500, err);
     Game.findOne({ 'slug': req.body.slug }, function (err, game) {
+      if (err) res.send(500, err);
       var rating = 0;
       for (var i = 0; i < user.ratedGames.length; i++) {
         if (game.slug === user.ratedGames[i].slug) {
@@ -384,29 +427,18 @@ app.post('/buy', function (req, res) {
           var rating = user.ratedGames[i].rating;
         }
       }
-
       user.purchasedGames.push({
-        title: game.title,
-        slug: game.slug,
-        rating: rating,
-        thumbnail: game.thumbnail
+        game: game._id
       });
 
-      // keep track of how many people bought the game
       game.purchaseCounter++;
-
       game.save(function (err) {
-        console.log('Purchase counter incremented by 1');
+        if (err) res.send(500, err);
       });
 
       user.save(function (err) {
-        if (err) {
-          return res.send(500, err);
-        }
+        if (err) res.send(500, err);
 
-        console.log('Purchased game added to the list');
-
-        // E-mail server settings
         var server = email.server.connect({
           user:    "username",
           password:"password",
@@ -414,7 +446,6 @@ app.post('/buy', function (req, res) {
           ssl:     true
         });
 
-        // Send the following e-mail message after purchasing a game
         server.send({
           text: 'Thank you for purchasing ' + game.title + '. Your game will be shipped within 2 to 3 business days.',
           from: 'Sahat Yalkabov <sakhat@gmail.com>',
@@ -423,13 +454,17 @@ app.post('/buy', function (req, res) {
         }, function(err, message) {
           console.log(err || message);
         });
+
+        req.session.user = user;
+        res.end();
       });
-      req.session.user = user;
     });
   });
-  res.redirect('/games');
 });
 
+/**
+ * POST /rate
+ */
 app.post('/games/rating', function (req, res) {
   // Default weight coefficient for all users
   req.session.weight = 1;
@@ -443,15 +478,10 @@ app.post('/games/rating', function (req, res) {
   });
 
   User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
-    if (err) {
-      console.log(err);
-      return res.send(500, 'Could not find the user for rating POST request');
-    }
+    if (err) res.send(500, 'Could not find the user for rating POST request');
+
     Game.findOne({ 'slug': req.body.slug }, function (err, game) {
-      if (err) {
-        console.log(err);
-        return res.send(500, 'No results for the rated game');
-      }
+      if (err) res.send(500, 'No results for the rated game');
 
       req.session.voteCount++;
       console.log('Session Vote Count: ' + req.session.voteCount);
@@ -508,9 +538,8 @@ app.post('/games/rating', function (req, res) {
       }
 
       user.ratedGames.push({
-        title: game.title,
-        slug: game.slug,
-        rating: req.body.rating
+        game: game._id,
+        myRating: req.body.rating
       });
 
       user.save(function (err) {
@@ -576,28 +605,20 @@ app.get('/games/:detail', function (req, res) {
   }
 
   Game.findOne({ 'slug': req.params.detail }, function (err, game) {
-    if (err) {
-      return res.send(500, err);
-    }
+    if (err) res.send(500, err);
 
-    // we can omit .find() because .where() method implicitly uses .find()
     Game
       .where('genre').equals(game.genre)
       .where('slug').ne(req.params.detail)
       .limit(6)
       .exec(function (err, similarGames) {
-        if (err) {
-          return res.send(500, err);
-        }
+        if (err) return res.send(500, err);
 
-        // returns comments posted under the particular game
         Comment
           .find({ game: game._id })
           .populate('creator')
           .exec(function (err, comments) {
-            if (err) {
-              return res.send(500, err);
-            }
+            if (err) res.send(500, err);
             res.render('detail', {
               heading: game.title,
               lead: game.publisher,
@@ -611,6 +632,9 @@ app.get('/games/:detail', function (req, res) {
   });
 });
 
+/**
+ * POST /games/detail
+ */
 app.post('/games/:detail', function (req, res) {
   console.log(req.body.comment);
 
@@ -629,6 +653,7 @@ app.post('/games/:detail', function (req, res) {
     });
   });
 });
+
 app.get('/games/genre/:genre', function (req, res) {
   if (req.session.tempPassword || (req.session.user && req.session.user.interests.length < 3)) {
     return res.redirect('/account');
@@ -675,6 +700,7 @@ app.get('/admin', function (req, res) {
           if (err) {
             throw err;
           }
+          console.log(users.length);
           req.session.user = user;
           res.render('admin', {
             heading: 'Admin Dashboard',
@@ -776,6 +802,7 @@ app.post('/comment/report', function (req, res) {
 app.get('/account', function (req, res) {
   if (!req.session.user) res.redirect('/login');
 
+  console.log(req.session.user.purchasedGames)
   res.render('account', {
     heading: 'Account Information',
     lead: 'View purchase history, update account, choose interests',
@@ -862,6 +889,9 @@ app.get('/logout', function (req, res) {
 
 });
 
+/**
+ * GET /login
+ */
 app.get('/login', function(req, res) {
   if (req.session.user) res.redirect('/');
 
@@ -874,31 +904,34 @@ app.get('/login', function(req, res) {
   });
 });
 
+/**
+ * POST /login
+ */
 app.post('/login', function (req, res) {
   User.findOne({ 'userName': req.body.userName }, function (err, user) {
+    if (err) res.send(500, err);
+
     if (!user) {
       req.session.incorrectLogin = true;
       res.redirect('/login');
     } else {
       user.comparePassword(req.body.password, function(err, isMatch) {
-        // correct login
-        if (isMatch) {
+        if (err) res.send(500, err);
+
+        if (!isMatch) {
+          req.session.incorrectLogin = true;
+          res.redirect('/login');
+        } else {
           if (user.suspendedAccount) {
             res.redirect('/account');
-          }
-          else {
+          } else {
             delete req.session.incorrectLogin;
             req.session.user = user;
-            // create session to keep track of votes
             req.session.voteCount = 0;
             req.session.avgRating = 0;
             req.session.rating = 0;
             res.redirect('/');
           }
-        } else {
-          // incorrect login
-          req.session.incorrectLogin = true;
-          res.redirect('/login');
         }
       });
     }
@@ -952,12 +985,11 @@ app.post('/register', function(req, res) {
 
     user.save(function (err) {
       if (err) res.send(500, 'Duplicate username detected. Try again.');
-
       req.session.user = user;
       req.session.flagCount = 0;
       req.session.voteCount = 0;
-      req.session.avgRating = 0;
       req.session.rating = 0;
+      req.session.avgRating = 0;
       res.redirect('/account');
     });
   });

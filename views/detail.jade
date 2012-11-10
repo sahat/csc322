@@ -3,17 +3,19 @@ extends layout
 block content
   br
   .hero-unit
-    h3 Product Overview
     .row
       .span2
-        img.img-polaroid(src='http://localhost:3000/img/games/battlefield-bad-company-2-large.jpg')
+        img.img-polaroid(src='/img/games/#{game.largeImage}')
       .span7
         p
+          strong Genre:
+          |  #{game.genre}
+          br
           strong Price:
           |  #{game.price}
           br
           strong Rating:&nbsp;
-          span(id='_' + game.slug)
+          span(id='rating_' + game.slug)
           span(id='votes', name='votes')
             |  #{game.votes} votes
           br
@@ -28,42 +30,53 @@ block content
             if user.purchasedGames
               if user.purchasedGames.length > 0
                 for mygame in user.purchasedGames
-                  if mygame.slug == game.slug
+                  if mygame.slug === game.slug
                     script(type='text/javascript')
                       $('#price-#{game.slug}').removeAttr('href');
-                                $('#price-#{game.slug}').html('<i class="icon-shopping-cart icon-white"></i> Purchased');
+                      $('#price-#{game.slug}').html('<i class="icon-shopping-cart icon-white"></i> Purchased');
 
-    script(type='text/javascript')
-      $('#_#{game.slug}').raty({
-        path: '/img/',
-        round: { down: .25, full: .6, up: .76 },
-        score: #{game.rating}/#{game.votes},
-        readOnly: true,
-        starHalf  : 'star-half-big.png',
-        starOff   : 'star-off-big.png',
-        starOn    : 'star-on-big.png',
-        click: function (score, event) {
-          var self = this;
-          $.meow({
-            message: 'Thanks for voting. Your rating has been recorded.',
-            icon: 'http://png-3.findicons.com/files/icons/1577/danish_royalty_free/32/smiley.png'
-          });
-
-          $.ajax({
-            type: 'POST',
-            url: '/games/rating',
-            data: {
-              slug: $(self).attr('id').slice(1),
-              rating: score
-            },
-            success: function () {
-              console.log('setting to read-only');
-              $(self).raty('readOnly', true);
-
-            }
-          });
-        }
-      });
+    if typeof(user.userName) != 'undefined'
+      if game.votedPeople.length != 0
+        for voter in game.votedPeople
+          if voter == user.userName || user.suspendedRating
+            script(type='text/javascript')
+              $('#rating_#{game.slug}').raty({
+                path: '/img',
+                round: { down: .25, full: .6, up: .76 },
+                score: #{game.rating}/#{game.votes},
+                readOnly: true,
+                starHalf  : 'star-half-big.png',
+                starOff   : 'star-off-big.png',
+                starOn    : 'star-on-big.png'
+              });
+          else
+            script(type='text/javascript')
+              $('#rating_#{game.slug}').raty({
+                path: '/img',
+                round: { down: .25, full: .6, up: .76 },
+                score: #{game.rating}/#{game.votes},
+                starHalf  : 'star-half-big.png',
+                starOff   : 'star-off-big.png',
+                starOn    : 'star-on-big.png',
+                click: function (score, event) {
+                  var self = this;
+                  $.meow({
+                    message: 'Thanks for voting. Your rating has been submitted.',
+                    icon: 'http://png-3.findicons.com/files/icons/1577/danish_royalty_free/32/smiley.png'
+                  });
+                  $.ajax({
+                    type: 'POST',
+                    url: '/games/rating',
+                    data: {
+                      slug: $(self).attr('id').slice(7),
+                      rating: score
+                    },
+                    success: function () {
+                      $(self).raty('readOnly', true);
+                    }
+                  });
+                }
+              });
   h3 Product Summary
   if user.userName
     != game.summary
@@ -91,7 +104,7 @@ block content
                   small  (#{similarGame.votes} votes)
               script(type='text/javascript')
                 $('#_#{similarGame.slug}').raty({
-                  path: '/img/',
+                  path: '/img',
                   round: { down: .25, full: .6, up: .76 },
                   score: #{similarGame.rating}/#{similarGame.votes},
                   space: false,

@@ -106,6 +106,7 @@ block content
               a(href='/games/#{game.slug}')
                 strong
                   = game.title
+              | &nbsp;
 
               if user.userName
                 button.btn.btn-primary.btn-mini(id='price-#{game.slug}', href='#modal-#{game.slug}', role='button', data-toggle='modal')
@@ -117,6 +118,7 @@ block content
                       script(type='text/javascript')
                         $('#price-#{game.slug}').removeAttr('href');
                         $('#price-#{game.slug}').html('<i class="icon-shopping-cart icon-white"></i> Purchased');
+
               div
                 span(id='_' + game.slug)
                 span(id='votes', name='votes')
@@ -141,7 +143,7 @@ block content
                 else
                   script(type='text/javascript')
                     $('#_#{game.slug}').raty({
-                      path: '/img/',
+                      path: '/img',
                       round : { down: .25, full: .6, up: .76 },
                       score: #{game.rating}/#{game.votes},
                       readOnly: false,
