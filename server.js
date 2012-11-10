@@ -627,21 +627,30 @@ app.get('/games/:detail', function (req, res) {
           .exec(function (err, comments) {
             if (err) res.send(500, err);
 
-            User
-              .findOne({ 'userName': req.session.user.userName })
-              .populate('purchasedGames.game')
-              .exec(function (err, user) {
-                if (err) res.send(500, err);
-
-                res.render('detail', {
-                  heading: game.title,
-                  lead: game.publisher,
-                  game: game,
-                  similarGames: _.shuffle(similarGames),
-                  comments: comments,
-                  user: user
+            if (req.session.user) {
+              User
+                .findOne({ 'userName': req.session.user.userName })
+                .populate('purchasedGames.game')
+                .exec(function (err, user) {
+                  if (err) res.send(500, err);
+                  res.render('detail', {
+                    heading: game.title,
+                    lead: game.publisher,
+                    game: game,
+                    similarGames: _.shuffle(similarGames),
+                    comments: comments,
+                    user: user
+                  });
                 });
+            } else {
+              res.render('detail', {
+                heading: game.title,
+                lead: game.publisher,
+                game: game,
+                similarGames: _.shuffle(similarGames),
+                comments: comments,
               });
+            }
           });
       });
   });
@@ -1037,7 +1046,7 @@ app.get('/:profile', function (req, res) {
     }
 
     request('http://360api.chary.us/?gamertag=' + user.gamertag, function (error, response, body) {
-      if (!error && response.statusCode === 200) {
+      if (!error && response.statusCode === 200 && req.session.user.gamertag) {
 
         var xbox_api = JSON.parse(body);
 
