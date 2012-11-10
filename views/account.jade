@@ -1,6 +1,9 @@
 extends layout
 
 block content
+  form(onsubmit="return false;")
+  fieldset
+    | Email Address:
   if user.tempPassword
     br
     .alert.alert-error

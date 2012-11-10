@@ -10,7 +10,6 @@
 
 // TODO - detailed game, display 6 games from the same genre that have been purchased most
 
-// TODO: low-rated games, are less likely to be recommended to that user
 
 var bcrypt = require('bcrypt');
 var email = require('emailjs');
@@ -562,6 +561,9 @@ app.get('/games/api', function (req, res) {
     });
 });
 
+/**
+ * GET /games
+ */
 app.get('/games', function (req, res) {
   // users who have just registered must change temporary password before proceeding
   // also users who have less than 3 indicates interests
@@ -585,7 +587,10 @@ app.get('/games', function (req, res) {
         });
       }
 
-      User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
+      User
+        .findOne({ 'userName': req.session.user.userName })
+        .populate('purchasedGames.game')
+        .exec(function (err, user) {
         res.render('games', {
           heading: 'Top 25',
           lead: 'Game titles listed by popularity rating',
@@ -612,6 +617,7 @@ app.get('/games/:detail', function (req, res) {
       .where('genre').equals(game.genre)
       .where('slug').ne(req.params.detail)
       .limit(6)
+      .sort('-purchaseCounter')
       .exec(function (err, similarGames) {
         if (err) return res.send(500, err);
 
@@ -620,14 +626,22 @@ app.get('/games/:detail', function (req, res) {
           .populate('creator')
           .exec(function (err, comments) {
             if (err) res.send(500, err);
-            res.render('detail', {
-              heading: game.title,
-              lead: game.publisher,
-              game: game,
-              similarGames: _.shuffle(similarGames),
-              comments: comments,
-              user: req.session.user
-            });
+
+            User
+              .findOne({ 'userName': req.session.user.userName })
+              .populate('purchasedGames.game')
+              .exec(function (err, user) {
+                if (err) res.send(500, err);
+
+                res.render('detail', {
+                  heading: game.title,
+                  lead: game.publisher,
+                  game: game,
+                  similarGames: _.shuffle(similarGames),
+                  comments: comments,
+                  user: user
+                });
+              });
           });
       });
   });
@@ -655,8 +669,11 @@ app.post('/games/:detail', function (req, res) {
   });
 });
 
+/**
+ * GET /games/genre
+ */
 app.get('/games/genre/:genre', function (req, res) {
-  if (req.session.tempPassword || (req.session.user && req.session.user.interests.length < 3)) {
+  if (req.session.user && (req.session.tempPassword || req.session.user.interests.length < 3)) {
     return res.redirect('/account');
   }
 
@@ -671,7 +688,10 @@ app.get('/games/genre/:genre', function (req, res) {
           games: games
         });
       }
-      User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
+      User
+        .findOne({ 'userName': req.session.user.userName })
+        .populate('purchasedGames.game')
+        .exec(function (err, user) {
         res.render('games', {
           heading: _.first(games).genre,
           lead: 'Listing games by genre',
@@ -909,6 +929,7 @@ app.get('/login', function(req, res) {
  * POST /login
  */
 app.post('/login', function (req, res) {
+
   User.findOne({ 'userName': req.body.userName }, function (err, user) {
     if (err) res.send(500, err);
 

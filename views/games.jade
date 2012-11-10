@@ -112,9 +112,9 @@ block content
                 button.btn.btn-primary.btn-mini(id='price-#{game.slug}', href='#modal-#{game.slug}', role='button', data-toggle='modal')
                   i.icon-shopping-cart.icon-white
                   =  game.price
-                if user.purchasedGames.length > 0
+                if user.purchasedGames && user.purchasedGames.length > 0
                   for mygame in user.purchasedGames
-                    if mygame.slug == game.slug
+                    if mygame.game.slug == game.slug
                       script(type='text/javascript')
                         $('#price-#{game.slug}').removeAttr('href');
                         $('#price-#{game.slug}').html('<i class="icon-shopping-cart icon-white"></i> Purchased');
