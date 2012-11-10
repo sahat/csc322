@@ -60,3 +60,7 @@ Xbox Live Achievements and User information for those who have a Gamertag
 ----
 
 ![Xboxlive](https://raw.github.com/sahat/csc322/master/screenshots/xbox-live.png)
+
+Recommendation Engine for registered users
+--------
+![recommendation](https://dl-web.dropbox.com/get/Public/image.png?w=ec296982)
