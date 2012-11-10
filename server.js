@@ -823,14 +823,19 @@ app.post('/comment/report', function (req, res) {
 app.get('/account', function (req, res) {
   if (!req.session.user) res.redirect('/login');
 
-  console.log(req.session.user.purchasedGames)
-  res.render('account', {
-    heading: 'Account Information',
-    lead: 'View purchase history, update account, choose interests',
-    user: req.session.user,
-    tempPassword: req.session.user.tempPassword,
-    isSuspended: req.session.user.suspendedAccount
-  });
+  User
+    .findOne({ 'userName': req.session.user.userName })
+    .populate('purchasedGames.game')
+    .populate('ratedGames.game')
+    .exec(function (err, user) {
+      res.render('account', {
+        heading: 'Account Information',
+        lead: 'View purchase history, update account, choose interests',
+        user: user,
+        tempPassword: req.session.user.tempPassword,
+        isSuspended: req.session.user.suspendedAccount
+      });
+    });
 });
 
 app.post('/account', function (req, res) {
