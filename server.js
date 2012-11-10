@@ -368,12 +368,13 @@ app.get('/', function (req, res) {
               });
             });
 
+            temp2.sort(function(a,b) {
+              return b.weightedScore - a.weightedScore;
+            });
 
-//            _.each(temp2, function(e){
-//              console.log(e.weightedScore);
-//            });
-
-//            temp2 = _.shuffle(temp2);
+            _.each(temp2, function(e){
+              console.log(e.weightedScore);
+            });
 
             var recommendedGames;
 
@@ -387,7 +388,7 @@ app.get('/', function (req, res) {
               heading: 'CL4P-TP Online Store',
               lead: 'The leading next generation video games recommendation engine',
               user: req.session.user,
-              recommendedGames: recommendedGames
+              recommendedGames:_.shuffle(recommendedGames.slice(0,6))
             });
 
         });
