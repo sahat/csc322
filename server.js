@@ -581,8 +581,8 @@ app.get('/games', function (req, res) {
       // to avoid issues, guests get a Games page without user
       if (!req.session.user) {
         return res.render('games', {
-          heading: 'All Games',
-          lead: 'Game titles listed in alphabetical order',
+          heading: 'Top 25',
+          lead: 'Game titles listed by popularity rating',
           games: games
         });
       }
@@ -648,7 +648,7 @@ app.get('/games/:detail', function (req, res) {
                 lead: game.publisher,
                 game: game,
                 similarGames: _.shuffle(similarGames),
-                comments: comments,
+                comments: comments
               });
             }
           });
