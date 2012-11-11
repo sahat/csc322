@@ -31,7 +31,7 @@ var server = require('http').createServer(app);
 var io = require('socket.io').listen(server);
 
 app.configure(function () {
-  app.set('port', process.env.PORT || 4000);
+  app.set('port', process.env.PORT || 3000);
   app.set('views', __dirname + '/views');
   app.set('view engine', 'jade');
   app.set.pretty = true;
@@ -39,7 +39,8 @@ app.configure(function () {
   app.use(express.logger('dev'));
   app.use(express.bodyParser());
   app.use(express.cookieParser('s3cr3t'));
-  app.use(express.session({ store: new RedisStore(), secret: 's3cr3t' }));
+  app.use(express.session({ secret: 's3cr3t' }));
+//  app.use(express.session({ store: new RedisStore(), secret: 's3cr3t' }));
   app.use(express.methodOverride());
   app.use(app.router);
   app.use(express.static(path.join(__dirname, 'public')));
@@ -54,7 +55,7 @@ app.configure('development', function() {
 
 // Establishes a connection with MongoDB database
 // localhost is db-host and test is db-name
-var db = mongoose.connect('localhost', 'test');
+var db = mongoose.connect('mongodb://sahat:mongooska@ds037827.mongolab.com:37827/csc322');
 
 // Here we create a schema called Game with the following fields.
 var GameSchema = new mongoose.Schema({
@@ -689,6 +690,7 @@ app.get('/games/genre/:genre', function (req, res) {
     .where('genre').equals(new RegExp(req.params.genre, 'i'))
     .sort('-weightedScore')
     .exec(function (err, games) {
+      if (err) res.send(500, err);
       if (!req.session.user) {
         return res.render('games', {
           heading: _.first(games).genre,
