@@ -598,7 +598,6 @@ app.get('/games', function (req, res) {
           games: games
         });
       });
-
     });
 });
 
@@ -1046,7 +1045,7 @@ app.get('/:profile', function (req, res) {
     }
 
     request('http://360api.chary.us/?gamertag=' + user.gamertag, function (error, response, body) {
-      if (!error && response.statusCode === 200 && req.session.user.gamertag) {
+      if (!error && response.statusCode === 200) {
 
         var xbox_api = JSON.parse(body);
 
