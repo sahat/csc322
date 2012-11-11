@@ -45,7 +45,8 @@ app.configure(function () {
   app.use(app.router);
   app.use(express.static(path.join(__dirname, 'public')));
 });
-app.configure('development', function() {
+
+app.configure('development', function () {
   app.use(express.errorHandler());
 });
 
@@ -251,26 +252,25 @@ app.post('/add', function (req, res) {
           console.log(Date.parse(releaseDate));
 
           // thumbnail image
-          var thumbnail = $('.boxshot a img').attr('src');
-          request(thumbnail).pipe(fs.createWriteStream('./public/img/games/' + slug + '-thumb.jpg'));
-          var thumbnail = slug + '-thumb.jpg';
-          console.log(thumbnail);
+          // var thumbnail = $('.boxshot a img').attr('src');
+          // request(thumbnail).pipe(fs.createWriteStream('./public/img/games/' + slug + '-thumb.jpg'));
+          // var thumbnail = slug + '-thumb.jpg';
+          // console.log(thumbnail);
 
           // large cover for the game
           // I used a regular expression 'replace' to replace thumb with front to match valid Gamespot URL
           var tempLarge = $('.boxshot a img').attr('src');
           var largeImage = tempLarge.replace('thumb', 'front');
-          request(largeImage).pipe(fs.createWriteStream('./public/img/games/' + slug + '-large.jpg'));
+          request(largeImage).pipe(fs.createWriteStream('./public/img/games/' + slug + '.jpg'));
           console.log(largeImage);
-          var largeImage = slug + '-large.jpg';
+          var largeImage = slug + '.jpg';
 
           // game is a Schema object containing parsed information
           var game = new Game({
             title: title,
             slug: slug,
             publisher: publisher,
-            thumbnail: thumbnail,
-            largeImage: largeImage,
+            image: largeImage,
             genre: genre,
             price: price,
             summary: summary,
@@ -692,23 +692,25 @@ app.get('/games/genre/:genre', function (req, res) {
     .exec(function (err, games) {
       if (err) res.send(500, err);
       if (!req.session.user) {
-        return res.render('games', {
-          heading: _.first(games).genre,
-          lead: 'Listing games by genre',
-          games: games
-        });
-      }
-      User
-        .findOne({ 'userName': req.session.user.userName })
-        .populate('purchasedGames.game')
-        .exec(function (err, user) {
         res.render('games', {
           heading: _.first(games).genre,
           lead: 'Listing games by genre',
-          user: user,
           games: games
         });
-      });
+      } else {
+        User
+          .findOne({ 'userName': req.session.user.userName })
+          .populate('purchasedGames.game')
+          .exec(function (err, user) {
+            if (err) res.send(500, err);
+            res.render('games', {
+              heading: _.first(games).genre,
+              lead: 'Listing games by genre',
+              user: user,
+              games: games
+            });
+          });
+      }
     });
 });
 

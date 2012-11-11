@@ -5,7 +5,7 @@ block content
   .hero-unit
     .row
       .span2
-        img.img-polaroid(src='/img/games/#{game.largeImage}')
+        img.img-polaroid(src='/img/games/#{game.image}')
       .span7
         p
           strong Genre:
@@ -17,7 +17,7 @@ block content
           strong Rating:&nbsp;
           span(id='rating_' + game.slug)
           | &nbsp;
-          - avg = Math.ceil(game.rating/game.votes * 100) / 100
+          - avg = Math.ceil(game.rating/game.votes * 100) / 100 || 0
           = avg
           br
           strong Comments:
@@ -38,10 +38,13 @@ block content
                     $('#price-#{game.slug}').removeAttr('href');
                     $('#price-#{game.slug}').html('<i class="icon-shopping-cart icon-white"></i> Purchased');
 
-    if typeof(user.userName) != 'undefined'
-      if game.votedPeople.length != 0
+    if user.userName
+      // if there are some votes already
+      if game.votedPeople != 0
+        // iterate over those votes to see who has voted
         for voter in game.votedPeople
           if voter == user.userName || user.suspendedRating
+            // user has already voted
             script(type='text/javascript')
               $('#rating_#{game.slug}').raty({
                 path: '/img',
@@ -53,6 +56,7 @@ block content
                 starOn    : 'star-on-big.png'
               });
           else
+            // logged-in user has not voted yet
             script(type='text/javascript')
               $('#rating_#{game.slug}').raty({
                 path: '/img',
@@ -80,6 +84,47 @@ block content
                   });
                 }
               });
+      else
+        // no one has voted yet, let logged-in user vote
+        script(type='text/javascript')
+          $('#rating_#{game.slug}').raty({
+            path: '/img',
+            round: { down: .25, full: .6, up: .76 },
+            score: #{game.rating}/#{game.votes},
+            starHalf  : 'star-half-big.png',
+            starOff   : 'star-off-big.png',
+            starOn    : 'star-on-big.png',
+            click: function (score, event) {
+              var self = this;
+              $.meow({
+                message: 'Thanks for voting. Your rating has been submitted.',
+                icon: 'http://png-3.findicons.com/files/icons/1577/danish_royalty_free/32/smiley.png'
+              });
+              $.ajax({
+                type: 'POST',
+                url: '/games/rating',
+                data: {
+                  slug: $(self).attr('id').slice(7),
+                  rating: score
+                },
+                success: function () {
+                  $(self).raty('readOnly', true);
+                }
+              });
+            }
+          });
+    else
+      // read-only rating for guests
+      script(type='text/javascript')
+        $('#rating_#{game.slug}').raty({
+          path: '/img',
+          round: { down: .25, full: .6, up: .76 },
+          score: #{game.rating}/#{game.votes},
+          readOnly: true,
+          starHalf  : 'star-half-big.png',
+          starOff   : 'star-off-big.png',
+          starOn    : 'star-on-big.png'
+        });
   h3 Product Summary
   if user.userName
     != game.summary
