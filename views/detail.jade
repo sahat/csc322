@@ -5,7 +5,7 @@ block content
   .hero-unit
     .row
       .span2
-        img.img-polaroid(src='/img/games/#{game.image}')
+        img.img-polaroid(src='/img/games/#{game.largeImage}')
       .span7
         p
           strong Genre:
@@ -142,7 +142,7 @@ block content
         for similarGame in similarGames
           tr
             td.span1
-              img.img-polaroid(src='/img/games/#{similarGame.thumbnail}')
+              img.img-polaroid(src='/img/games/#{similarGame.largeImage}')
             td
               a(href='/games/#{similarGame.slug}')
                 strong #{similarGame.title}

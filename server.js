@@ -40,7 +40,7 @@ app.configure(function () {
   app.use(express.bodyParser());
   app.use(express.cookieParser('s3cr3t'));
   app.use(express.session({ secret: 's3cr3t' }));
-//  app.use(express.session({ store: new RedisStore(), secret: 's3cr3t' }));
+  //app.use(express.session({ store: new RedisStore(), secret: 's3cr3t' }));
   app.use(express.methodOverride());
   app.use(app.router);
   app.use(express.static(path.join(__dirname, 'public')));
@@ -228,7 +228,7 @@ app.post('/add', function (req, res) {
       }
 
       // creating a new client request to Gamespot.com using sluggified title from Amazon.com
-      request({uri: 'http://www.gamespot.com/' + slug + '/platform/pc/'}, function (err, response, body) {
+      request({uri: 'http://www.gamespot.com/' + slug + '/platform/xbox360'}, function (err, response, body) {
         if (err && response.statusCode !== 200) return;
         jsdom.env({ html: body, scripts: ['http://code.jquery.com/jquery-1.6.min.js'] }, function (err, window) {
           var $ = window.jQuery;
@@ -270,7 +270,7 @@ app.post('/add', function (req, res) {
             title: title,
             slug: slug,
             publisher: publisher,
-            image: largeImage,
+            largeImage: largeImage,
             genre: genre,
             price: price,
             summary: summary,

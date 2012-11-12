@@ -57,7 +57,7 @@ block content
               for purchasedGame in userProfile.purchasedGames
                 li.span1
                   a.thumbnail(href='/games/#{purchasedGame.slug}') 
-                    img(src='/img/games/#{purchasedGame.image}')
+                    img(src='/img/games/#{purchasedGame.largeImage}')
           else
             .alert
               strong No Purchased Games

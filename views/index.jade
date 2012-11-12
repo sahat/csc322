@@ -26,7 +26,7 @@ block content
         // based on interest and 3 games based on purchased games
         for game in recommendedGames
           .span2
-            img.img-polaroid.medium(src='/img/games/#{game.image}')
+            img.img-polaroid.medium(src='/img/games/#{game.largeImage}')
             br
             strong
               a(href='/games/#{game.slug}') #{game.title}
@@ -50,7 +50,7 @@ block content
       else
         for game in games
           .span4
-            img.img-polaroid.large(src='/img/games/#{game.image}')
+            img.img-polaroid.large(src='/img/games/#{game.largeImage}')
             h4
               a(href='/games/#{game.slug}') #{game.title}
             span(id='_' + game.slug)
