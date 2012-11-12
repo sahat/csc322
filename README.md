@@ -63,4 +63,4 @@ Xbox Live Achievements and User information for those who have a Gamertag
 
 Recommendation Engine for registered users
 --------
-![recommendation](https://dl-web.dropbox.com/get/Public/image.png?w=ec296982)
+![recommendation](https://raw.github.com/sahat/csc322/master/screenshots/top6.png)
