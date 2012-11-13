@@ -1,16 +1,8 @@
-// TODO: user hasn't purchased 3 games yet, so list 6 games based on interests only
-// after 3 purchases, list 3 similar games to the purchased games
-
-// TODO: recommendation: find all users with similar interests, look at what
-// they purchased, return 3 games in highest rated order
-
-// TODO - in addition to displaying 3 games based on interests
-// it should take into account (intersection) of users who have similar interests
-// look at what they purchased and display that game
-
-// TODO - detailed game, display 6 games from the same genre that have been purchased most
-
-
+/**
+ * CSC322 @ CCNY Team Project
+ * @type {Software Engineering}
+ * @date {12/12/2012}
+ */
 var bcrypt = require('bcrypt');
 var email = require('emailjs');
 var fs = require('fs');
@@ -51,7 +43,7 @@ app.configure('development', function () {
 });
 
 /**
- * MongoDB
+ * MongoDB Configuration
  */
 
 // Establishes a connection with MongoDB database
@@ -120,40 +112,40 @@ var CommentSchema = new mongoose.Schema({
 // The purpose of this middleware is to hash the password before saving to database, because
 // we don't want to save password as plain text for security reasons
 UserSchema.pre('save', function (next) {
-    var user = this;
+  var user = this;
 
-    // only hash the password if it has been modified (or is new)
-    if (!user.isModified('password')) {
-        return next();
+  // only hash the password if it has been modified (or is new)
+  if (!user.isModified('password')) {
+    return next();
+  }
+
+  // generate a salt with 10 rounds
+  bcrypt.genSalt(10, function (err, salt) {
+    if (err) {
+      return next(err);
     }
 
-    // generate a salt with 10 rounds
-    bcrypt.genSalt(10, function (err, salt) {
-        if (err) {
-            return next(err);
-        }
+    // hash the password along with our new salt
+    bcrypt.hash(user.password, salt, function(err, hash) {
+      if (err) {
+        return next(err);
+      }
 
-        // hash the password along with our new salt
-        bcrypt.hash(user.password, salt, function(err, hash) {
-            if (err) {
-                return next(err);
-            }
-
-            // override the cleartext password with the hashed one
-            user.password = hash;
-            next();
-        });
+      // override the cleartext password with the hashed one
+      user.password = hash;
+      next();
     });
+  });
 });
 
 // This middleware compares user's typed-in password during login with the password stored in database
 UserSchema.methods.comparePassword = function(candidatePassword, callback) {
-    bcrypt.compare(candidatePassword, this.password, function(err, isMatch) {
-        if (err) {
-            return callback(err);
-        }
-        callback(null, isMatch);
-    });
+  bcrypt.compare(candidatePassword, this.password, function(err, isMatch) {
+    if (err) {
+      return callback(err);
+    }
+    callback(null, isMatch);
+  });
 };
 
 // After we create a schema, the next step is to create a model based on that schema.
