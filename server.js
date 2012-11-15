@@ -328,7 +328,9 @@ app.get('/', function (req, res) {
           .sort('-weightedScore')
           .limit(6)
           .exec(function (err, interestGames) {
-            if (err) res.send(500, err);
+            if (err) {
+              res.send(500, err);
+            }
 
             // Helper functions
             function games_union (arr1, arr2) {
@@ -875,7 +877,9 @@ app.post('/account', function (req, res) {
 
 app.post('/account/tag/add', function (req, res) {
   User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
+    if (err) res.send(500, err);
     _.each(req.body.tags, function (tag) {
+      console.log(tag);
       user.interests.push(tag);
     });
     var flatArray = _.flatten(user.interests);
@@ -910,23 +914,16 @@ app.post('/account/tag/delete', function (req, res) {
  */
 app.get('/logout', function (req, res) {
   if (!req.session.user) {
+    return res.redirect('/');
+  }
+
+  if (req.session.user.suspendedAccount) {
+    User.findOne({ 'userName': req.session.user.userName }).remove();
+  }
+
+  req.session.destroy(function () {
     res.redirect('/');
-  }
-  else {
-    // fix for per user flag count
-    if (req.session.ratingFlagCount) {
-      User.update({ 'userName': req.session.user.userName }, { $inc: { ratingFlagCount: 1 } });
-    }
-
-    if (req.session.user.suspendedAccount) {
-      User.remove({ 'userName': req.session.user.userName });
-    }
-
-    req.session.destroy(function () {
-      res.redirect('/');
-    });
-  }
-
+  });
 });
 
 /**
@@ -934,6 +931,13 @@ app.get('/logout', function (req, res) {
  */
 app.get('/login', function(req, res) {
   if (req.session.user) res.redirect('/');
+
+
+  User.remove({ 'userName': 'aanon836' }, function (err) {
+    if (err) res.send(500, err);
+    console.log('User has been removed from the system');
+  });
+
 
   res.render('login', {
     heading: 'Sign In',
@@ -958,12 +962,12 @@ app.post('/login', function (req, res) {
     } else {
       user.comparePassword(req.body.password, function(err, isMatch) {
         if (err) res.send(500, err);
-
         if (!isMatch) {
           req.session.incorrectLogin = true;
           res.redirect('/login');
         } else {
           if (user.suspendedAccount) {
+            req.session.user = user;
             res.redirect('/account');
           } else {
             delete req.session.incorrectLogin;
@@ -1073,7 +1077,6 @@ app.get('/:profile', function (req, res) {
           userProfile: user,
           xbox: false
         });
-
       }
     });
 
