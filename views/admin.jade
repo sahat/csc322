@@ -58,28 +58,38 @@ block content
                  });
 
   legend List of Users
-  table.table
+  table.table.table-hover.table-condensed
     thead
       tr
-        th Username
-        th Rating Warnings
-        th Comment Warnings
-        th Status
-        th Action
+        th
+          i.icon-user
+          |  User
+        th
+          i.icon-warning-sign
+          |  Rating Warnings
+        th
+          i.icon-warning-sign
+          |  Comment Warnings
+        th
+          i.icon-globe
+          |  Status
+        th
+          i.icon-wrench
+          |  Action
       tbody
         for user in users
-          if user.warningCount === 0 && user.flagCount === 0
+          if user.warningCount === 0 && user.ratingFlagCount === 0
             tr.success
               td #{user.userName}
-              td #{user.flagCount}
+              td #{user.ratingFlagCount}
               td #{user.warningCount}
               td OK
               td None
 
-          if (user.warningCount >= 1 && !user.suspendedAccount) || (user.flagCount > 0 && !user.suspendedRating)
+          if (user.warningCount >= 1 && !user.suspendedAccount) || (user.ratingFlagCount > 0 && !user.suspendedRating)
             tr.warning
               td #{user.userName}
-              td #{user.flagCount}
+              td #{user.ratingFlagCount}
               td #{user.warningCount}
               td Warning
               td None
@@ -87,15 +97,15 @@ block content
           if user.suspendedAccount
             tr.error
               td #{user.userName}
-              td #{user.flagCount}
+              td #{user.ratingFlagCount}
               td #{user.warningCount}
               td Termination
               td None
                 
-          if user.flagCount >= 3 && user.suspendedRating && !user.suspendedAccount
+          if user.ratingFlagCount >= 3 && user.suspendedRating && !user.suspendedAccount
             tr.error
               td #{user.userName}
-              td #{user.flagCount}
+              td #{user.ratingFlagCount}
               td #{user.warningCount}
               td Spammer
               td 

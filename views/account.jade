@@ -1,10 +1,7 @@
 extends layout
 
 block content
-  form(onsubmit="return false;")
-  fieldset
-    | Email Address:
-  if user.tempPassword
+  if user.tempPassword || user.interests.length < 3
     br
     .alert.alert-error
       h4 Important Announcement
@@ -14,7 +11,7 @@ block content
         strong  three interests
         |  before continuing!
 
-  if isSuspended
+  if user.suspendedAccount
     br
     .alert.alert-error
       h4 Your account has been suspended
@@ -22,9 +19,9 @@ block content
   
   if user.suspendedRating
     br
-    .alert.alert-error
-      h4 Flagged as a spammer
-      div  Our system has detected that you are spammer. You are no longer able to rate any more games.
+    .alert
+      h4 Marked as a suspected spammer
+      div  Our system has detected that you are spammer. You are no longer able to rate games.
     
   form#registration.form-horizontal(method='post')
     br

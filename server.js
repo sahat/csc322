@@ -31,8 +31,8 @@ app.configure(function () {
   app.use(express.logger('dev'));
   app.use(express.bodyParser());
   app.use(express.cookieParser('s3cr3t'));
-  app.use(express.session({ secret: 's3cr3t' }));
-  //app.use(express.session({ store: new RedisStore(), secret: 's3cr3t' }));
+  //app.use(express.session({ secret: 's3cr3t' }));
+  app.use(express.session({ store: new RedisStore(), secret: 's3cr3t' }));
   app.use(express.methodOverride());
   app.use(app.router);
   app.use(express.static(path.join(__dirname, 'public')));
@@ -63,7 +63,7 @@ var GameSchema = new mongoose.Schema({
   price: String,
   votedPeople: [String],
   slug: { type: String, index: { unique: true } },
-  weightedScore: { type: Number, default: 0 },
+  weightedRating: { type: Number, default: 0 },
   rating: { type: Number, default: 0 },
   votes: { type: Number, default: 0 },
   purchaseCounter: { type: Number, default: 0 }
@@ -83,8 +83,13 @@ var UserSchema = new mongoose.Schema({
   isAdmin: Boolean,
   gamertag: String,
   tempPassword: Boolean,
-  warningCount: {type: Number, default: 0 },
-  flagCount: { type: Number, default: 0 },
+  suspendedRating: Boolean,
+  suspendedAccount: Boolean,
+  ratingPardon: Boolean,
+  commentPardon: Boolean,
+  ratingWeight: { type: Number, default: 1 },
+  warningCount: { type: Number, default: 0 },
+  ratingFlagCount: { type: Number, default: 0 },
   comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }],
   ratedGames: [{
     game: { type: mongoose.Schema.Types.ObjectId, ref: 'Game' },
@@ -361,11 +366,11 @@ app.get('/', function (req, res) {
             });
 
             temp2.sort(function(a,b) {
-              return b.weightedScore - a.weightedScore;
+              return b.weightedRating - a.weightedRating;
             });
 
             _.each(temp2, function(e){
-              console.log(e.weightedScore);
+              console.log(e.weightedRating);
             });
 
             var recommendedGames;
@@ -459,88 +464,77 @@ app.post('/buy', function (req, res) {
  * POST /rate
  */
 app.post('/games/rating', function (req, res) {
-  // Default weight coefficient for all users
-  req.session.weight = 1;
-
-  Game.update({ 'slug': req.body.slug }, { $inc: { rating: req.body.rating, votes: 1 } }, function (err) {
-    if (err) {
-      console.log(err);
-      return res.send(500, 'Could not increment game rating and vote count');
-    }
-    console.log('Successfully updated game rating and vote count');
-  });
-
   User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
     if (err) res.send(500, 'Could not find the user for rating POST request');
 
     Game.findOne({ 'slug': req.body.slug }, function (err, game) {
       if (err) res.send(500, 'No results for the rated game');
 
-      req.session.voteCount++;
-      console.log('Session Vote Count: ' + req.session.voteCount);
-
-      req.session.rating = parseInt(req.session.rating, 10) + parseInt(req.body.rating, 10);
-      console.log('Session Rating: ' + req.session.rating);
-
-      req.session.avgRating = req.session.rating / req.session.voteCount;
-      console.log('Session Avg Rating: ' + req.session.avgRating);
-
-      // Rating spam protection
-      if (req.session.voteCount >= 5 && (req.session.avgRating <= 1.75 || req.session.avgRating >= 4.75)) {
-        req.session.flagCount = true;
-        req.session.weight = 0.5;
-        console.log('User\'s rating flag counter has been incremented');
-        console.log('Weight coefficient is set to 0.5');
-      }
-
-      if (req.session.flagCount) {
-        req.session.weight = 0.5;
-      }
-
-      if (user.flagCount === 3) {
-        user.suspendedRating = true;
-        console.log('Suspended rating privileges. No longer can rate.');
-      }
-
-      if (user.flagCount >= 6) {
-        user.suspendedRating = true;
-        user.suspendedAccount = true;
-        console.log('Suspended rating privileges. Account scheduled for termination.');
-      }
-
-      console.log('MongoDB Game Rating: ' + game.rating);
-      console.log('POST Game Rating: ' + req.body.rating);
-      console.log('User Weight Coefficient: ' + req.session.weight);
-
-      game.weightedScore = game.rating + req.body.rating * req.session.weight;
-      console.log('Game Weighted Score: ' + game.weightedScore);
-
+      game.votes++;
+      game.rating = game.rating + Number(req.body.rating);
+      game.weightedRating = game.rating + Number(req.body.rating) * user.ratingWeight;
       game.votedPeople.push(req.session.user.userName);
-
-      game.save(function (err) {
-        if (err) {
-          throw err;
-        }
-        console.log('Successfully Set New Average Rating');
-      });
-
-      for (var i = 0; i < user.purchasedGames.length; i++) {
-        if (user.purchasedGames[i].slug === req.body.slug) {
-          user.purchasedGames[i].rating = req.body.rating;
-        }
-      }
 
       user.ratedGames.push({
         game: game._id,
         myRating: req.body.rating
       });
 
-      user.save(function (err) {
-        if (err) {
-          throw err;
-        }
-        return res.redirect('/games');
+      game.save(function (err) {
+        if (err) res.send(500, err);
+        console.log('rating info saved');
+        console.log('votes', game.votes);
+        console.log('rating', game.rating);
+        console.log('weighted_rating',game.weightedRating);
+        console.log('voted_people', game.votedPeople);
       });
+    });
+
+    req.session.ratings.push(parseInt(req.body.rating, 10));
+    console.log(req.session.ratings);
+
+    var sessionTotal = _.reduce(req.session.ratings, function (a, b) { return a + b; });
+    var sessionAverage =  sessionTotal / req.session.ratings.length;
+    console.log('session_total', sessionTotal);
+    console.log('session_avg', sessionAverage);
+
+    /**
+     * Rating spam protection
+     */
+    if (!req.session.flagged && req.session.ratings.length >= 5 && (sessionAverage <= 1.5 || sessionAverage >= 4.5)) {
+      req.session.flagged = true;
+      user.ratingFlagCount++;
+    }
+
+    /**
+     * When a system marks a user as flagged (per session), his/her rating weight goes down.
+     * After getting flagged 3 times, the user will no longer be able to rate games until admin intervention.
+     * If, admin decides to give rating privileges back to the user, flag count remains unchanged.
+     * When a user gets flagged for 4th or 5th time, it's the same as getting flagged for the 1st and 2nd time.
+     * Getting flagged 6 times means a user has been forgiven once, but still abused the rating system.
+     */
+    if (user.ratingFlagCount == 1) {
+      user.ratingWeight = 0.75;
+    } else if (user.ratingFlagCount == 2) {
+      user.ratingWeight = 0.50;
+    } else if (user.ratingFlagCount == 3) {
+      if (user.ratingPardon) {
+        user.suspendedAccount = true;
+        user.suspendedRating = true;
+      } else {
+        user.suspendedRating = true;
+      }
+    }
+
+    for (var i = 0; i < user.purchasedGames.length; i++) {
+      if (user.purchasedGames[i].slug === req.body.slug) {
+        user.purchasedGames[i].rating = req.body.rating;
+      }
+    }
+
+    user.save(function (err) {
+      if (err) res.send(500, err);
+      return res.redirect('/games');
     });
   });
 });
@@ -731,7 +725,7 @@ app.get('/admin', function (req, res) {
             heading: 'Admin Dashboard',
             lead: 'Manage users, system analytics..',
             user: req.session.user,
-            flagCount: req.session.flagCount,
+            ratingFlagCount: req.session.ratingFlagCount,
             users: users,
             flaggedComments: comments
           });
@@ -743,7 +737,11 @@ app.get('/admin', function (req, res) {
 app.post('/admin/unsuspend', function (req, res) {
   User.findOne({ 'userName': req.body.username }, function (err, user) {
     user.suspendedRating = false;
-    user.save(function() {
+    user.ratingFlagCount = 0;
+    user.ratingWeight = 1;
+    user.ratingPardon = true;
+    user.save(function(err) {
+      if (err) res.send(500, err);
       req.session.user = user;
     });
   });
@@ -825,13 +823,20 @@ app.post('/comment/report', function (req, res) {
  * GET /account
  */
 app.get('/account', function (req, res) {
-  if (!req.session.user) res.redirect('/login');
-
+  if (!req.session.user) {
+    return res.redirect('/login');
+  }
   User
     .findOne({ 'userName': req.session.user.userName })
     .populate('purchasedGames.game')
     .populate('ratedGames.game')
     .exec(function (err, user) {
+      if (err) res.send(500, err);
+
+      console.log(req.session.user.tempPassword);
+      console.log(req.session.user.interests.length);
+
+
       res.render('account', {
         heading: 'Account Information',
         lead: 'View purchase history, update account, choose interests',
@@ -842,6 +847,9 @@ app.get('/account', function (req, res) {
     });
 });
 
+/**
+ * POST /account
+ */
 app.post('/account', function (req, res) {
   User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
     if (err) res.send(500, err);
@@ -849,6 +857,7 @@ app.post('/account', function (req, res) {
     user.firstName = req.body.firstName;
     user.lastName = req.body.lastName;
     user.gamertag = req.body.gamertag;
+
     if (!req.body.newpassword) {
       user.password = req.session.user.password;
     } else {
@@ -873,11 +882,12 @@ app.post('/account/tag/add', function (req, res) {
     var uniqueArray = _.uniq(flatArray);
     user.interests = uniqueArray;
     user.save(function (err) {
+      if (err) res.send(500, err);
       console.log('Saved ' + uniqueArray);
     });
-
   });
 });
+
 app.post('/account/tag/delete', function (req, res) {
   User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
     var index = user.interests.indexOf(req.body.removedTag);
@@ -904,8 +914,8 @@ app.get('/logout', function (req, res) {
   }
   else {
     // fix for per user flag count
-    if (req.session.flagCount) {
-      User.update({ 'userName': req.session.user.userName }, { $inc: { flagCount: 1 } });
+    if (req.session.ratingFlagCount) {
+      User.update({ 'userName': req.session.user.userName }, { $inc: { ratingFlagCount: 1 } });
     }
 
     if (req.session.user.suspendedAccount) {
@@ -958,9 +968,7 @@ app.post('/login', function (req, res) {
           } else {
             delete req.session.incorrectLogin;
             req.session.user = user;
-            req.session.voteCount = 0;
-            req.session.avgRating = 0;
-            req.session.rating = 0;
+            req.session.ratings = [];
             res.redirect('/');
           }
         }
@@ -1017,10 +1025,7 @@ app.post('/register', function(req, res) {
     user.save(function (err) {
       if (err) res.send(500, 'Duplicate username detected. Try again.');
       req.session.user = user;
-      req.session.flagCount = 0;
-      req.session.voteCount = 0;
-      req.session.rating = 0;
-      req.session.avgRating = 0;
+      req.session.ratings = [];
       res.redirect('/account');
     });
   });
