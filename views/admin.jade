@@ -16,7 +16,7 @@ block content
               if comment.creator
                 strong  #{comment.creator.userName}
               else
-                strong  User That No Longer Exists
+                strong  User_No_Longer_Exists
               |  under&nbsp;
               a(href='/games/#{comment.game.slug}') #{comment.game.title}
               br
@@ -25,10 +25,12 @@ block content
               btn.btn.btn-small(id='ignore-#{comment.id}')
                 i.icon.icon-ok-circle
                 |  Ignore Report
+              | &nbsp;
               if !comment.hasBeenWarned && comment.creator
                 btn.btn.btn-small.btn-warning(id='warn-#{comment.id}')
                   i.icon-flag.icon-white
-                  |  Send Warning to User
+                  |  Send Warning to the User
+              | &nbsp;
               btn.btn.btn-small.btn-danger(id='delete-#{comment.id}')
                 i.icon-trash.icon-white
                 |  Delete Comment
@@ -78,19 +80,19 @@ block content
           |  Action
       tbody
         for user in users
-          if user.warningCount === 0 && user.ratingFlagCount === 0
+          if user.commentFlagCount === 0 && user.ratingFlagCount === 0
             tr.success
               td #{user.userName}
               td #{user.ratingFlagCount}
-              td #{user.warningCount}
+              td #{user.commentFlagCount}
               td OK
               td None
 
-          if (user.warningCount >= 1 && !user.suspendedAccount) || (user.ratingFlagCount > 0 && !user.suspendedRating)
+          if (user.commentFlagCount >= 1 && !user.suspendedAccount) || (user.ratingFlagCount > 0 && !user.suspendedRating)
             tr.warning
               td #{user.userName}
               td #{user.ratingFlagCount}
-              td #{user.warningCount}
+              td #{user.commentFlagCount}
               td Warning
               td None
 
@@ -98,7 +100,7 @@ block content
             tr.error
               td #{user.userName}
               td #{user.ratingFlagCount}
-              td #{user.warningCount}
+              td #{user.commentFlagCount}
               td Termination
               td None
                 
@@ -106,7 +108,7 @@ block content
             tr.error
               td #{user.userName}
               td #{user.ratingFlagCount}
-              td #{user.warningCount}
+              td #{user.commentFlagCount}
               td Spammer
               td 
                 btn.btn.btn-success.btn-mini(id='unsuspend-#{user.userName}')
@@ -114,7 +116,7 @@ block content
                 
                 script(type='text/javascript')
                   $('#unsuspend-#{user.userName}').click(function () {
-                     $.post('/admin/unsuspend', { username: '#{user.userName}' });
+                     $.post('/admin/comment-unsuspend', { username: '#{user.userName}' });
                      $(this).remove();
                      humane.log('User has been unsuspended.');
                      return false;

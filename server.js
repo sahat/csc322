@@ -1,7 +1,7 @@
 /**
- * CSC322 @ CCNY Team Project
- * @type {Software Engineering}
- * @date {12/12/2012}
+ * @name CSC322 @ CCNY
+ * @type {Software Engineering Project}
+ * @date {12/12/12}
  */
 var bcrypt = require('bcrypt');
 var email = require('emailjs');
@@ -88,7 +88,7 @@ var UserSchema = new mongoose.Schema({
   ratingPardon: Boolean,
   commentPardon: Boolean,
   ratingWeight: { type: Number, default: 1 },
-  warningCount: { type: Number, default: 0 },
+  commentFlagCount: { type: Number, default: 0 },
   ratingFlagCount: { type: Number, default: 0 },
   comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }],
   ratedGames: [{
@@ -104,8 +104,8 @@ var UserSchema = new mongoose.Schema({
 // Comment schema
 var CommentSchema = new mongoose.Schema({
   creator: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  game : { type: mongoose.Schema.Types.ObjectId, ref: 'Game' },
-  body : { type: String, required: true, trim: true },
+  game: { type: mongoose.Schema.Types.ObjectId, ref: 'Game' },
+  body: { type: String, required: true, trim: true },
   date: { type: Date, default: Date.now },
   flagged: { type: Boolean, default: false },
   hasBeenWarned: { type: Boolean, default: false }
@@ -170,7 +170,6 @@ var Comment = mongoose.model('Comment', CommentSchema);
  */
 
 app.get('/add', function (req, res) {
-
   // only admin should be able to view Add Game page
   if (!req.session.user || req.session.user.isAdmin === false) {
     res.redirect('/');
@@ -648,8 +647,6 @@ app.get('/games/:detail', function (req, res) {
  * POST /games/detail
  */
 app.post('/games/:detail', function (req, res) {
-  console.log(req.body.comment);
-
   // move into comment/add method
   User.findOne({ userName: req.session.user.userName }, function (err, user) {
     Game.findOne({ slug: req.params.detail }, function (err, game) {
@@ -702,26 +699,23 @@ app.get('/games/genre/:genre', function (req, res) {
     });
 });
 
+/**
+ * GET /admin
+ */
 app.get('/admin', function (req, res) {
   if (!req.session.user || req.session.user.isAdmin === false) {
-    console.log('here');
     return res.redirect('/');
   }
 
   User.find(function (err, users) {
-    if (err) {
-      throw err;
-    }
+    if (err) res.send(500, err);
     Comment
       .find({ 'flagged': true })
       .populate('game')
       .populate('creator')
       .exec(function (err, comments) {
         User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
-          if (err) {
-            throw err;
-          }
-          console.log(users.length);
+          if (err) res.send(500, err);
           req.session.user = user;
           res.render('admin', {
             heading: 'Admin Dashboard',
@@ -736,12 +730,24 @@ app.get('/admin', function (req, res) {
   });
 });
 
-app.post('/admin/unsuspend', function (req, res) {
+app.post('/admin/rating-unsuspend', function (req, res) {
   User.findOne({ 'userName': req.body.username }, function (err, user) {
     user.suspendedRating = false;
     user.ratingFlagCount = 0;
     user.ratingWeight = 1;
     user.ratingPardon = true;
+    user.save(function(err) {
+      if (err) res.send(500, err);
+      req.session.user = user;
+    });
+  });
+});
+
+app.post('/admin/comment-unsuspend', function (req, res) {
+  User.findOne({ 'userName': req.body.username }, function (err, user) {
+    user.suspendedRating = false;
+    user.commentFlagCount = 0;
+    user.commentPardon = true;
     user.save(function(err) {
       if (err) res.send(500, err);
       req.session.user = user;
@@ -769,20 +775,16 @@ app.post('/admin/comment/warn', function (req, res) {
     .findOne({ '_id': req.body.commentId })
     .populate('creator')
     .exec(function (err, comment) {
-      if (err) {
-        throw err;
-      }
+      if (err) res.send(500, err);
       comment.hasBeenWarned = true;
       comment.save(function (err) {
-        if (err) {
-          throw err;
-        }
+        if (err) res.send(500, err);
         console.log('User has been warned. Setting warned flag to TRUE');
       });
-      console.log(comment.creator.userName);
       User.findOne({ 'userName': comment.creator.userName }, function (err, user) {
-        user.warningCount++;
-        if (user.warningCount >= 2) {
+        if (err) res.send(500, err);
+        user.commentFlagCount++;
+        if (user.commentFlagCount >= 2) {
           user.suspendedAccount = true;
         }
         user.save(function(err) {
@@ -795,18 +797,14 @@ app.post('/admin/comment/warn', function (req, res) {
 
 app.post('/admin/comment/delete', function (req, res) {
   Comment.remove({ _id: req.body.commentId }, function (err) {
-    if (err) {
-      throw err;
-    }
+    if (err) res.send(500, err);
     console.log('Comment has been removed');
   });
 });
 
 app.post('/comment/delete', function (req, res) {
   Comment.remove({ _id: req.body.commentId }, function (err) {
-    if (err) {
-      throw err;
-    }
+    if (err) res.send(500, err);
     console.log('Comment has been removed');
   });
 });
@@ -917,9 +915,11 @@ app.get('/logout', function (req, res) {
     return res.redirect('/');
   }
 
-  if (req.session.user.suspendedAccount) {
-    User.findOne({ 'userName': req.session.user.userName }).remove();
-  }
+  User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
+    if (user.suspendedAccount) {
+      User.findOne({ 'userName': req.session.user.userName }).remove();
+    }
+  });
 
   req.session.destroy(function () {
     res.redirect('/');
@@ -1061,7 +1061,6 @@ app.get('/:profile', function (req, res) {
           userProfile: user,
           xbox: xbox_api
         });
-
       }
       else {
         // continue as if the user does not have the Xbox gamertag
