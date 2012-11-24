@@ -30,8 +30,8 @@ app.configure(function () {
   app.use(express.favicon());
   app.use(express.logger('dev'));
   app.use(express.bodyParser());
-  app.use(express.cookieParser('s3cr3t'));
-  //app.use(express.session({ secret: 's3cr3t' }));
+  //app.use(express.cookieParser('s3cr3t'));
+  app.use(express.session({ secret: 's3cr3t' }));
   app.use(express.session({ store: new RedisStore(), secret: 's3cr3t' }));
   app.use(express.methodOverride());
   app.use(app.router);
