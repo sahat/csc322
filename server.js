@@ -439,8 +439,8 @@ app.post('/buy', function (req, res) {
         if (err) res.send(500, err);
 
         var server = email.server.connect({
-          user:    "username",
-          password:"password",
+          user:    "csc322ccny@gmail.com.",
+          password:"csccny322",
           host:    "smtp.gmail.com",
           ssl:     true
         });
