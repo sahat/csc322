@@ -31,8 +31,8 @@ app.configure(function () {
   app.use(express.logger('dev'));
   app.use(express.bodyParser());
   app.use(express.cookieParser('s3cr3t'));
-  //app.use(express.session({ secret: 's3cr3t' }));
-  app.use(express.session({ store: new RedisStore(), secret: 's3cr3t' }));
+  app.use(express.session({ secret: 's3cr3t' }));
+  //app.use(express.session({ store: new RedisStore(), secret: 's3cr3t' }));
   app.use(express.methodOverride());
   app.use(app.router);
   app.use(express.static(path.join(__dirname, 'public')));
@@ -48,8 +48,8 @@ app.configure('development', function () {
 
 // Establishes a connection with MongoDB database
 // localhost is db-host and test is db-name
-//var db = mongoose.connect('mongodb://sahat:mongooska@ds037827.mongolab.com:37827/csc322');
-var db = mongoose.connect('localhost', 'test');
+var db = mongoose.connect('mongodb://sahat:mongooska@ds037827.mongolab.com:37827/csc322');
+//var db = mongoose.connect('localhost', 'test');
 
 // Here we create a schema called Game with the following fields.
 var GameSchema = new mongoose.Schema({
@@ -67,7 +67,8 @@ var GameSchema = new mongoose.Schema({
   weightedRating: { type: Number, default: 0 },
   rating: { type: Number, default: 0 },
   votes: { type: Number, default: 0 },
-  purchaseCounter: { type: Number, default: 0 }
+  purchaseCounter: { type: Number, default: 0 },
+  youtube: String
 });
 
 // In Mongoose everything is derived from Schema.
