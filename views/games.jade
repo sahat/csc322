@@ -101,12 +101,21 @@ block content
               button.btn.btn-primary(id='#{game.slug}') Buy
           tr
             td.span2
-              img.img-polaroid(src='/img/games/#{game.largeImage}')
+              a(href='/games/#{game.slug}', rel='tooltip', title='#{game.title}')
+                img.img-polaroid(src='/img/games/#{game.largeImage}')
+              script(type='text/javascript')
+                $("[rel=tooltip]").tooltip({
+                  html: true,
+                  content: '<iframe width="560" height="315" src="http://www.youtube.com/embed/nicvyhrmTDs?rel=0&autoplay=1" frameborder="0" allowfullscreen></iframe>'
+                });
+             ​
             td
               a(href='/games/#{game.slug}')
                 strong
                   = game.title
               | &nbsp;
+
+
 
               if user.userName
                 button.btn.btn-primary.btn-mini(id='price-#{game.slug}', href='#modal-#{game.slug}', role='button', data-toggle='modal')
@@ -129,6 +138,7 @@ block content
                   div #{game.genre}
               p
                 =game.description
+
 
           // logged-in users
           if user.userName

@@ -26,13 +26,13 @@ app.configure(function () {
   app.set('port', process.env.PORT || 3000);
   app.set('views', __dirname + '/views');
   app.set('view engine', 'jade');
-  app.set.pretty = true;
+  app.locals.pretty = true;
   app.use(express.favicon());
   app.use(express.logger('dev'));
   app.use(express.bodyParser());
   app.use(express.cookieParser('s3cr3t'));
-  app.use(express.session({ secret: 's3cr3t' }));
-  //app.use(express.session({ store: new RedisStore(), secret: 's3cr3t' }));
+  //app.use(express.session({ secret: 's3cr3t' }));
+  app.use(express.session({ store: new RedisStore(), secret: 's3cr3t' }));
   app.use(express.methodOverride());
   app.use(app.router);
   app.use(express.static(path.join(__dirname, 'public')));
@@ -48,7 +48,8 @@ app.configure('development', function () {
 
 // Establishes a connection with MongoDB database
 // localhost is db-host and test is db-name
-var db = mongoose.connect('mongodb://sahat:mongooska@ds037827.mongolab.com:37827/csc322');
+//var db = mongoose.connect('mongodb://sahat:mongooska@ds037827.mongolab.com:37827/csc322');
+var db = mongoose.connect('localhost', 'test');
 
 // Here we create a schema called Game with the following fields.
 var GameSchema = new mongoose.Schema({
@@ -460,7 +461,6 @@ app.post('/buy', function (req, res) {
     });
   });
 });
-
 /**
  * POST /rate
  */

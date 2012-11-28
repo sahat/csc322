@@ -1,6 +1,6 @@
 {
   "name": "csc322",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "dependencies": {
     "bcrypt": "0.5.x",
@@ -15,8 +15,7 @@
     "jade": "*",
     "mocha": "*",
     "underscore": "*",
-    "underscore.string": "*",
-    "sylvester": "*"
+    "underscore.string": "*"
   },
   "engines": {
     "node": "0.8.x",
