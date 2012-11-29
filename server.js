@@ -311,7 +311,9 @@ app.get('/', function (req, res) {
       .populate('purchasedGames.game')
       .populate('ratedGames.game')
       .exec(function (err, similarUsers) {
-        if (err) res.send(500, err);
+        if (err) {
+          res.send(500, err);
+        }
 
         var accumulator = 0;
         _.each(similarUsers, function(user) {
@@ -730,6 +732,9 @@ app.get('/admin', function (req, res) {
   });
 });
 
+/**
+ * POST /rating-unsuspend
+ */
 app.post('/admin/rating-unsuspend', function (req, res) {
   User.findOne({ 'userName': req.body.username }, function (err, user) {
     user.suspendedRating = false;
@@ -743,6 +748,9 @@ app.post('/admin/rating-unsuspend', function (req, res) {
   });
 });
 
+/**
+ * POST /comment-unsuspend
+ */
 app.post('/admin/comment-unsuspend', function (req, res) {
   User.findOne({ 'userName': req.body.username }, function (err, user) {
     user.suspendedRating = false;
@@ -758,7 +766,7 @@ app.post('/admin/comment-unsuspend', function (req, res) {
 app.post('/admin/comment/ignore', function (req,  res) {
   Comment.findOne({ _id: req.body.commentId }, function (err, comment) {
     if (err) {
-      throw err;
+      res.send(500, err);
     }
     comment.flagged = false;
     comment.save(function (err) {
