@@ -1,6 +1,5 @@
 /**
- * @name CSC322 @ CCNY
- * @type {Software Engineering Project}
+ * @name CSC322 @ CCNY Software Engineering Class
  * @date {12/12/12}
  */
 var bcrypt = require('bcrypt');
@@ -22,6 +21,7 @@ var server = require('http').createServer(app);
 var io = require('socket.io').listen(server);
 
 app.configure(function () {
+  'use strict';
   app.set('port', process.env.PORT || 3000);
   app.set('views', __dirname + '/views');
   app.set('view engine', 'jade');
@@ -47,8 +47,8 @@ app.configure('development', function () {
 
 // Establishes a connection with MongoDB database
 // localhost is db-host and test is db-name
-//var db = mongoose.connect('mongodb://sahat:mongooska@ds037827.mongolab.com:37827/csc322');
-var db = mongoose.connect('localhost', 'test');
+var db = mongoose.connect('mongodb://sahat:mongooska@ds037827.mongolab.com:37827/csc322');
+//var db = mongoose.connect('localhost', 'test');
 
 // Here we create a schema called Game with the following fields.
 var GameSchema = new mongoose.Schema({
@@ -113,6 +113,7 @@ var CommentSchema = new mongoose.Schema({
 // The purpose of this middleware is to hash the password before saving to database, because
 // we don't want to save password as plain text for security reasons
 UserSchema.pre('save', function (next) {
+  'use strict';
   var user = this;
 
   // only hash the password if it has been modified (or is new)
@@ -141,6 +142,7 @@ UserSchema.pre('save', function (next) {
 
 // This middleware compares user's typed-in password during login with the password stored in database
 UserSchema.methods.comparePassword = function(candidatePassword, callback) {
+  'use strict';
   bcrypt.compare(candidatePassword, this.password, function(err, isMatch) {
     if (err) {
       return callback(err);
@@ -284,7 +286,7 @@ app.post('/add', function (req, res) {
           });
 
           // Save game object into database as a document of db.games collection
-          game.save(function(err) {
+          game.save(function (err) {
             if (err) {
               res.send(500, 'Unable to add the game to database');
             }
@@ -537,6 +539,7 @@ app.post('/games/rating', function (req, res) {
  * Deprecated function
  */
 app.get('/games/api', function (req, res) {
+  'use strict';
   Game
     .find()
     .select('_id title')
@@ -549,6 +552,7 @@ app.get('/games/api', function (req, res) {
  * GET /games
  */
 app.get('/games', function (req, res) {
+  'use strict';
   // users who have just registered must change temporary password before proceeding
   // also users who have less than 3 indicates interests
   if (req.session.user && (req.session.user.tempPassword || req.session.user.interests.length < 3)) {
@@ -596,7 +600,9 @@ app.get('/games/:detail', function (req, res) {
   }
 
   Game.findOne({ 'slug': req.params.detail }, function (err, game) {
-    if (err) res.send(500, err);
+    if (err) {
+      res.send(500, err);
+    }
 
     Game
       .where('genre').equals(game.genre)
@@ -604,7 +610,9 @@ app.get('/games/:detail', function (req, res) {
       .limit(6)
       .sort('-purchaseCounter')
       .exec(function (err, similarGames) {
-        if (err) return res.send(500, err);
+        if (err) {
+          return res.send(500, err);
+        }
 
         Comment
           .find({ game: game._id })
@@ -617,7 +625,9 @@ app.get('/games/:detail', function (req, res) {
                 .findOne({ 'userName': req.session.user.userName })
                 .populate('purchasedGames.game')
                 .exec(function (err, user) {
-                  if (err) res.send(500, err);
+                  if (err) {
+                    res.send(500, err);
+                  }
                   res.render('detail', {
                     heading: game.title,
                     lead: game.publisher,
@@ -645,7 +655,7 @@ app.get('/games/:detail', function (req, res) {
  * POST /games/detail
  */
 app.post('/games/:detail', function (req, res) {
-  // move into comment/add method
+  'use strict';
   User.findOne({ userName: req.session.user.userName }, function (err, user) {
     Game.findOne({ slug: req.params.detail }, function (err, game) {
       var comment = new Comment({
@@ -665,6 +675,7 @@ app.post('/games/:detail', function (req, res) {
  * GET /games/genre
  */
 app.get('/games/genre/:genre', function (req, res) {
+  'use strict';
   if (req.session.user && (req.session.tempPassword || req.session.user.interests.length < 3)) {
     return res.redirect('/account');
   }
@@ -706,14 +717,19 @@ app.get('/admin', function (req, res) {
   }
 
   User.find(function (err, users) {
-    if (err) res.send(500, err);
+    'use strict';
+    if (err) {
+      res.send(500, err);
+    }
     Comment
       .find({ 'flagged': true })
       .populate('game')
       .populate('creator')
       .exec(function (err, comments) {
         User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
-          if (err) res.send(500, err);
+          if (err) {
+            res.send(500, err);
+          }
           req.session.user = user;
           res.render('admin', {
             heading: 'Admin Dashboard',
@@ -732,6 +748,7 @@ app.get('/admin', function (req, res) {
  * POST /rating-unsuspend
  */
 app.post('/admin/rating-unsuspend', function (req, res) {
+  'use strict';
   User.findOne({ 'userName': req.body.username }, function (err, user) {
     user.suspendedRating = false;
     user.ratingFlagCount = 0;
@@ -748,18 +765,22 @@ app.post('/admin/rating-unsuspend', function (req, res) {
  * POST /comment-unsuspend
  */
 app.post('/admin/comment-unsuspend', function (req, res) {
+  'use strict';
   User.findOne({ 'userName': req.body.username }, function (err, user) {
     user.suspendedRating = false;
     user.commentFlagCount = 0;
     user.commentPardon = true;
     user.save(function(err) {
-      if (err) res.send(500, err);
+      if (err) {
+        res.send(500, err);
+      }
       req.session.user = user;
     });
   });
 });
 
 app.post('/admin/comment/ignore', function (req,  res) {
+  'use strict';
   Comment.findOne({ _id: req.body.commentId }, function (err, comment) {
     if (err) {
       res.send(500, err);
@@ -775,18 +796,25 @@ app.post('/admin/comment/ignore', function (req,  res) {
 });
 
 app.post('/admin/comment/warn', function (req, res) {
+  'use strict';
   Comment
     .findOne({ '_id': req.body.commentId })
     .populate('creator')
     .exec(function (err, comment) {
-      if (err) res.send(500, err);
+      if (err) {
+        res.send(500, err);
+      }
       comment.hasBeenWarned = true;
       comment.save(function (err) {
-        if (err) res.send(500, err);
+        if (err) {
+          res.send(500, err);
+        }
         console.log('User has been warned. Setting warned flag to TRUE');
       });
       User.findOne({ 'userName': comment.creator.userName }, function (err, user) {
-        if (err) res.send(500, err);
+        if (err) {
+          res.send(500, err);
+        }
         user.commentFlagCount++;
         if (user.commentFlagCount >= 2) {
           user.suspendedAccount = true;
@@ -800,20 +828,27 @@ app.post('/admin/comment/warn', function (req, res) {
 });
 
 app.post('/admin/comment/delete', function (req, res) {
+  'use strict';
   Comment.remove({ _id: req.body.commentId }, function (err) {
-    if (err) res.send(500, err);
+    if (err) {
+      res.send(500, err);
+    }
     console.log('Comment has been removed');
   });
 });
 
 app.post('/comment/delete', function (req, res) {
+  'use strict';
   Comment.remove({ _id: req.body.commentId }, function (err) {
-    if (err) res.send(500, err);
+    if (err) {
+      res.send(500, err);
+    }
     console.log('Comment has been removed');
   });
 });
 
 app.post('/comment/report', function (req, res) {
+  'use strict';
   Comment.findOne({ '_id': req.body.comment_id }, function (req, comment) {
     console.log(comment);
     comment.flagged = true;
@@ -827,19 +862,18 @@ app.post('/comment/report', function (req, res) {
  * GET /account
  */
 app.get('/account', function (req, res) {
+  'use strict';
   if (!req.session.user) {
     return res.redirect('/login');
   }
   User
     .findOne({ 'userName': req.session.user.userName })
     .populate('purchasedGames.game')
-    .populate('ratedGames.game')
     .exec(function (err, user) {
       if (err) res.send(500, err);
 
       console.log(req.session.user.tempPassword);
       console.log(req.session.user.interests.length);
-
 
       res.render('account', {
         heading: 'Account Information',
@@ -855,8 +889,11 @@ app.get('/account', function (req, res) {
  * POST /account
  */
 app.post('/account', function (req, res) {
+  'use strict';
   User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
-    if (err) res.send(500, err);
+    if (err) {
+      res.send(500, err);
+    }
 
     user.firstName = req.body.firstName;
     user.lastName = req.body.lastName;
@@ -878,8 +915,11 @@ app.post('/account', function (req, res) {
 });
 
 app.post('/account/tag/add', function (req, res) {
+  'use strict';
   User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
-    if (err) res.send(500, err);
+    if (err) {
+      res.send(500, err);
+    }
     _.each(req.body.tags, function (tag) {
       console.log(tag);
       user.interests.push(tag);
@@ -895,6 +935,7 @@ app.post('/account/tag/add', function (req, res) {
 });
 
 app.post('/account/tag/delete', function (req, res) {
+  'use strict';
   User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
     var index = user.interests.indexOf(req.body.removedTag);
     user.interests.splice(index, 1);
@@ -936,12 +977,10 @@ app.get('/logout', function (req, res) {
 app.get('/login', function(req, res) {
   if (req.session.user) res.redirect('/');
 
-
   User.remove({ 'userName': 'aanon836' }, function (err) {
     if (err) res.send(500, err);
     console.log('User has been removed from the system');
   });
-
 
   res.render('login', {
     heading: 'Sign In',
