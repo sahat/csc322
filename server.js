@@ -165,6 +165,9 @@ var Comment = mongoose.model('Comment', CommentSchema);
  |_| \_\___/ \__,_|\__\___||___/
  */
 
+/**
+ * GET /add
+ */
 app.get('/add', function (req, res) {
   // only admin should be able to view Add Game page
   if (!req.session.user || req.session.user.isAdmin === false) {
@@ -174,6 +177,9 @@ app.get('/add', function (req, res) {
   res.render('add');
 });
 
+/**
+ * POST /add
+ */
 app.post('/add', function (req, res) {
 
   // create a client request to amazon.com
@@ -1046,26 +1052,25 @@ app.get('/:profile', function (req, res) {
     .populate('purchasedGames.game')
     .exec(function (err, user) {
       if (!user) {
-        console.log('Profile not found');
-        return res.send(500, 'User profile does not exist');
+        return res.send(500, 'Profile Doesn\'t Exist');
       }
 
-      request('http://360api.chary.us/?gamertag=' + user.gamertag, function (error, response, body) {
-        if (!error && response.statusCode === 200) {
+      var XBOX_LIVE_API = 'http://360api.chary.us/?gamertag=' + user.gamertag;
 
-          var xbox_api = JSON.parse(body);
+      request(XBOX_LIVE_API, function (error, response, body) {
+        if (!error && response.statusCode === 200) {
 
           res.render('profile', {
             heading: user.firstName + '\'s Profile',
             lead: 'View your Xbox live achievements, interests, game purchases...',
             user: req.session.user,
             userProfile: user,
-            xbox: xbox_api
+            xbox: JSON.parse(body)
           });
         }
         else {
+          // If for some reason unable to connect to the Xbox Live API,
           // continue as if the user does not have the Xbox gamertag
-
           console.log('Error getting Xbox Live data');
 
           req.session.user = user;
