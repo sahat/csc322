@@ -26,6 +26,7 @@ block content
           | &nbsp;
           - avg = Math.ceil(game.rating/game.votes * 100) / 100 || 0
           = avg
+          |  (#{game.votes} votes)
           br
           strong Comments:
           |  #{comments.length}

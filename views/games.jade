@@ -128,6 +128,9 @@ block content
               div
                 span(id='_' + game.slug)
                 span(id='votes', name='votes')
+                | &nbsp;
+                - avg = Math.ceil(game.rating/game.votes * 100) / 100 || 0
+                = avg
                 |  (#{game.votes} votes)
               div
                 small.muted

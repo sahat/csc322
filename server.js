@@ -53,21 +53,20 @@ var db = mongoose.connect('localhost', 'test');
 // Here we create a schema called Game with the following fields.
 var GameSchema = new mongoose.Schema({
   title: String,
+  slug: { type: String, index: { unique: true } },
   publisher: String,
-  thumbnail: String,
   largeImage: String,
   releaseDate: String,
   genre: String,
   summary: String,
   description: String,
   price: String,
+  youtube: String,
   votedPeople: [String],
-  slug: { type: String, index: { unique: true } },
   weightedRating: { type: Number, default: 0 },
   rating: { type: Number, default: 0 },
   votes: { type: Number, default: 0 },
-  purchaseCounter: { type: Number, default: 0 },
-  youtube: String
+  purchaseCounter: { type: Number, default: 0 }
 });
 
 // In Mongoose everything is derived from Schema.
@@ -92,10 +91,6 @@ var UserSchema = new mongoose.Schema({
   commentFlagCount: { type: Number, default: 0 },
   ratingFlagCount: { type: Number, default: 0 },
   comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }],
-  ratedGames: [{
-    game: { type: mongoose.Schema.Types.ObjectId, ref: 'Game' },
-    myRating: Number
-  }],
   purchasedGames: [{
     game: { type: mongoose.Schema.Types.ObjectId, ref: 'Game' },
     date: { type: Date, default: Date.now() }
@@ -285,7 +280,6 @@ app.post('/add', function (req, res) {
           // Save game object into database as a document of db.games collection
           game.save(function(err) {
             if (err) {
-              console.log(err);
               res.send(500, 'Unable to add the game to database');
             }
             console.log('Added game to MongoDB');
@@ -335,7 +329,7 @@ app.get('/', function (req, res) {
             }
 
             // Helper functions
-            function games_union (arr1, arr2) {
+            function games_union(arr1, arr2) {
               var union = arr1.concat(arr2);
               for (var i = 0; i < union.length; i++) {
                 for (var j = i+1; j < union.length; j++) {
@@ -399,16 +393,15 @@ app.get('/', function (req, res) {
       .find()
       .limit(3)
       .sort('-weightedScore')
-      .exec(function (err, game) {
+      .exec(function (err, games) {
         if (err) {
-          throw err;
+          res.send(500, err);
         }
         res.render('index', {
           heading: 'Welcome to CL4P-TP',
           lead: 'The leading next generation video games recommendation engine',
-          frontpage: true,
           user: req.session.user,
-          games: game
+          games: games
         });
       });
   }
@@ -463,6 +456,7 @@ app.post('/buy', function (req, res) {
     });
   });
 });
+
 /**
  * POST /rate
  */
@@ -477,11 +471,6 @@ app.post('/games/rating', function (req, res) {
       game.rating = game.rating + Number(req.body.rating);
       game.weightedRating = game.rating + Number(req.body.rating) * user.ratingWeight;
       game.votedPeople.push(req.session.user.userName);
-
-      user.ratedGames.push({
-        game: game._id,
-        myRating: req.body.rating
-      });
 
       game.save(function (err) {
         if (err) res.send(500, err);
@@ -501,9 +490,6 @@ app.post('/games/rating', function (req, res) {
     console.log('session_total', sessionTotal);
     console.log('session_avg', sessionAverage);
 
-    /**
-     * Rating spam protection
-     */
     if (!req.session.flagged && req.session.ratings.length >= 5 && (sessionAverage <= 1.5 || sessionAverage >= 4.5)) {
       req.session.flagged = true;
       user.ratingFlagCount++;
@@ -537,11 +523,13 @@ app.post('/games/rating', function (req, res) {
 
     user.save(function (err) {
       if (err) res.send(500, err);
-      return res.redirect('/games');
     });
   });
 });
 
+/**
+ * Deprecated function
+ */
 app.get('/games/api', function (req, res) {
   Game
     .find()
@@ -568,7 +556,7 @@ app.get('/games', function (req, res) {
     .sort('-weightedScore')
     .exec(function (err, games) {
 
-      // to avoid issues, guests get a Games page without user
+      // Guests can view all games but the Buy button will not be visible
       if (!req.session.user) {
         return res.render('games', {
           heading: 'Top 25',
@@ -577,6 +565,8 @@ app.get('/games', function (req, res) {
         });
       }
 
+      // Signed-in users will have Buy button next to each game, and if the user has already purchased the game
+      // then the Buy button will be updated accordingly.
       User
         .findOne({ 'userName': req.session.user.userName })
         .populate('purchasedGames.game')
