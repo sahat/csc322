@@ -13,7 +13,6 @@ var jsdom = require('jsdom');
 var mongoose = require('mongoose');
 var request = require('request');
 var RedisStore = require('connect-redis')(express);
-var sylvester = require('sylvester');
 var _ = require('underscore');
 _.str = require('underscore.string');
 _.mixin(_.str.exports());

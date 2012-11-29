@@ -25,6 +25,10 @@
   max-width: 125px;
   max-height: 180px;
 }
+.small-img {
+  max-width: 134px;
+  max-height: 185px;
+}
 .modal {
   width:450px;
 }

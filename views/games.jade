@@ -101,11 +101,11 @@ block content
               button.btn.btn-primary(id='#{game.slug}') Buy
           tr
             td.span2
-              a(href='/games/#{game.slug}', rel='tooltip', title='YouTube Preview')
-                img.img-polaroid(src='/img/games/#{game.largeImage}')
+              a(href='/games/#{game.slug}', id="tooltip-#{game.slug}",rel='tooltip', title='YouTube Preview')
+                img.img-polaroid.small-img(src='/img/games/#{game.largeImage}')
               if game.youtube
                 script(type='text/javascript')
-                  $("[rel=tooltip]").tooltip({
+                  $("#tooltip-#{game.slug}").tooltip({
                     html: true,
                     content: '<iframe width="560" height="315" src="http://www.youtube.com/embed/#{game.youtube}?rel=0&autoplay=1" frameborder="0" allowfullscreen></iframe>'
                   });
@@ -114,9 +114,6 @@ block content
                 strong
                   = game.title
               | &nbsp;
-
-
-
               if user.userName
                 button.btn.btn-primary.btn-mini(id='price-#{game.slug}', href='#modal-#{game.slug}', role='button', data-toggle='modal')
                   i.icon-shopping-cart.icon-white
