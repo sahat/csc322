@@ -30,8 +30,8 @@ app.configure(function () {
   app.use(express.logger('dev'));
   app.use(express.bodyParser());
   app.use(express.cookieParser('s3cr3t'));
-  app.use(express.session({ secret: 's3cr3t' }));
-  //app.use(express.session({ store: new RedisStore(), secret: 's3cr3t' }));
+  //app.use(express.session({ secret: 's3cr3t' }));
+  app.use(express.session({ store: new RedisStore(), secret: 's3cr3t' }));
   app.use(express.methodOverride());
   app.use(app.router);
   app.use(express.static(path.join(__dirname, 'public')));
@@ -47,8 +47,8 @@ app.configure('development', function () {
 
 // Establishes a connection with MongoDB database
 // localhost is db-host and test is db-name
-var db = mongoose.connect('mongodb://sahat:mongooska@ds037827.mongolab.com:37827/csc322');
-//var db = mongoose.connect('localhost', 'test');
+//var db = mongoose.connect('mongodb://sahat:mongooska@ds037827.mongolab.com:37827/csc322');
+var db = mongoose.connect('localhost', 'test');
 
 // Here we create a schema called Game with the following fields.
 var GameSchema = new mongoose.Schema({
@@ -1043,43 +1043,45 @@ app.get('/:profile', function (req, res) {
     return res.redirect('/account');
   }
 
-  User.findOne({ 'userName': req.params.profile }, function (err, user) {
-    if (!user) {
-      console.log('Profile not found');
-      return res.send(500, 'User profile does not exist');
-    }
-
-    request('http://360api.chary.us/?gamertag=' + user.gamertag, function (error, response, body) {
-      if (!error && response.statusCode === 200) {
-
-        var xbox_api = JSON.parse(body);
-
-        res.render('profile', {
-          heading: user.firstName + '\'s Profile',
-          lead: 'View your Xbox live achievements, interests, game purchases...',
-          user: req.session.user,
-          userProfile: user,
-          xbox: xbox_api
-        });
+  User
+    .findOne({ 'userName': req.params.profile })
+    .populate('purchasedGames.game')
+    .exec(function (err, user) {
+      if (!user) {
+        console.log('Profile not found');
+        return res.send(500, 'User profile does not exist');
       }
-      else {
-        // continue as if the user does not have the Xbox gamertag
 
-        console.log('Error getting Xbox Live data');
+      request('http://360api.chary.us/?gamertag=' + user.gamertag, function (error, response, body) {
+        if (!error && response.statusCode === 200) {
 
-        req.session.user = user;
+          var xbox_api = JSON.parse(body);
 
-        res.render('profile', {
-          heading: user.firstName + '\'s Profile',
-          lead: 'View your Xbox live achievements, interests, game purchases...',
-          user: req.session.user,
-          userProfile: user,
-          xbox: false
-        });
-      }
+          res.render('profile', {
+            heading: user.firstName + '\'s Profile',
+            lead: 'View your Xbox live achievements, interests, game purchases...',
+            user: req.session.user,
+            userProfile: user,
+            xbox: xbox_api
+          });
+        }
+        else {
+          // continue as if the user does not have the Xbox gamertag
+
+          console.log('Error getting Xbox Live data');
+
+          req.session.user = user;
+
+          res.render('profile', {
+            heading: user.firstName + '\'s Profile',
+            lead: 'View your Xbox live achievements, interests, game purchases...',
+            user: req.session.user,
+            userProfile: user,
+            xbox: false
+          });
+        }
+      });
     });
-
-  });
 });
 
 server.listen(app.get('port'), function() {

@@ -43,7 +43,7 @@ block content
           a(href='#', name='#tab2')
             i.icon-shopping-cart.icon-white
             |  Purchased Games
-      #content9
+      #content
         #tab1
           ul.nav.nav-pills
             for interest in userProfile.interests
@@ -56,8 +56,8 @@ block content
             ul.thumbnails
               for purchasedGame in userProfile.purchasedGames
                 li.span1
-                  a.thumbnail(href='/games/#{purchasedGame.slug}') 
-                    img(src='/img/games/#{purchasedGame.largeImage}')
+                  a.thumbnail(href='/games/#{purchasedGame.game.slug}')
+                    img(src='/img/games/#{purchasedGame.game.largeImage}')
           else
             .alert
               strong No Purchased Games
