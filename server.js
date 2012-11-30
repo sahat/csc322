@@ -38,17 +38,20 @@ app.configure(function () {
 });
 
 app.configure('development', function () {
+  'use strict';
   app.use(express.errorHandler());
 });
 
-/**
- * MongoDB Configuration
- */
+// Email server configuration
+var gmail = email.server.connect({
+  user:    "csc322ccny@gmail.com",
+  password:"csccny322",
+  host:    "smtp.gmail.com",
+  ssl:     true
+});
 
-// Establishes a connection with MongoDB database
-// localhost is db-host and test is db-name
-var db = mongoose.connect('mongodb://sahat:mongooska@ds037827.mongolab.com:37827/csc322');
-//var db = mongoose.connect('localhost', 'test');
+// MongoDB Config
+mongoose.connect('mongodb://sahat:mongooska@ds037827.mongolab.com:37827/csc322');
 
 // Here we create a schema called Game with the following fields.
 var GameSchema = new mongoose.Schema({
@@ -363,8 +366,9 @@ app.get('/', function (req, res) {
             // games 4, 5, 6
             _.each(similarUsers, function(user) {
               _.each(user.ratedGames, function (ratedGame) {
-                if (ratedGame.myRating >= 4)
+                if (ratedGame.myRating >= 4) {
                   temp2.push(ratedGame.game);
+                }
               });
               _.each(user.purchasedGames, function (purchasedGame) {
                 temp2.push(purchasedGame.game);
@@ -436,22 +440,19 @@ app.post('/buy', function (req, res) {
 
       game.purchaseCounter++;
       game.save(function (err) {
-        if (err) res.send(500, err);
+        if (err) {
+          res.send(500, err);
+        }
       });
 
       user.save(function (err) {
-        if (err) res.send(500, err);
+        if (err) {
+          res.send(500, err);
+        }
 
-        var server = email.server.connect({
-          user:    "csc322ccny@gmail.com.",
-          password:"csccny322",
-          host:    "smtp.gmail.com",
-          ssl:     true
-        });
-
-        server.send({
+        gmail.send({
           text: 'Thank you for purchasing ' + game.title + '. Your game will be shipped within 2 to 3 business days.',
-          from: 'Sahat Yalkabov <sakhat@gmail.com>',
+          from: 'CSC322 Staff <csc322ccny@gmail.com>',
           to: user.firstName + ' ' + user.lastName + ' <' + user.email + '>',
           subject: 'Order Confirmation'
         }, function(err, message) {
@@ -804,13 +805,25 @@ app.post('/admin/comment/warn', function (req, res) {
       if (err) {
         res.send(500, err);
       }
+
+      gmail.send({
+        text: 'You have been given a warning for posting an inappropriate comment.',
+        from: 'CSC322 Staff <csc322ccny@gmail.com>',
+        to: user.firstName + ' ' + user.lastName + ' <' + user.email + '>',
+        subject: 'Bad Comment Warning'
+      }, function(err, message) {
+        console.log(err || message);
+      });
+
       comment.hasBeenWarned = true;
+
       comment.save(function (err) {
         if (err) {
           res.send(500, err);
         }
         console.log('User has been warned. Setting warned flag to TRUE');
       });
+
       User.findOne({ 'userName': comment.creator.userName }, function (err, user) {
         if (err) {
           res.send(500, err);

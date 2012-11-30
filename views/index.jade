@@ -1,6 +1,7 @@
 extends layout
 block content
   .page-header
+
     p.lead#welcome
       if user.firstName
         strong Welcome #{user.firstName},
@@ -26,14 +27,8 @@ block content
         // based on interest and 3 games based on purchased games
         for game in recommendedGames
           .span2
-            a(href='/games/#{game.slug}', id="tooltip-#{game.slug}",rel='tooltip', title='YouTube Preview')
+            a(href='/games/#{game.slug}')
               img.img-polaroid.medium(src='/img/games/#{game.largeImage}')
-            if game.youtube
-              script(type='text/javascript')
-                $("#tooltip-#{game.slug}").tooltip({
-                  html: true,
-                  content: '<iframe width="560" height="315" src="http://www.youtube.com/embed/#{game.youtube}?rel=0&autoplay=1" frameborder="0" allowfullscreen></iframe>'
-                });
             br
             strong
               a(href='/games/#{game.slug}') #{game.title}
@@ -57,14 +52,8 @@ block content
       else
         for game in games
           .span4
-            a(href='/games/#{game.slug}', id="tooltip-#{game.slug}",rel='tooltip', title='YouTube Preview')
+            a(href='/games/#{game.slug}')
               img.img-polaroid.large(src='/img/games/#{game.largeImage}')
-            if game.youtube
-              script(type='text/javascript')
-                $("#tooltip-#{game.slug}").tooltip({
-                  html: true,
-                  content: '<iframe width="560" height="315" src="http://www.youtube.com/embed/#{game.youtube}?rel=0&autoplay=1" frameborder="0" allowfullscreen></iframe>'
-                });
             h4
               a(href='/games/#{game.slug}') #{game.title}
             span(id='_' + game.slug)

@@ -5,8 +5,7 @@ block content
   .hero-unit
     .row
       .span2
-        a(href='/games/#{game.slug}', id="tooltip-#{game.slug}",rel='tooltip', title='YouTube Preview')
-          img.img-polaroid(src='/img/games/#{game.largeImage}')
+        img.img-polaroid(src='/img/games/#{game.largeImage}', id="tooltip-#{game.slug}",rel='tooltip', title='YouTube Preview')
         if game.youtube
           script(type='text/javascript')
             $("#tooltip-#{game.slug}").tooltip({
@@ -45,6 +44,10 @@ block content
                   script(type='text/javascript')
                     $('#price-#{game.slug}').removeAttr('href');
                     $('#price-#{game.slug}').html('<i class="icon-shopping-cart icon-white"></i> Purchased');
+
+    small
+      i.icon.icon-hand-right
+      |  Tip: Mouse over the game cover to play a video preview.
 
     if user.userName
       // if there are some votes already
