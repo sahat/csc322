@@ -472,7 +472,7 @@ app.post('/buy', function (req, res) {
 app.post('/games/rating', function (req, res) {
   'use strict';
   User
-    .findOne({ 'userName': req.session.user.userName }
+    .findOne({ 'userName': req.session.user.userName })
     .populate('purchasedGames')
     .exec(function (err, user) {
       if (err) {
@@ -483,7 +483,7 @@ app.post('/games/rating', function (req, res) {
         if (err) {
           res.send(500, 'No results for the rated game');
         }
-        
+
         for (var i = 0; i < user.purchasedGames.length; i++) {
           if (user.purchasedGames[i].game.slug === req.body.slug) {
             user.ratingWeight = 2;
@@ -499,34 +499,19 @@ app.post('/games/rating', function (req, res) {
           if (err) {
             res.send(500, err);
           }
-          console.log('rating info saved');
-          console.log('votes', game.votes);
-          console.log('rating', game.rating);
-          console.log('weighted_rating',game.weightedRating);
-          console.log('voted_people', game.votedPeople);
         });
       });
 
       req.session.ratings.push(parseInt(req.body.rating, 10));
-      console.log(req.session.ratings);
 
       var sessionTotal = _.reduce(req.session.ratings, function (a, b) { return a + b; });
       var sessionAverage =  sessionTotal / req.session.ratings.length;
-      console.log('session_total', sessionTotal);
-      console.log('session_avg', sessionAverage);
 
       if (!req.session.flagged && req.session.ratings.length >= 5 && (sessionAverage <= 1.5 || sessionAverage >= 4.5)) {
         req.session.flagged = true;
         user.ratingFlagCount++;
       }
 
-      /**
-       * When a system marks a user as flagged (per session), his/her rating weight goes down.
-       * After getting flagged 3 times, the user will no longer be able to rate games until admin intervention.
-       * If, admin decides to give rating privileges back to the user, flag count remains unchanged.
-       * When a user gets flagged for 4th or 5th time, it's the same as getting flagged for the 1st and 2nd time.
-       * Getting flagged 6 times means a user has been forgiven once, but still abused the rating system.
-       */
       if (user.ratingFlagCount == 1) {
         user.ratingWeight = 0.75;
       } else if (user.ratingFlagCount == 2) {
@@ -540,16 +525,15 @@ app.post('/games/rating', function (req, res) {
         }
       }
 
-      
-    
       req.session.user = user;
 
       user.save(function (err) {
-        if (err) res.send(500, err);
+        if (err) {
+          res.send(500, err);
+        }
       });
-      
-      res.end();
-  });
+    });
+
 });
 
 /**

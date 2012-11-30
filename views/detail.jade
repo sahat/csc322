@@ -164,7 +164,8 @@ block content
         for similarGame in similarGames
           tr
             td.span1
-              img.img-polaroid(src='/img/games/#{similarGame.largeImage}')
+              a(href='/games/#{game.slug}')
+                img.tiny-img.img-polaroid(src='/img/games/#{similarGame.largeImage}')
             td
               a(href='/games/#{similarGame.slug}')
                 strong #{similarGame.title}
