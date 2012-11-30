@@ -423,17 +423,16 @@ app.get('/', function (req, res) {
  * POST /buy
  */
 app.post('/buy', function (req, res) {
+  'use strict';
   User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
-    if (err) res.send(500, err);
+    if (err) {
+      res.send(500, err);
+    }
     Game.findOne({ 'slug': req.body.slug }, function (err, game) {
-      if (err) res.send(500, err);
-      var rating = 0;
-      for (var i = 0; i < user.ratedGames.length; i++) {
-        if (game.slug === user.ratedGames[i].slug) {
-          console.log("I have already voted on this game");
-          var rating = user.ratedGames[i].rating;
-        }
+      if (err) {
+        res.send(500, err);
       }
+
       user.purchasedGames.push({
         game: game._id
       });
@@ -809,7 +808,7 @@ app.post('/admin/comment/warn', function (req, res) {
       gmail.send({
         text: 'You have been given a warning for posting an inappropriate comment.',
         from: 'CSC322 Staff <csc322ccny@gmail.com>',
-        to: user.firstName + ' ' + user.lastName + ' <' + user.email + '>',
+        to: comment.creator.firstName + ' ' + comment.creator.lastName + ' <' + comment.creator.email + '>',
         subject: 'Bad Comment Warning'
       }, function(err, message) {
         console.log(err || message);
@@ -883,7 +882,9 @@ app.get('/account', function (req, res) {
     .findOne({ 'userName': req.session.user.userName })
     .populate('purchasedGames.game')
     .exec(function (err, user) {
-      if (err) res.send(500, err);
+      if (err) {
+        res.send(500, err);
+      }
 
       console.log(req.session.user.tempPassword);
       console.log(req.session.user.interests.length);
@@ -911,6 +912,7 @@ app.post('/account', function (req, res) {
     user.firstName = req.body.firstName;
     user.lastName = req.body.lastName;
     user.gamertag = req.body.gamertag;
+    user.email = req.body.userEmail;
 
     if (!req.body.newpassword) {
       user.password = req.session.user.password;
@@ -920,7 +922,9 @@ app.post('/account', function (req, res) {
     }
 
     user.save(function (err) {
-      if (err) res.send(500, err);
+      if (err) {
+        res.send(500, err);
+      }
       req.session.user = user;
       res.redirect('/account');
     });
