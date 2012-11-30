@@ -186,7 +186,7 @@ app.get('/add', function (req, res) {
  * POST /add
  */
 app.post('/add', function (req, res) {
-
+  'use strict';
   // create a client request to amazon.com
   request({ uri: req.body.gameURL }, function (err, response, body) {
     if (err && response.statusCode !== 200) {
@@ -306,6 +306,7 @@ app.post('/add', function (req, res) {
  * GET /index
  */
 app.get('/', function (req, res) {
+  'use strict';
   if (req.session.user && (req.session.user.tempPassword || req.session.user.interests.length < 3)) {
     res.redirect('/account');
   }
@@ -469,69 +470,83 @@ app.post('/buy', function (req, res) {
  * POST /rate
  */
 app.post('/games/rating', function (req, res) {
-  User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
-    if (err) res.send(500, 'Could not find the user for rating POST request');
+  'use strict';
+  User
+    .findOne({ 'userName': req.session.user.userName }
+    .populate('purchasedGames')
+    .exec(function (err, user) {
+      if (err) {
+        res.send(500, 'Could not find the user for rating POST request');
+      }
 
-    Game.findOne({ 'slug': req.body.slug }, function (err, game) {
-      if (err) res.send(500, 'No results for the rated game');
+      Game.findOne({ 'slug': req.body.slug }, function (err, game) {
+        if (err) {
+          res.send(500, 'No results for the rated game');
+        }
+        
+        for (var i = 0; i < user.purchasedGames.length; i++) {
+          if (user.purchasedGames[i].game.slug === req.body.slug) {
+            user.ratingWeight = 2;
+          }
+        }
 
-      game.votes++;
-      game.rating = game.rating + Number(req.body.rating);
-      game.weightedRating = game.rating + Number(req.body.rating) * user.ratingWeight;
-      game.votedPeople.push(req.session.user.userName);
+        game.votes++;
+        game.rating = game.rating + Number(req.body.rating);
+        game.weightedRating = game.rating + Number(req.body.rating) * user.ratingWeight;
+        game.votedPeople.push(req.session.user.userName);
 
-      game.save(function (err) {
-        if (err) res.send(500, err);
-        console.log('rating info saved');
-        console.log('votes', game.votes);
-        console.log('rating', game.rating);
-        console.log('weighted_rating',game.weightedRating);
-        console.log('voted_people', game.votedPeople);
+        game.save(function (err) {
+          if (err) {
+            res.send(500, err);
+          }
+          console.log('rating info saved');
+          console.log('votes', game.votes);
+          console.log('rating', game.rating);
+          console.log('weighted_rating',game.weightedRating);
+          console.log('voted_people', game.votedPeople);
+        });
       });
-    });
 
-    req.session.ratings.push(parseInt(req.body.rating, 10));
-    console.log(req.session.ratings);
+      req.session.ratings.push(parseInt(req.body.rating, 10));
+      console.log(req.session.ratings);
 
-    var sessionTotal = _.reduce(req.session.ratings, function (a, b) { return a + b; });
-    var sessionAverage =  sessionTotal / req.session.ratings.length;
-    console.log('session_total', sessionTotal);
-    console.log('session_avg', sessionAverage);
+      var sessionTotal = _.reduce(req.session.ratings, function (a, b) { return a + b; });
+      var sessionAverage =  sessionTotal / req.session.ratings.length;
+      console.log('session_total', sessionTotal);
+      console.log('session_avg', sessionAverage);
 
-    if (!req.session.flagged && req.session.ratings.length >= 5 && (sessionAverage <= 1.5 || sessionAverage >= 4.5)) {
-      req.session.flagged = true;
-      user.ratingFlagCount++;
-    }
-
-    /**
-     * When a system marks a user as flagged (per session), his/her rating weight goes down.
-     * After getting flagged 3 times, the user will no longer be able to rate games until admin intervention.
-     * If, admin decides to give rating privileges back to the user, flag count remains unchanged.
-     * When a user gets flagged for 4th or 5th time, it's the same as getting flagged for the 1st and 2nd time.
-     * Getting flagged 6 times means a user has been forgiven once, but still abused the rating system.
-     */
-    if (user.ratingFlagCount == 1) {
-      user.ratingWeight = 0.75;
-    } else if (user.ratingFlagCount == 2) {
-      user.ratingWeight = 0.50;
-    } else if (user.ratingFlagCount == 3) {
-      if (user.ratingPardon) {
-        user.suspendedAccount = true;
-        user.suspendedRating = true;
-      } else {
-        user.suspendedRating = true;
+      if (!req.session.flagged && req.session.ratings.length >= 5 && (sessionAverage <= 1.5 || sessionAverage >= 4.5)) {
+        req.session.flagged = true;
+        user.ratingFlagCount++;
       }
-    }
 
-    for (var i = 0; i < user.purchasedGames.length; i++) {
-      if (user.purchasedGames[i].slug === req.body.slug) {
-        user.purchasedGames[i].rating = req.body.rating;
+      /**
+       * When a system marks a user as flagged (per session), his/her rating weight goes down.
+       * After getting flagged 3 times, the user will no longer be able to rate games until admin intervention.
+       * If, admin decides to give rating privileges back to the user, flag count remains unchanged.
+       * When a user gets flagged for 4th or 5th time, it's the same as getting flagged for the 1st and 2nd time.
+       * Getting flagged 6 times means a user has been forgiven once, but still abused the rating system.
+       */
+      if (user.ratingFlagCount == 1) {
+        user.ratingWeight = 0.75;
+      } else if (user.ratingFlagCount == 2) {
+        user.ratingWeight = 0.50;
+      } else if (user.ratingFlagCount == 3) {
+        if (user.ratingPardon) {
+          user.suspendedAccount = true;
+          user.suspendedRating = true;
+        } else {
+          user.suspendedRating = true;
+        }
       }
-    }
 
-    user.save(function (err) {
-      if (err) res.send(500, err);
-    });
+      
+    
+      req.session.user = user;
+
+      user.save(function (err) {
+        if (err) res.send(500, err);
+      });
   });
 });
 
@@ -712,6 +727,7 @@ app.get('/games/genre/:genre', function (req, res) {
  * GET /admin
  */
 app.get('/admin', function (req, res) {
+  'use strict';
   if (!req.session.user || req.session.user.isAdmin === false) {
     return res.redirect('/');
   }
@@ -973,6 +989,7 @@ app.post('/account/tag/delete', function (req, res) {
  * GET /logout
  */
 app.get('/logout', function (req, res) {
+  'use strict';
   if (!req.session.user) {
     return res.redirect('/');
   }
@@ -992,10 +1009,14 @@ app.get('/logout', function (req, res) {
  * GET /login
  */
 app.get('/login', function(req, res) {
-  if (req.session.user) res.redirect('/');
-
+  'use strict';
+  if (req.session.user) {
+    res.redirect('/');
+  }
   User.remove({ 'userName': 'aanon836' }, function (err) {
-    if (err) res.send(500, err);
+    if (err) {
+      res.send(500, err);
+    }
     console.log('User has been removed from the system');
   });
 
@@ -1012,16 +1033,20 @@ app.get('/login', function(req, res) {
  * POST /login
  */
 app.post('/login', function (req, res) {
-
+  'use strict';
   User.findOne({ 'userName': req.body.userName }, function (err, user) {
-    if (err) res.send(500, err);
+    if (err) {
+      res.send(500, err);
+    }
 
     if (!user) {
       req.session.incorrectLogin = true;
       res.redirect('/login');
     } else {
       user.comparePassword(req.body.password, function(err, isMatch) {
-        if (err) res.send(500, err);
+        if (err) {
+          res.send(500, err);
+        }
         if (!isMatch) {
           req.session.incorrectLogin = true;
           res.redirect('/login');
@@ -1045,7 +1070,10 @@ app.post('/login', function (req, res) {
  * GET /register
  */
 app.get('/register', function(req, res) {
-  if (req.session.user) res.redirect('/');
+  'use strict';
+  if (req.session.user) {
+    res.redirect('/');
+  }
 
   res.render('register', {
     heading: 'Create Account',
@@ -1057,6 +1085,7 @@ app.get('/register', function(req, res) {
  * POST /register
  */
 app.post('/register', function(req, res) {
+  'use strict';
   // Helper function to generate a unique username
   function usernamify(first, last) {
     first = first[0].toLowerCase();
@@ -1082,12 +1111,16 @@ app.post('/register', function(req, res) {
   });
 
   User.findOne({ 'isAdmin': true }, function (err, admin) {
-    if (err) res.send(500);
+    if (err) {
+      res.send(500);
+    }
 
     user.isAdmin = !admin;
 
     user.save(function (err) {
-      if (err) res.send(500, 'Duplicate username detected. Try again.');
+      if (err) {
+        res.send(500, 'Duplicate username detected. Try again.');
+      }
       req.session.user = user;
       req.session.ratings = [];
       res.redirect('/account');
@@ -1097,8 +1130,10 @@ app.post('/register', function(req, res) {
 
 /**
  * GET /profile
+ * @return: User profile with detailed XBOX 360 statistics
  */
 app.get('/:profile', function (req, res) {
+  'use strict';
   if (req.session.user && (req.session.user.tempPassword || req.session.user.interests.length < 3)) {
     return res.redirect('/account');
   }
@@ -1144,5 +1179,6 @@ app.get('/:profile', function (req, res) {
 });
 
 server.listen(app.get('port'), function() {
+  'use strict';
   console.log('Express server listening on port ' + app.get('port'));
 });
