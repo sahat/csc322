@@ -547,6 +547,8 @@ app.post('/games/rating', function (req, res) {
       user.save(function (err) {
         if (err) res.send(500, err);
       });
+      
+      res.end();
   });
 });
 
@@ -774,6 +776,7 @@ app.post('/admin/rating-unsuspend', function (req, res) {
       if (err) res.send(500, err);
       req.session.user = user;
     });
+    res.end();
   });
 });
 
@@ -792,6 +795,7 @@ app.post('/admin/comment-unsuspend', function (req, res) {
       }
       req.session.user = user;
     });
+    res.end();
   });
 });
 
@@ -804,10 +808,11 @@ app.post('/admin/comment/ignore', function (req,  res) {
     comment.flagged = false;
     comment.save(function (err) {
       if (err) {
-        throw err;
+        res.send(500, err);
       }
       console.log('Comment has been unflagged');
     });
+    res.end();
   });
 });
 
@@ -851,6 +856,7 @@ app.post('/admin/comment/warn', function (req, res) {
           req.session.user = user;
           console.log('user warning count has been incremented by one');
         });
+        res.end();
       });
     });
 });
@@ -873,6 +879,7 @@ app.post('/comment/delete', function (req, res) {
     }
     console.log('Comment has been removed');
   });
+  res.end();
 });
 
 app.post('/comment/report', function (req, res) {
@@ -884,6 +891,7 @@ app.post('/comment/report', function (req, res) {
       console.log('Comment has been reported');
     });
   });
+  res.end();
 });
 
 /**
@@ -944,6 +952,7 @@ app.post('/account', function (req, res) {
       req.session.user = user;
       res.redirect('/account');
     });
+    res.end();
   });
 });
 
@@ -964,6 +973,7 @@ app.post('/account/tag/add', function (req, res) {
       if (err) res.send(500, err);
       console.log('Saved ' + uniqueArray);
     });
+    res.end();
   });
 });
 
@@ -983,6 +993,7 @@ app.post('/account/tag/delete', function (req, res) {
     req.session.user = user;
     console.log('Removed ' + req.body.removedTag + ' from interests.');
   });
+  res.end();
 });
 
 /**
