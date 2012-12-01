@@ -188,6 +188,14 @@ $(function () {
     var voted = $(this).attr('data-voted');
     var suspended = $(this).attr('data-suspended');
 
+    var starBig = $(this).attr('data-star-big');
+
+    if (starBig === 'Yes') {
+      $.fn.raty.defaults.starHalf = 'star-half-big.png';
+      $.fn.raty.defaults.starOn = 'star-on-big.png';
+      $.fn.raty.defaults.starOff = 'star-off-big.png';
+    }
+
     if (user) {
       if (suspended === 'Yes') {  // user has been suspended
         $('#' + id).raty({

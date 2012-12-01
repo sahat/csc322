@@ -15,138 +15,61 @@ block content
       .span7
         p
           strong Genre:
-          |  #{game.genre}
+          span  #{game.genre}
           br
           strong Price:
-          |  #{game.price}
+          span  #{game.price}
           br
+
           strong Rating:&nbsp;
-          span(id='rating_' + game.slug)
-          | &nbsp;
-          - avg = Math.ceil(game.rating/game.votes * 100) / 100 || 0
-          = avg
-          |  (#{game.votes} votes)
+
+          // check if user has already voted for this game
+          - voted = 'No'
+          if user.userName && game.votedPeople.length > 0
+            for voter in game.votedPeople
+              if voter == user.userName
+                - voted = 'Yes'
+
+          // check if user is suspended
+          if user.userName
+            - suspended = 'No'
+            if user.suspendedRating
+              - suspended = 'Yes'
+
+          - ratingAvg = Math.ceil(game.rating/game.votes * 100) / 100 || 0
+          span(class='stars', id='rating-#{game.slug}', data-rating=ratingAvg, data-user=user.userName, data-voted=voted, data-suspended=suspended, data-star-big='Yes')
+          span  #{ratingAvg} (#{game.votes} votes)
+
           br
           strong Comments:
-          |  #{comments.length}
+          span  #{comments.length}
           br
           strong Times Purchased:
-          |  #{game.purchaseCounter}
+          span  #{game.purchaseCounter}
           br
         if user.userName
-          p
-            button.btn.btn-primary.btn-large(id='price-#{game.slug}', href='#modal-#{game.slug}', role='button', data-toggle='modal')
+          // buy button - user already purchased the game
+          - purchaseFlag = false
+          if user.purchasedGames && user.purchasedGames.length > 0
+            for purchased in user.purchasedGames
+              if purchased.game.slug == game.slug
+                button.btn.btn-primary.btn-large
+                  i.icon-shopping-cart.icon-white
+                  span  Purchased
+                  - purchaseFlag = true
+          // buy button - user hasn't purchased the game
+          if !purchaseFlag
+            button.btn.btn-primary.btn-large(id='buy-#{game.slug}', data-game-title=game.title, class='buy', role='button', data-toggle='modal')
               i.icon-shopping-cart.icon-white
-              | Buy Now
-            if user.purchasedGames && user.purchasedGames.length > 0
-              for mygame in user.purchasedGames
-                if mygame.game.slug === game.slug
-                  script(type='text/javascript')
-                    $('#price-#{game.slug}').removeAttr('href');
-                    $('#price-#{game.slug}').html('<i class="icon-shopping-cart icon-white"></i> Purchased');
+              =  game.price
 
     small
-      i.icon.icon-hand-right
-      |  Tip: Mouse over the game cover to play a video preview.
+      i.icon.icon-star
+      span  Tip: Mouse over the game cover to play a video preview.
 
-    if user.userName
-      // if there are some votes already
-      if game.votedPeople.length > 0
-        // iterate over those votes to see who has voted
-        for voter in game.votedPeople
-          if voter == user.userName || user.suspendedRating
-            // user has already voted
-            script(type='text/javascript')
-              $('#rating_#{game.slug}').raty({
-                path: '/img',
-                round: { down: .25, full: .6, up: .76 },
-                score: #{game.rating}/#{game.votes},
-                readOnly: true,
-                starHalf  : 'star-half-big.png',
-                starOff   : 'star-off-big.png',
-                starOn    : 'star-on-big.png'
-              });
-          else
-            // logged-in user has not voted yet
-            script(type='text/javascript')
-              $('#rating_#{game.slug}').raty({
-                path: '/img',
-                round: { down: .25, full: .6, up: .76 },
-                score: #{game.rating}/#{game.votes},
-                starHalf  : 'star-half-big.png',
-                starOff   : 'star-off-big.png',
-                starOn    : 'star-on-big.png',
-                click: function (score, event) {
-                  var self = this;
-                  $.meow({
-                    message: 'Thanks for voting. Your rating has been submitted.',
-                    icon: 'http://png-3.findicons.com/files/icons/1577/danish_royalty_free/32/smiley.png'
-                  });
-                  $.ajax({
-                    type: 'POST',
-                    url: '/games/rating',
-                    data: {
-                      slug: $(self).attr('id').slice(7),
-                      rating: score
-                    },
-                    success: function () {
-                      $(self).raty('readOnly', true);
-                    }
-                  });
-                }
-              });
-      else
-        if (user.suspendedRating)
-          script(type='text/javascript')
-            $('#rating_#{game.slug}').raty({
-              path: '/img',
-              round: { down: .25, full: .6, up: .76 },
-              score: #{game.rating}/#{game.votes},
-              readOnly: true,
-              starHalf  : 'star-half-big.png',
-              starOff   : 'star-off-big.png',
-              starOn    : 'star-on-big.png'
-            });
-        else
-          script(type='text/javascript')
-            $('#rating_#{game.slug}').raty({
-              path: '/img',
-              round: { down: .25, full: .6, up: .76 },
-              score: #{game.rating}/#{game.votes},
-              starHalf  : 'star-half-big.png',
-              starOff   : 'star-off-big.png',
-              starOn    : 'star-on-big.png',
-              click: function (score, event) {
-                var self = this;
-                $.meow({
-                  message: 'Thanks for voting. Your rating has been submitted.',
-                  icon: 'http://png-3.findicons.com/files/icons/1577/danish_royalty_free/32/smiley.png'
-                });
-                $.ajax({
-                  type: 'POST',
-                  url: '/games/rating',
-                  data: {
-                    slug: $(self).attr('id').slice(7),
-                    rating: score
-                  },
-                  success: function () {
-                    $(self).raty('readOnly', true);
-                  }
-                });
-              }
-            });
-    else
-      // read-only rating for guests
-      script(type='text/javascript')
-        $('#rating_#{game.slug}').raty({
-          path: '/img',
-          round: { down: .25, full: .6, up: .76 },
-          score: #{game.rating}/#{game.votes},
-          readOnly: true,
-          starHalf  : 'star-half-big.png',
-          starOff   : 'star-off-big.png',
-          starOn    : 'star-on-big.png'
-        });
+
+
+
   h3 Product Summary
   if user.userName
     != game.summary
@@ -229,7 +152,6 @@ block content
                     i.icon-flag
                     |  Report
 
-
               else
                 .btn-group
                   a.btn.btn-mini(href='#', id='report-#{comment._id}')
@@ -254,7 +176,7 @@ block content
         return false;
       });
 
-    hr(id='hr-#{comment._id}');
+    hr(id='hr-#{comment._id}')
 
   if typeof(user.userName) == 'undefined'
     .alert
@@ -276,44 +198,4 @@ block content
           i.icon-comment.icon-white
           |  Leave Comment
 
-  .modal.hide.fade(id='modal-#{game.slug}', tabindex='-1', role='dialog', aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-header
-      span.lead Game Checkout
-        img.pull-right(src='/img/new_visa_medium.gif')
-    .modal-body
-      label
-        i.icon-user
-        |  Name on Card
-      input.input-medium(type='text')
-      label
-        i.icon-barcode
-        |  Card Number
-      input.input-medium(type='text', placeholder='•••• •••• •••• ••••', maxlength=16)
-
-      label
-        i.icon-time
-        |  Expiration Date
-      input.input-mini(type='text', placeholder='MMYY', maxlength=4)
-      label
-        i.icon-qrcode
-        |  Card Code
-      input.input-mini(type='text', placeholder='CVC', maxlength=4)
-    .modal-footer
-      button.btn(data-dismiss='modal', aria-hidden='true') Cancel
-      button.btn.btn-primary(id='#{game.slug}') Buy
-
-  script(type='text/javascript')
-    $('##{game.slug}').click(function() {
-      var game = this;
-      $.ajax({
-        type: 'post',
-        url: '/buy',
-        data:  {
-          slug: $(game).attr('id')
-        }
-      }).success(function () {
-        $('#price-#{game.slug}').attr('disabled', 'true');
-        $('#modal-' + $(game).attr('id')).modal('hide');
-        humane.log('Your order has been submitted!');
-      });
-    });
+  include buy
