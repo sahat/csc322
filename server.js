@@ -665,20 +665,20 @@ app.get('/games/:detail', function (req, res) {
  * POST /games/detail
  */
 app.post('/games/:detail', function (req, res) {
-//  'use strict';
-//  User.findOne({ userName: req.session.user.userName }, function (err, user) {
-//    Game.findOne({ slug: req.params.detail }, function (err, game) {
-//      var comment = new Comment({
-//        creator: user._id,
-//        game: game._id,
-//        body: req.body.comment
-//      });
-//      comment.save(function () {
-//        console.log('Saved comment to database');
-//      });
-//      res.redirect('/games/' + req.params.detail);
-//    });
-//  });
+  'use strict';
+  User.findOne({ userName: req.session.user.userName }, function (err, user) {
+    Game.findOne({ slug: req.params.detail }, function (err, game) {
+      var comment = new Comment({
+        creator: user._id,
+        game: game._id,
+        body: req.body.comment
+      });
+      comment.save(function () {
+        console.log('Saved comment to database');
+      });
+      res.redirect('/games/' + req.params.detail);
+    });
+  });
 });
 
 /**
@@ -861,40 +861,6 @@ app.post('/admin/comment/delete', function (req, res) {
       res.send(500, err);
     }
     console.log('Comment has been removed');
-  });
-});
-
-/**
- * POST /comment/add
- */
-app.post('/comment/add', function (req, res) {
-  'use strict';
-//
-//  var firstName = req.body.firstName;
-//  var lastName = req.body.lastName;
-//  var email = req.body.userEmail;
-//  var userName = usernamify(firstName, lastName);
-//
-//  var user = new User({
-//    firstName: firstName,
-//    lastName: lastName,
-//    email: email,
-//    userName: userName,
-//    password: userName,
-//    tempPassword: true
-//  });
-//
-//  User.findOne({ 'isAdmin': true }, function (err, admin) {
-//    if (err) {
-//      res.send(500);
-//    }
-
-
-  console.log(req.body.comment);
-  res.end({
-    firstName: req.session.user.firstName,
-    lastName: req.session.user.lastName
-
   });
 });
 

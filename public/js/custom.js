@@ -251,19 +251,3 @@ $(function () {
     }
   });
 });
-
-$(function () {
-  'use strict';
-
-  $('#add-comment').click(function() {
-    $.post('/comment/add', { comment: $('#comment-body').val() }, function (data) {
-      console.log(data);
-      $('#comment-list').append('<b>stuff</b>');
-
-      $('#comment-body').val('');
-      $('#comment-body').focus();
-    });
-    humane.log('Comment added');
-    return false;
-  });
-});

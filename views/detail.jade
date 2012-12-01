@@ -31,8 +31,8 @@ block content
                 - voted = 'Yes'
 
           // check if user is suspended
+          - suspended = 'No'
           if user.userName
-            - suspended = 'No'
             if user.suspendedRating
               - suspended = 'Yes'
 
@@ -103,62 +103,69 @@ block content
       h4 #{comments.length} Comments
     div Feel free to leave a comment below about the game. We only ask you to be civil.
 
-  #comment-list
-    for comment in comments
-      div(id=comment.id)
-        span By
-          if comment.creator
-            strong  #{comment.creator.firstName} #{comment.creator.lastName}
-          else
-            strong  User No Longer Exists
-        br
-        small.muted #{comment.date.toLocaleDateString()}
-        p= comment.body
-            tr
-              td
+  for comment in comments
+    table(id='table-#{comment._id}')
+      tbody
+        tr
+          td.left-table-border(rowspan=4)
+          td
+            span By
+            if comment.creator
+              strong  #{comment.creator.firstName} #{comment.creator.lastName}
+            else
+              strong  User No Longer Exists
+        tr
+          td
+            small.muted #{comment.date.toLocaleDateString()}
+        tr
+          td
+            p= comment.body
+        tr
+          td
+            div#result
+              if comment.creator
+                if comment.creator.userName == user.userName
+                  a.btn.btn-mini(href='#', id=comment._id)
+                    i.icon-trash
+                    span  Delete
+                else if user.isAdmin
+                  .btn-group
+                    a.btn.btn-mini(href='#', id='report-#{comment._id}')
+                      i.icon-flag
+                      span  Report
+                    a.btn.btn-mini(href='#', id=comment._id)
+                      i.icon-trash
+                      span  Delete
+                else
+                  a.btn.btn-mini(href='#', id='report-#{comment._id}')
+                    i.icon-flag
+                    span  Report
 
-        if comment.creator
-          if comment.creator.userName == user.userName
-            a.btn.btn-mini(href='#', id=comment._id)
-              i.icon-trash
-              span  Delete
-          else if user.isAdmin
-            .btn-group
-              a.btn.btn-mini(href='#', id='report-#{comment._id}')
-                i.icon-flag
-                span  Report
-              a.btn.btn-mini(href='#', id=comment._id)
-                i.icon-trash
-                span  Delete
-          else
-            a.btn.btn-mini(href='#', id='report-#{comment._id}')
-              i.icon-flag
-              span  Report
-
-        else
-          .btn-group
-            a.btn.btn-mini(href='#', id='report-#{comment._id}')
-              i.icon-flag
-              span  Report
+              else
+                .btn-group
+                  a.btn.btn-mini(href='#', id='report-#{comment._id}')
+                    i.icon-flag
+                    span  Report
 
 
-      script(type='text/javascript')
-        $('##{comment._id}').click(function() {
-          $.post('/comment/delete', { commentId: '#{comment._id}' });
-          $('#table-#{comment.id}').remove();
-          $('#hr-#{comment.id}').remove();
-          humane.log('Comment removed');
-          return false;
-        });
+    script(type='text/javascript')
+      $('##{comment._id}').click(function() {
+        console.log('clicked on delete');
+        $.post('/comment/delete', { commentId: '#{comment._id}' });
+        $('#table-#{comment.id}').remove();
+        $('#hr-#{comment.id}').remove();
+        humane.log('Comment removed');
+        return false;
+      });
 
-        $('#report-#{comment._id}').click(function() {
-          console.log('clicked on report');
-          $.post('/comment/report', { comment_id: '#{comment._id}' });
-          humane.log('Comment has been reported');
-          return false;
-        });
+      $('#report-#{comment._id}').click(function() {
+        console.log('clicked on report');
+        $.post('/comment/report', { comment_id: '#{comment._id}' });
+        humane.log('Comment has been reported');
+        return false;
+      });
 
-      hr(id='hr-#{comment._id}')
+    hr(id='hr-#{comment._id}')
 
   if typeof(user.userName) == 'undefined'
     .alert
