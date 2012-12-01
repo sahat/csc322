@@ -152,10 +152,14 @@ $('#comment').validate({
 $(function () {
   'use strict';
   $.each($('.stars'), function() {
-    $('#' + $(this).attr('id')).raty({
+
+    var slug = $(this).attr('id');
+    var rating = $(this).attr('data-rating');
+
+    $('#' + slug).raty({
       path: '/img',
       round : { down: 0.25, full: 0.6, up: 0.76 },
-      score: $(this).attr('data-rating'),
+      score: rating,
       readOnly: true
     });
   });

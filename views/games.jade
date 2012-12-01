@@ -74,66 +74,46 @@ block content
     table.table
       tbody
         for game in games
-          .modal.hide.fade(id='modal-#{game.slug}', tabindex='-1', role='dialog', aria-labelledby='myModalLabel', aria-hidden='true')
-            .modal-header
-              span.lead Game Checkout
-                img.pull-right(src='/img/new_visa_medium.gif')
-            .modal-body
-              label
-                i.icon-user
-                |  Name on Card
-              input.input-medium(type='text')
-              label
-                i.icon-barcode
-                |  Card Number
-              input.input-medium(type='text', placeholder='•••• •••• •••• ••••', maxlength=16)
-
-              label
-                i.icon-time
-                |  Expiration Date
-              input.input-mini(type='text', placeholder='MMYY', maxlength=4)
-              label
-                i.icon-qrcode
-                |  Card Code
-              input.input-mini(type='text', placeholder='CVC', maxlength=4)
-            .modal-footer
-              button.btn(data-dismiss='modal', aria-hidden='true') Cancel
-              button.btn.btn-primary(id='#{game.slug}') Buy
           tr
             td.span2
+              // game thumbnail
               a(href='/games/#{game.slug}')
                 img.img-polaroid.small-img(src='/img/games/#{game.largeImage}')
-
             td
+              // game title
               a(href='/games/#{game.slug}')
-                strong
-                  = game.title
-              | &nbsp;
-              if user.userName
-                button.btn.btn-primary.btn-mini(id='price-#{game.slug}', href='#modal-#{game.slug}', role='button', data-toggle='modal')
-                  i.icon-shopping-cart.icon-white
-                  =  game.price
-                if user.purchasedGames && user.purchasedGames.length > 0
-                  for mygame in user.purchasedGames
-                    if mygame.game.slug == game.slug
-                      script(type='text/javascript')
-                        $('#price-#{game.slug}').removeAttr('href');
-                        $('#price-#{game.slug}').html('<i class="icon-shopping-cart icon-white"></i> Purchased');
+                strong #{game.title}
 
+              if user.userName
+                // buy button
+                - purchaseFlag = false
+                if user.purchasedGames && user.purchasedGames.length > 0
+                  for purchased in user.purchasedGames
+                    if purchased.game.slug == game.slug
+                      button.btn.btn-primary.btn-mini
+                        i.icon-shopping-cart.icon-white
+                        span  Purchased
+                        - purchaseFlag = true
+
+                if !purchaseFlag
+                  button.btn.btn-primary.btn-mini(id='buy-#{game.slug}', href='#modal-#{game.slug}', role='button', data-toggle='modal')
+                    i.icon-shopping-cart.icon-white
+                    =  game.price
+
+              // game rating
               div
-                - averageRating = Math.ceil(game.rating/game.votes * 100) / 100 || 0
-                span(class='stars', data-slug=#{game.slug}, data-rating='#{averageRating}')
-                span(id='votes', name='votes')
-                | &nbsp;
-                - avg = Math.ceil(game.rating/game.votes * 100) / 100 || 0
-                = avg
-                |  (#{game.votes} votes)
+                - ratingAvg = Math.ceil(game.rating/game.votes * 100) / 100 || 0
+                span(class='stars', id='rating-#{game.slug}', data-rating=ratingAvg)
+                span  #{ratingAvg} (#{game.votes} votes)
+
+              // game information
               div
                 small.muted
                   div #{game.releaseDate} | #{game.publisher}
                   div #{game.genre}
-              p
-                =game.description
+
+              // game description
+              p #{game.description}
 
 
           // logged-in users
