@@ -67,9 +67,6 @@ block content
       i.icon.icon-star
       span  Tip: Mouse over the game cover to play a video preview.
 
-
-
-
   h3 Product Summary
   if user.userName
     != game.summary
@@ -93,17 +90,9 @@ block content
               a(href='/games/#{similarGame.slug}')
                 strong #{similarGame.title}
               div
-                span(id='_' + similarGame.slug)
-                span(id='votes', name='votes')
-                  small  (#{similarGame.votes} votes)
-              script(type='text/javascript')
-                $('#_#{similarGame.slug}').raty({
-                  path: '/img',
-                  round: { down: .25, full: .6, up: .76 },
-                  score: #{similarGame.rating}/#{similarGame.votes},
-                  space: false,
-                  readOnly: true,
-                });
+                - similarGameRatingAvg = Math.ceil(similarGame.rating/similarGame.votes * 100) / 100 || 0
+                span(class='stars', id='rating-#{similarGame.slug}', data-similar-games='Yes', data-rating=similarGameRatingAvg)
+                span  #{similarGameRatingAvg} (#{similarGame.votes} votes)
               div
                 small.muted Release Date: #{similarGame.releaseDate} | Genre: #{similarGame.genre}
 
@@ -120,11 +109,11 @@ block content
         tr
           td.left-table-border(rowspan=4)
           td
-            | By&nbsp;
+            span By
             if comment.creator
-              strong #{comment.creator.firstName} #{comment.creator.lastName}
+              strong  #{comment.creator.firstName} #{comment.creator.lastName}
             else
-              strong User That No Longer Exists
+              strong  User No Longer Exists
         tr
           td
             small.muted #{comment.date.toLocaleDateString()}
@@ -138,25 +127,25 @@ block content
                 if comment.creator.userName == user.userName
                   a.btn.btn-mini(href='#', id=comment._id)
                     i.icon-trash
-                    |  Delete
+                    span  Delete
                 else if user.isAdmin
                   .btn-group
                     a.btn.btn-mini(href='#', id='report-#{comment._id}')
                       i.icon-flag
-                      |  Report
+                      span  Report
                     a.btn.btn-mini(href='#', id=comment._id)
                       i.icon-trash
-                      |  Delete
+                      span  Delete
                 else
                   a.btn.btn-mini(href='#', id='report-#{comment._id}')
                     i.icon-flag
-                    |  Report
+                    span  Report
 
               else
                 .btn-group
                   a.btn.btn-mini(href='#', id='report-#{comment._id}')
                     i.icon-flag
-                    |  Report
+                    span  Report
 
 
     script(type='text/javascript')

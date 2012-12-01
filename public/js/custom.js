@@ -187,13 +187,18 @@ $(function () {
     var user = $(this).attr('data-user');
     var voted = $(this).attr('data-voted');
     var suspended = $(this).attr('data-suspended');
-
     var starBig = $(this).attr('data-star-big');
+    var similarGames = $(this).attr('data-similar-games');
 
     if (starBig === 'Yes') {
       $.fn.raty.defaults.starHalf = 'star-half-big.png';
       $.fn.raty.defaults.starOn = 'star-on-big.png';
       $.fn.raty.defaults.starOff = 'star-off-big.png';
+    } else if (similarGames === 'Yes') {
+      $.fn.raty.defaults.starHalf = 'star-half.png';
+      $.fn.raty.defaults.starOn = 'star-on.png';
+      $.fn.raty.defaults.starOff = 'star-off.png';
+      $.fn.raty.defaults.space = false;
     }
 
     if (user) {
