@@ -121,7 +121,8 @@ block content
                         $('#price-#{game.slug}').html('<i class="icon-shopping-cart icon-white"></i> Purchased');
 
               div
-                span(id='_' + game.slug)
+                - averageRating = Math.ceil(game.rating/game.votes * 100) / 100 || 0
+                span(class='stars', data-slug=#{game.slug}, data-rating='#{averageRating}')
                 span(id='votes', name='votes')
                 | &nbsp;
                 - avg = Math.ceil(game.rating/game.votes * 100) / 100 || 0
@@ -212,12 +213,7 @@ block content
                       });
           else
             script(type='text/javascript')
-              $('#_#{game.slug}').raty({
-                path: '/img',
-                round : { down: .25, full: .6, up: .76 },
-                score: #{game.rating}/#{game.votes},
-                readOnly: true
-              });
+              // do nothing
 
           script(type='text/javascript')
             $('##{game.slug}').click(function() {

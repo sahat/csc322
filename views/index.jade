@@ -46,24 +46,25 @@ block content
                   readOnly: true,
                 });
     else
+      // no user is logged-in
       if games.length == 0
         .alert.alert-warning
           | Database query returned no results.
       else
         for game in games
           .span4
+            // game thumbnail
             a(href='/games/#{game.slug}')
               img.img-polaroid.large(src='/img/games/#{game.largeImage}')
+
+            // game title
             h4
               a(href='/games/#{game.slug}') #{game.title}
-            span(id='_' + game.slug)
-            span(id='votes', name='votes')
-              |  (#{game.votes})
-            br
+
+            // game rating
+            - averageRating = Math.ceil(game.rating/game.votes * 100) / 100 || 0
+            span(id='#{game.slug}', class='stars', data-rating='#{averageRating}')
+            |  (#{game.votes} votes)
+
+            // game price
             h4 #{game.price}
-            script(type='text/javascript')
-              $('#_#{game.slug}').raty({
-                round : { down: .25, full: .6, up: .76 },
-                score: #{game.rating}/#{game.votes},
-                readOnly: true,
-              });

@@ -52,6 +52,7 @@ var gmail = email.server.connect({
 
 // MongoDB Config
 mongoose.connect('mongodb://sahat:mongooska@ds037827.mongolab.com:37827/csc322');
+//mongoose.connect('localhost', 'test');
 
 // Here we create a schema called Game with the following fields.
 var GameSchema = new mongoose.Schema({
