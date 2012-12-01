@@ -220,7 +220,17 @@ $(function () {
               message: 'Thanks for voting. Your rating has been submitted.',
               icon: '/img/smiley.png'
             });
-            $.post('/rate', { slug: slug, rating: score });
+
+            $.ajax({
+              type: 'post',
+              url: '/rate',
+              data: { slug: slug, rating: score },
+              success: function (data, status) {
+                console.log('POST', status);
+                $('#' + id).raty('readOnly', true);
+              }
+            });
+
           }
         });
       } else if (voted === 'Yes') {  // user already voted
@@ -242,3 +252,18 @@ $(function () {
   });
 });
 
+$(function () {
+  'use strict';
+
+  $('#add-comment').click(function() {
+    $.post('/comment/add', { comment: $('#comment-body').val() }, function (data) {
+      console.log(data);
+      $('#comment-list').append('<b>stuff</b>');
+
+      $('#comment-body').val('');
+      $('#comment-body').focus();
+    });
+    humane.log('Comment added');
+    return false;
+  });
+});
