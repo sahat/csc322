@@ -146,22 +146,86 @@ $('#comment').validate({
 });
 
 
-
-// rating code
+/**
+ * Buying System
+ */
 
 $(function () {
   'use strict';
+
+  $.each($('.buy'), function() {
+
+    var id = $(this).attr('id');
+    var title= $(this).attr('data-game-title');
+    var slug = id.replace('buy-', '');
+
+    $('#' + id).click(function() {
+      $('#game-title').text(title);
+      $('#modal').modal('show');
+      $('#buy-confirm').click(function() {
+        humane.log('Your order has been submitted!');
+        $('#modal').modal('hide');
+        $('#' + id).attr('disabled', 'true');
+        $.post('/buy', { slug: slug });
+      });
+    });
+  });
+});
+
+
+/**
+ * Rating System
+ */
+$(function () {
+  'use strict';
+
   $.each($('.stars'), function() {
 
-    var slug = $(this).attr('id');
+    var id = $(this).attr('id');
+    var slug = id.replace('rating-', '');
     var rating = $(this).attr('data-rating');
+    var user = $(this).attr('data-user');
+    var voted = $(this).attr('data-voted');
+    var suspended = $(this).attr('data-suspended');
 
-    $('#' + slug).raty({
-      path: '/img',
-      round : { down: 0.25, full: 0.6, up: 0.76 },
-      score: rating,
-      readOnly: true
-    });
+    if (user) {
+      if (suspended === 'Yes') {  // user has been suspended
+        $('#' + id).raty({
+          path: '/img',
+          round : { down: 0.25, full: 0.6, up: 0.76 },
+          score: rating,
+          readOnly: true
+        });
+      }
+      else if (voted === 'No') { // user hasn't voted yet
+        $('#' + id).raty({
+          path: '/img',
+          round : { down: 0.25, full: 0.6, up: 0.76 },
+          score: rating,
+          click: function (score) {
+            $.meow({
+              message: 'Thanks for voting. Your rating has been submitted.',
+              icon: '/img/smiley.png'
+            });
+            $.post('/rate', { slug: slug, rating: score });
+          }
+        });
+      } else if (voted === 'Yes') {  // user already voted
+        $('#' + id).raty({
+          path: '/img',
+          round : { down: 0.25, full: 0.6, up: 0.76 },
+          score: rating,
+          readOnly: true
+        });
+      }
+    } else {  // visitor read-only mode
+      $('#' + id).raty({
+        path: '/img',
+        round : { down: 0.25, full: 0.6, up: 0.76 },
+        score: rating,
+        readOnly: true
+      });
+    }
   });
 });
 

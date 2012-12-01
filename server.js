@@ -470,11 +470,11 @@ app.post('/buy', function (req, res) {
 /**
  * POST /rate
  */
-app.post('/games/rating', function (req, res) {
+app.post('/rate', function (req, res) {
   'use strict';
   User
     .findOne({ 'userName': req.session.user.userName })
-    .populate('purchasedGames')
+    .populate('purchasedGames.game')
     .exec(function (err, user) {
       if (err) {
         res.send(500, 'Could not find the user for rating POST request');
@@ -485,11 +485,15 @@ app.post('/games/rating', function (req, res) {
           res.send(500, 'No results for the rated game');
         }
 
+        /*
         for (var i = 0; i < user.purchasedGames.length; i++) {
           if (user.purchasedGames[i].game.slug === req.body.slug) {
             user.ratingWeight = 2;
           }
         }
+
+        */
+        console.log(game);
 
         game.votes++;
         game.rating = game.rating + Number(req.body.rating);

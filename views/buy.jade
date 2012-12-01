@@ -1,0 +1,26 @@
+.modal.hide.fade(id='modal', tabindex='-1', role='dialog', aria-labelledby='myModalLabel', aria-hidden='true')
+  .modal-header
+    span.lead Game Checkout
+      img.pull-right(src='/img/new_visa_medium.gif')
+  .modal-body
+    label
+      i.icon-user
+      span  Name on Card
+    input.input-medium(type='text')
+    label
+      i.icon-barcode
+      span  Card Number
+    input.input-medium(type='text', placeholder='•••• •••• •••• ••••', maxlength=16)
+
+    label
+      i.icon-time
+      span  Expiration Date
+    input.input-mini(type='text', placeholder='MMYY', maxlength=4)
+    label
+      i.icon-qrcode
+      span  Card Code
+    input.input-mini(type='text', placeholder='CVC', maxlength=4)
+  .modal-footer
+    button.btn.btn-success.pull-left(id='game-title') Game Title
+    button.btn(data-dismiss='modal', aria-hidden='true') Cancel
+    button.btn.btn-primary(id='buy-confirm') Buy
