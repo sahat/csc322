@@ -1045,7 +1045,10 @@ app.get('/logout', function (req, res) {
           res.redirect('/');
         });
       });
-
+    } else {
+      req.session.destroy(function () {
+        res.redirect('/');
+      });
     }
   });
 
