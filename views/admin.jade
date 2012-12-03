@@ -116,7 +116,7 @@ block content
                 
                 script(type='text/javascript')
                   $('#unsuspend-#{user.userName}').click(function () {
-                     $.post('/admin/comment-unsuspend', { username: '#{user.userName}' });
+                     $.post('/admin/rating-unsuspend', { username: '#{user.userName}' });
                      $(this).remove();
                      humane.log('User has been unsuspended.');
                      return false;

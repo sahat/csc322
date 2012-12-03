@@ -33,18 +33,12 @@ block content
             strong
               a(href='/games/#{game.slug}') #{game.title}
             div
-              span(id='_' + game.slug)
-              span(id='votes', name='votes')
-                small  (#{game.votes})
+              - ratingAvg = Math.ceil(game.rating/game.votes * 100) / 100 || 0
+              span(class='stars', id='rating-#{game.slug}', data-rating=ratingAvg)
+              span  (#{game.votes})
               br
               strong #{game.price}
-              script(type='text/javascript')
-                $('#_#{game.slug}').raty({
-                  path: '/img',
-                  round : { down: .25, full: .6, up: .76 },
-                  score: #{game.rating}/#{game.votes},
-                  readOnly: true,
-                });
+
     else
       // no user is logged-in
       if games.length == 0
@@ -64,7 +58,7 @@ block content
             // game rating
             - averageRating = Math.ceil(game.rating/game.votes * 100) / 100 || 0
             span(id='#{game.slug}', class='stars', data-rating='#{averageRating}')
-            |  (#{game.votes} votes)
+            |  #{averageRating} (#{game.votes} votes)
 
             // game price
             h4 #{game.price}

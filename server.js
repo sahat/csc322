@@ -98,7 +98,13 @@ var UserSchema = new mongoose.Schema({
   purchasedGames: [{
     game: { type: mongoose.Schema.Types.ObjectId, ref: 'Game' },
     date: { type: Date, default: Date.now() }
-  }]
+  }],
+  ratedGames: [{
+    game: { type: mongoose.Schema.Types.ObjectId, ref: 'Game' },
+    rating: Number
+  }],
+  viewedGames: [String],
+  lastLogin: Boolean
 });
 
 // Comment schema
@@ -305,12 +311,22 @@ app.post('/add', function (req, res) {
 
 /**
  * GET /index
+ * === Algorithm ===
+ * if user.purchaseGames.length < 1
+ * | display 6 games based on interests
+ * | sort by the highest rating of peers (rated games)
+ *   else
+ *   | display 3 games based on interests
+ *   | sort by the highest rating of peers
+ *   | display other 3 games based on the genres of purchasedGames
+ *   | sort by the highest rating of peers (purchased games)
  */
 app.get('/', function (req, res) {
   'use strict';
   if (req.session.user && (req.session.user.tempPassword || req.session.user.interests.length < 3)) {
     res.redirect('/account');
   }
+
   if (req.session.user) {
     User
       .where('interests').in(req.session.user.interests)
@@ -321,16 +337,6 @@ app.get('/', function (req, res) {
         if (err) {
           res.send(500, err);
         }
-
-        var accumulator = 0;
-        _.each(similarUsers, function(user) {
-          _.each(user.ratedGames, function () {
-            accumulator++;
-          });
-          _.each(user.purchasedGames, function () {
-            accumulator++;
-          });
-        });
 
         Game
           .where('genre').in(req.session.user.interests)
@@ -359,38 +365,31 @@ app.get('/', function (req, res) {
 
             var myInterestGames = [];
             var temp2 = [];
+            var gameCounter = 0;
 
-            // games 1, 2, 3
             _.each(interestGames, function (interestGame) {
               myInterestGames.push(interestGame);
             });
 
-            // games 4, 5, 6
             _.each(similarUsers, function(user) {
               _.each(user.ratedGames, function (ratedGame) {
-                if (ratedGame.myRating >= 4) {
+                if (ratedGame.rating >= 4) {
                   temp2.push(ratedGame.game);
+                  gameCounter++;
                 }
               });
               _.each(user.purchasedGames, function (purchasedGame) {
                 temp2.push(purchasedGame.game);
+                gameCounter++;
               });
-            });
-
-            temp2.sort(function(a,b) {
-              return b.weightedRating - a.weightedRating;
-            });
-
-            _.each(temp2, function(e){
-              console.log(e.weightedRating);
             });
 
             var recommendedGames;
 
-            if (accumulator < 3) {
+            if (gameCounter < 3) {
               recommendedGames = _.shuffle(myInterestGames);
             } else {
-              recommendedGames = games_union(myInterestGames.slice(0,3), temp2);
+              recommendedGames = games_union(myInterestGames.slice(0,3), _.shuffle(temp2));
             }
 
             res.render('index', {
@@ -400,7 +399,7 @@ app.get('/', function (req, res) {
               recommendedGames:_.shuffle(recommendedGames.slice(0,6))
             });
 
-        });
+          });
       });
   } else {
     Game
@@ -487,20 +486,29 @@ app.post('/rate', function (req, res) {
           res.send(500, 'No results for the rated game');
         }
 
-        /*
         for (var i = 0; i < user.purchasedGames.length; i++) {
           if (user.purchasedGames[i].game.slug === req.body.slug) {
             user.ratingWeight = 2;
           }
         }
 
-        */
-        console.log(game);
+        user.ratedGames.push({
+          game: game,
+          rating: req.body.rating
+        });
+
+        var viewedGameMultiplier = 1;
+
+        if (!_.contains(user.viewedGames, req.body.slug)) {
+          viewedGameMultiplier = 0.8;
+        }
 
         game.votes++;
         game.rating = game.rating + Number(req.body.rating);
-        game.weightedRating = game.rating + Number(req.body.rating) * user.ratingWeight;
+        game.weightedRating = game.rating + Number(req.body.rating) * user.ratingWeight * viewedGameMultiplier;
         game.votedPeople.push(req.session.user.userName);
+
+        console.log('User\'s weighted rating is:', Number(req.body.rating) * user.ratingWeight * viewedGameMultiplier);
 
         game.save(function (err) {
           if (err) {
@@ -513,10 +521,11 @@ app.post('/rate', function (req, res) {
 
       var sessionTotal = _.reduce(req.session.ratings, function (a, b) { return a + b; });
       var sessionAverage =  sessionTotal / req.session.ratings.length;
-
+      console.log('Session average rating:', sessionAverage);
       if (!req.session.flagged && req.session.ratings.length >= 5 && (sessionAverage <= 1.5 || sessionAverage >= 4.5)) {
         req.session.flagged = true;
         user.ratingFlagCount++;
+        console.log('Rating spammer flag count has been incremented to:', user.ratingFlagCount);
       }
 
       if (user.ratingFlagCount == 1) {
@@ -527,8 +536,10 @@ app.post('/rate', function (req, res) {
         if (user.ratingPardon) {
           user.suspendedAccount = true;
           user.suspendedRating = true;
+          console.log('Your account has been suspended and you have been revoked rating ability');
         } else {
           user.suspendedRating = true;
+          console.log('Rating privelleges have been suspended');
         }
       }
 
@@ -539,7 +550,7 @@ app.post('/rate', function (req, res) {
           res.send(500, err);
         }
       });
-
+      console.log('Session ratings:', req.session.ratings);
       res.end();
     });
 
@@ -604,16 +615,16 @@ app.get('/games', function (req, res) {
 /**
  * GET /games/detail
  */
-app.get('/games/:detail', function (req, res) {
+app.get('/games/:detail', function(req, res) {
+  'use strict';
   if (req.session.user && (req.session.user.tempPassword || req.session.user.interests.length < 3)) {
     return res.redirect('/account');
   }
 
-  Game.findOne({ 'slug': req.params.detail }, function (err, game) {
+  Game.findOne({ 'slug': req.params.detail }, function(err, game) {
     if (err) {
-      res.send(500, err);
+      return res.send(500, err);
     }
-
     Game
       .where('genre').equals(game.genre)
       .where('slug').ne(req.params.detail)
@@ -628,16 +639,26 @@ app.get('/games/:detail', function (req, res) {
           .find({ game: game._id })
           .populate('creator')
           .exec(function (err, comments) {
-            if (err) res.send(500, err);
+            if (err) {
+              return res.send(500, err);
+            }
 
             if (req.session.user) {
               User
                 .findOne({ 'userName': req.session.user.userName })
                 .populate('purchasedGames.game')
-                .exec(function (err, user) {
+                .exec(function(err, user) {
                   if (err) {
-                    res.send(500, err);
+                   return res.send(500, err);
                   }
+
+                  user.viewedGames.push(req.params.detail);
+                  user.save(function(err) {
+                    if (err) {
+                      return res.send(500, err);
+                    }
+                  });
+
                   res.render('detail', {
                     heading: game.title,
                     lead: game.publisher,
@@ -766,7 +787,9 @@ app.post('/admin/rating-unsuspend', function (req, res) {
     user.ratingWeight = 1;
     user.ratingPardon = true;
     user.save(function(err) {
-      if (err) res.send(500, err);
+      if (err) {
+        res.send(500, err);
+      }
       req.session.user = user;
     });
     res.end();
@@ -776,6 +799,7 @@ app.post('/admin/rating-unsuspend', function (req, res) {
 /**
  * POST /comment-unsuspend
  */
+/*
 app.post('/admin/comment-unsuspend', function (req, res) {
   'use strict';
   User.findOne({ 'userName': req.body.username }, function (err, user) {
@@ -791,6 +815,7 @@ app.post('/admin/comment-unsuspend', function (req, res) {
     res.end();
   });
 });
+*/
 
 app.post('/admin/comment/ignore', function (req,  res) {
   'use strict';
@@ -945,13 +970,13 @@ app.post('/account', function (req, res) {
     }
 
     user.save(function (err) {
+      console.log('saved');
       if (err) {
         res.send(500, err);
       }
       req.session.user = user;
       res.redirect('/account');
     });
-    res.end();
   });
 });
 
@@ -969,10 +994,11 @@ app.post('/account/tag/add', function (req, res) {
     var uniqueArray = _.uniq(flatArray);
     user.interests = uniqueArray;
     user.save(function (err) {
-      if (err) res.send(500, err);
-      console.log('Saved ' + uniqueArray);
+      if (err) {
+        res.send(500, err);
+      }
+      req.session.user = user;
     });
-    res.end();
   });
 });
 
@@ -983,16 +1009,11 @@ app.post('/account/tag/delete', function (req, res) {
     user.interests.splice(index, 1);
     user.save(function (err) {
       if (err) {
-        return res.send(500, err);
+        res.send(500, err);
       }
-      console.log('Saved!');
+      req.session.user = user;
     });
-
-    // update user session object to avoid inconsistency
-    req.session.user = user;
-    console.log('Removed ' + req.body.removedTag + ' from interests.');
   });
-  res.end();
 });
 
 /**
@@ -1000,19 +1021,35 @@ app.post('/account/tag/delete', function (req, res) {
  */
 app.get('/logout', function (req, res) {
   'use strict';
+
   if (!req.session.user) {
     return res.redirect('/');
   }
 
   User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
-    if (user.suspendedAccount) {
+    if (!user) return res.redirect('/');
+
+    if (user.suspendedAccount && user.lastLogin) {
       User.findOne({ 'userName': req.session.user.userName }).remove();
+      req.session.destroy(function () {
+        res.redirect('/');
+      });
+    } else if (user.suspendedAccount && !user.lastLogin) {
+      user.lastLogin = true;
+
+      user.save(function(err) {
+        if (err) {
+          res.send(500, err);
+        }
+        req.session.destroy(function () {
+          res.redirect('/');
+        });
+      });
+
     }
   });
 
-  req.session.destroy(function () {
-    res.redirect('/');
-  });
+
 });
 
 /**
@@ -1023,12 +1060,6 @@ app.get('/login', function(req, res) {
   if (req.session.user) {
     res.redirect('/');
   }
-  User.remove({ 'userName': 'aanon836' }, function (err) {
-    if (err) {
-      res.send(500, err);
-    }
-    console.log('User has been removed from the system');
-  });
 
   res.render('login', {
     heading: 'Sign In',
@@ -1096,6 +1127,7 @@ app.get('/register', function(req, res) {
  */
 app.post('/register', function(req, res) {
   'use strict';
+
   // Helper function to generate a unique username
   function usernamify(first, last) {
     first = first[0].toLowerCase();
@@ -1120,6 +1152,7 @@ app.post('/register', function(req, res) {
     tempPassword: true
   });
 
+  // To make sure only the first user is an admin, every other user is a regular user
   User.findOne({ 'isAdmin': true }, function (err, admin) {
     if (err) {
       res.send(500);
