@@ -147,12 +147,29 @@ $('#comment').validate({
   }
 });
 
+/**
+ * Tags (Interests)
+ */
+
+$(function() {
+  $("#update-tags").click(function () {
+    $.ajax({
+      type: 'post',
+      url: '/account/tag/add',
+      data: { tags: $('#interests').tagit('assignedTags') },
+      success: function (data, status) {
+        console.log('POST', status);
+        humane.log('Successfuly updated')
+      }
+    });
+  });
+});
 
 /**
  * Buying System
  */
 
-$(function () {
+$(function() {
   'use strict';
 
   $.each($('.buy'), function() {

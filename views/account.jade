@@ -26,9 +26,14 @@ block content
   form#registration.form-horizontal(method='post')
     br
     div.lead#getting-started Type your interests below to get started...
-    ul#interests
-      for i in user.interests
-        li= i
+    .row
+      .span10
+        ul#interests
+          for i in user.interests
+            li= i
+      .span2
+        a.btn.btn-danger.btn-large(id='update-tags') Update Interests
+
     legend Account Information
     .control-group
       label.control-label(for='userName') Username
@@ -76,6 +81,7 @@ block content
               td
                 a(href='/games/#{purchased.game.slug}') #{purchased.game.title}
               td #{new Date(purchased.date).toLocaleDateString()}
+
   script(type='text/javascript')
     var tagCount;
     if ($('#interests li').length == 0) {
@@ -109,12 +115,7 @@ block content
             $(this).text('One more interest.').fadeIn(200);
           });
         }
-        if (tagCount == 3) {
-          $('#getting-started').fadeOut(200, function() {
-            $(this).text('Thanks! Please feel free to add more interests if you wish.').fadeIn(200);
-          });
-        }
-        if (tagCount > 3) {
+        if (tagCount >= 3) {
           $('#getting-started').hide();
         }
         var tempTag = $(tag).text();
@@ -138,19 +139,8 @@ block content
             $(this).text('One more interest.').fadeIn(200);
           });
         }
-        if (tagCount == 3) {
-          $('#getting-started').fadeOut(200, function() {
-            $(this).text('Thanks! Please feel free to add more interests if you wish.').fadeIn(200);
-          });
-        }
-        if (tagCount > 3) {
+        if (tagCount >= 3) {
           $('#getting-started').hide();
         }
       }
-    });
-
-    $("button[type=submit]").click(function () {
-      $.post('/account/tag/add', { tags: $('#interests').tagit('assignedTags') }, function (data) {
-        console.log("Data loaded: " + data);
-      });
     });
