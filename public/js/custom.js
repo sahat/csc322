@@ -1,10 +1,12 @@
 $('#registration').validate({
   rules: {
     firstName: {
-      required: true
+      required: true,
+      maxlength: 15
     },
     lastName: {
-      required: true
+      required: true,
+      maxlength: 15
     },
     userEmail: {
       required: true,
