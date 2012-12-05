@@ -989,13 +989,21 @@ app.post('/account/tag/add', function (req, res) {
     if (err) {
       res.send(500, err);
     }
-    _.each(req.body.tags, function (tag) {
-      console.log(tag);
-      user.interests.push(tag);
-    });
+
+//    _.each(req.body.tags, function (tag) {
+//      console.log(tag);
+//      user.interests.push(tag);
+//    });
+    console.log('I am here');
+    console.log(req.body.addedTag);
+    user.interests.push(req.body.addedTag);
+
+
     var flatArray = _.flatten(user.interests);
     var uniqueArray = _.uniq(flatArray);
     user.interests = uniqueArray;
+    console.log('new interests:', user.interests);
+
     user.save(function (err) {
       if (err) {
         res.send(500, err);
@@ -1009,6 +1017,9 @@ app.post('/account/tag/add', function (req, res) {
 app.post('/account/tag/delete', function (req, res) {
   'use strict';
   User.findOne({ 'userName': req.session.user.userName }, function (err, user) {
+    if (err) {
+      res.send(500, err);
+    }
     var index = user.interests.indexOf(req.body.removedTag);
     user.interests.splice(index, 1);
     user.save(function (err) {
@@ -1016,6 +1027,7 @@ app.post('/account/tag/delete', function (req, res) {
         res.send(500, err);
       }
       req.session.user = user;
+      res.end();
     });
   });
 });

@@ -152,16 +152,24 @@ $('#comment').validate({
  */
 
 $(function() {
-  $("#update-tags").click(function () {
-    $.ajax({
-      type: 'post',
-      url: '/account/tag/add',
-      data: { tags: $('#interests').tagit('assignedTags') },
-      success: function (data, status) {
-        console.log('POST', status);
-        humane.log('Successfuly updated')
-      }
-    });
+
+  $("#interests").tagit({
+    allowSpaces: true,
+    availableTags: ["Action", "Adventure", "Driving", "Puzzle", "Role-Playing", "Simulation", "Strategy", "Sports"],
+    onTagRemoved: function (event, tag) {
+      temp = $(tag).text();
+      var myTag = temp.substring(0, temp.length-1); // exclude x character
+      $.post('/account/tag/delete', { removedTag: myTag }, function(data) {
+        console.log('successfuly POSTed to account/tag/delete')
+      });
+    },
+    onTagAdded: function (event, tag) {
+      temp = $(tag).text();
+      var myTag = temp.substring(0, temp.length-1); // exclude x character
+      $.post('/account/tag/add', { addedTag: myTag }, function(data) {
+        console.log('successfully POSTed to account/tag/add');
+      });
+    }
   });
 });
 

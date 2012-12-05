@@ -25,14 +25,9 @@ block content
     
   form#registration.form-horizontal(method='post')
     br
-    div.lead#getting-started Type your interests below to get started...
-    .row
-      .span10
-        ul#interests
-          for i in user.interests
-            li= i
-      .span2
-        a.btn.btn-danger.btn-large(id='update-tags') Update Interests
+    ul#interests
+      for i in user.interests
+        li= i
 
     legend Account Information
     .control-group
@@ -81,66 +76,3 @@ block content
               td
                 a(href='/games/#{purchased.game.slug}') #{purchased.game.title}
               td #{new Date(purchased.date).toLocaleDateString()}
-
-  script(type='text/javascript')
-    var tagCount;
-    if ($('#interests li').length == 0) {
-      tagCount = 0;
-    } else {
-      tagCount = $('#interests li').length - 1;
-    }
-
-    $("#interests").tagit({
-      allowSpaces: true,
-      availableTags: ["Action", "Adventure", "Driving", "Puzzle", "Role-Playing", "Simulation", "Strategy", "Sports"],
-      onTagRemoved: function (event, tag) {
-        var tagCount = $('#interests li').length - 1;
-        tagCount--;
-
-        if (tagCount < 0) {
-          tagCount = 0;
-        }
-        if (tagCount == 0) {
-          $('#getting-started').fadeOut(200, function() {
-            $(this).text('Type your interests below to get started...').fadeIn(200);
-          });
-        }
-        if (tagCount == 1) {
-          $('#getting-started').fadeOut(200, function() {
-            $(this).text('We need two more interests.').fadeIn(200);
-          });
-        }
-        if (tagCount == 2) {
-          $('#getting-started').fadeOut(200, function() {
-            $(this).text('One more interest.').fadeIn(200);
-          });
-        }
-        if (tagCount >= 3) {
-          $('#getting-started').hide();
-        }
-        var tempTag = $(tag).text();
-        var myTag = tempTag.substring(0, tempTag.length-1);
-        $.post('/account/tag/delete', { removedTag: myTag });
-      },
-      onTagAdded: function (event, tag) {
-        tagCount++;
-        if (tagCount == 0) {
-          $('#getting-started').fadeOut(200, function() {
-            $(this).text('Type your interests below to get started...').fadeIn(200);
-          });
-        }
-        if (tagCount == 1) {
-          $('#getting-started').fadeOut(200, function() {
-            $(this).text('We need two more interests.').fadeIn(200);
-          });
-        }
-        if (tagCount == 2) {
-          $('#getting-started').fadeOut(200, function() {
-            $(this).text('One more interest.').fadeIn(200);
-          });
-        }
-        if (tagCount >= 3) {
-          $('#getting-started').hide();
-        }
-      }
-    });
