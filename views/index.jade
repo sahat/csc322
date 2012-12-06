@@ -1,7 +1,6 @@
 extends layout
 block content
   .page-header
-
     p.lead#welcome
       if user.firstName
         strong Welcome #{user.firstName},
@@ -9,8 +8,7 @@ block content
         br
         small.muted How it works:
         small
-          |  3 games are based on your interests, and 3 games are
-          | based on rated & purchased games of similar users
+          span  3 games are based on your interests, and 3 games are based on rated & purchased games of similar users
       else
         strong Welcome Visitor,
         small  here's the top 3 most popular games for you

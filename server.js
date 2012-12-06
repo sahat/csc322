@@ -30,8 +30,8 @@ app.configure(function () {
   app.use(express.logger('dev'));
   app.use(express.bodyParser());
   app.use(express.cookieParser('s3cr3t'));
-  //app.use(express.session({ secret: 's3cr3t' }));
-  app.use(express.session({ store: new RedisStore(), secret: 's3cr3t' }));
+  app.use(express.session({ secret: 's3cr3t' }));
+  //app.use(express.session({ store: new RedisStore(), secret: 's3cr3t' }));
   app.use(express.methodOverride());
   app.use(app.router);
   app.use(express.static(path.join(__dirname, 'public'), { maxAge: 604800 })); // one week cache
@@ -51,8 +51,10 @@ var gmail = email.server.connect({
 });
 
 // MongoDB Config
-//mongoose.connect('mongodb://sahat:mongooska@ds037827.mongolab.com:37827/csc322');
-mongoose.connect('localhost', 'test');
+mongoose.connect('mongodb://sahat:mongooska@ds037827.mongolab.com:37827/csc322', function (err) {
+  console.log(err);
+});
+//mongoose.connect('localhost', 'test');
 
 // Here we create a schema called Game with the following fields.
 var GameSchema = new mongoose.Schema({
