@@ -94,7 +94,6 @@ $('#registration').validate({
   }
 });
 
-
 $('#login').validate({
   rules: {
     userName: { required: true },
@@ -151,24 +150,20 @@ $('#comment').validate({
  * Tags (Interests)
  */
 
-$(function() {
-
+$(function () {
+  'use strict';
   $("#interests").tagit({
     allowSpaces: true,
     availableTags: ["Action", "Adventure", "Driving", "Puzzle", "Role-Playing", "Simulation", "Strategy", "Sports"],
     onTagRemoved: function (event, tag) {
-      temp = $(tag).text();
-      var myTag = temp.substring(0, temp.length-1); // exclude x character
-      $.post('/account/tag/delete', { removedTag: myTag }, function(data) {
-        console.log('successfuly POSTed to account/tag/delete')
-      });
+      var temp = $(tag).text();
+      var myTag = temp.substring(0, temp.length - 1); // exclude x character
+      $.post('/account/tag/delete', { removedTag: myTag });
     },
     onTagAdded: function (event, tag) {
-      temp = $(tag).text();
-      var myTag = temp.substring(0, temp.length-1); // exclude x character
-      $.post('/account/tag/add', { addedTag: myTag }, function(data) {
-        console.log('successfully POSTed to account/tag/add');
-      });
+      var temp = $(tag).text();
+      var myTag = temp.substring(0, temp.length - 1); // exclude x character
+      $.post('/account/tag/add', { addedTag: myTag });
     }
   });
 });
@@ -177,19 +172,18 @@ $(function() {
  * Buying System
  */
 
-$(function() {
+$(function () {
   'use strict';
-
-  $.each($('.buy'), function() {
+  $.each($('.buy'), function () {
 
     var id = $(this).attr('id');
-    var title= $(this).attr('data-game-title');
+    var title = $(this).attr('data-game-title');
     var slug = id.replace('buy-', '');
 
-    $('#' + id).click(function() {
+    $('#' + id).click(function () {
       $('#game-title').text(title);
       $('#modal').modal('show');
-      $('#buy-confirm').click(function() {
+      $('#buy-confirm').click(function () {
         humane.log('Your order has been submitted!');
         $('#modal').modal('hide');
         $('#' + id).attr('disabled', 'true');
@@ -199,15 +193,12 @@ $(function() {
   });
 });
 
-
 /**
  * Rating System
  */
 $(function () {
   'use strict';
-
-  $.each($('.stars'), function() {
-
+  $.each($('.stars'), function () {
     var id = $(this).attr('id');
     var slug = id.replace('rating-', '');
     var rating = $(this).attr('data-rating');
@@ -236,8 +227,7 @@ $(function () {
           score: rating,
           readOnly: true
         });
-      }
-      else if (voted === 'No') { // user hasn't voted yet
+      } else if (voted === 'No') { // user hasn't voted yet
         $('#' + id).raty({
           path: '/img',
           round : { down: 0.25, full: 0.6, up: 0.76 },
@@ -253,7 +243,6 @@ $(function () {
               url: '/rate',
               data: { slug: slug, rating: score },
               success: function (data, status) {
-                console.log('POST', status);
                 $('#' + id).raty('readOnly', true);
               }
             });
