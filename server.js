@@ -342,7 +342,7 @@ app.get('/', function (req, res) {
 
         Game
           .where('genre').in(req.session.user.interests)
-          .sort('-weightedScore')
+          .sort('-weightedRating')
           .limit(6)
           .exec(function (err, interestGames) {
             if (err) {
@@ -407,7 +407,7 @@ app.get('/', function (req, res) {
     Game
       .find()
       .limit(3)
-      .sort('-weightedScore')
+      .sort('-weightedRating')
       .exec(function (err, games) {
         if (err) {
           res.send(500, err);
@@ -586,7 +586,7 @@ app.get('/games', function (req, res) {
   Game
     .find()
     .limit(25)
-    .sort('-weightedScore')
+    .sort('-weightedRating')
     .exec(function (err, games) {
 
       // Guests can view all games but the Buy button will not be visible
@@ -715,7 +715,7 @@ app.get('/games/genre/:genre', function (req, res) {
 
   Game
     .where('genre').equals(new RegExp(req.params.genre, 'i'))
-    .sort('-weightedScore')
+    .sort('-weightedRating')
     .exec(function (err, games) {
       if (err) res.send(500, err);
       if (!req.session.user) {
