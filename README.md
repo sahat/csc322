@@ -7,17 +7,18 @@ How to use
 
 To access admin dashboard use the following account:
 
-`username: syalkabov762` and `password: password`
+- `username: syalkabov762`
+- `password: password`
 
 Project Structure
 =================
 
-**server.js** - main file that contains application logic, routes, database schema.
-**views/jade files** - view templates (sort of like HTML files)
-**public/css** - stylesheets folder
-**public/img** - images folder
-**public/js** - javascripts folder
-**screenshots** - screenshots of the web application
+- **server.js** - main file that contains application logic, routes, database schema.
+- **views/jade files** - view templates (sort of like HTML files)
+- **public/css** - stylesheets folder
+- **public/img** - images folder
+- **public/js** - javascripts folder
+- **screenshots** - screenshots of the web application
 
 
 Infrastructure
