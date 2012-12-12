@@ -406,17 +406,20 @@ app.get('/', function (req, res) {
   } else {
     Game
       .find()
-      .limit(3)
+      .limit(10)
       .sort('-weightedRating')
       .exec(function (err, games) {
         if (err) {
           res.send(500, err);
         }
+
+        var randomized = _.shuffle(games);
+
         res.render('index', {
           heading: 'Welcome to CL4P-TP',
           lead: 'The leading next generation video games recommendation engine',
           user: req.session.user,
-          games: games
+          games: randomized.slice(0,3)
         });
       });
   }
@@ -616,6 +619,8 @@ app.get('/games', function (req, res) {
 
 /**
  * GET /games/detail
+ *
+ * @return
  */
 app.get('/games/:detail', function(req, res) {
   'use strict';

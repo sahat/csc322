@@ -4,37 +4,36 @@
 
 Infrastructure
 ==============
-1. node.js
-2. express - web framework for node.js
-3. mongoose - mongodb document mapper
-4. mocha - testing framework
-4.5 should.js - testing library
-5. bcrypt - encrypting and hashing user passwords
-6. redis-store - Redis bridge for storing sessions
-7. request - used for initiating requests to parse the website
-8. jsdom - used to actually parse the website
-9. socket.io - real-time websocket communication
-10. underscore.js - helper functions for JavaScript arrays and objects
-11. underscore.strin - helper functions for JavaScript strings
-12. emails = sends e-mail via designated SMTP server
+1. **node.js** - application server
+2. **express** - web framework for node.js
+3. **mongoose** - mongodb object document mapper
+4. **bcrypt** - cryptography library
+5. **redis-store** - storing sessions in redis database
+6. **request** - used for initiating requests to parse the website
+7. **jsdom** - used to parse a website
+8. **underscore.js** - utility functions for javascript
+9. **underscore.strin** - utility functions for javaScript strings
+10. **emailjs** = sends e-mail via designated SMTP server
 
 Tools
 =====
-1. JetBrains WebStorm
+1. JetBrains IntelliJ IDEA
 2. GitHub
 
-
-
-Design and other stuff
+Design and Front-end
 ======================
-1. Bootstrap
-2. LESS CSS pre-processor
-3. Jade template language
-4. Credit Card icons from http://www.smashingmagazine.com/2010/10/21/free-png-credit-card-debit-card-and-payment-icons-set-18-icons/
-5. jQuery Raty star ratings
-6. Game information by Gamespot.com and Amazon.com
-7. jquery.validate for client-side validation
-8. jquery.meow for notifications
+1. **Bootstrap** - css framework by Twitter (http://twiter.github.com/bootstrap)
+2. **Jade** - server-side templating language (http://jade-lang.com)
+4. **Credit Card Icons** - (http://www.smashingmagazine.com/2010/10/21/free-png-credit-card-debit-card-and-payment-icons-set-18-icons/)
+5. **jQuery Raty** - star ratings (http://wbotelhos.com/raty)
+6. **Game information** - parsed from Gamespot.com and Amazon.com
+7. **jquery.validate** - client-side input validation (http://bassistance.de/jquery-plugins/jquery-plugin-validation)
+8. **jquery.meow** - javascript notifications when rating a game (http://zacstewart.com/projects/meow.html)
+9. **humane.js** - javascript notifications when buying a game (http://wavded.github.com/humane-js)
+
+
+Screenshots
+===========
 
 Input validation on client-side and server-side
 ---
