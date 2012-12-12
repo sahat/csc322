@@ -5,6 +5,17 @@
 How to use
 ==========
 
+Live Demo: (http://csc322.heroku.com)
+
+Local Demo:
+
+1. Install Node.js 0.8.x and MongoDB 2.x.
+2. Inside project folder type `npm install`
+3. Run `node server.js` command
+4. Open the browser at the following URL: `http://localhost:3000`
+
+*Note*: Local demo still requires an internet connect because our game database is located on **mongolab.com**.
+
 To access admin dashboard use the following account:
 
 - `username: syalkabov762`
