@@ -5,9 +5,9 @@
 How to use
 ==========
 
-Live Demo: (http://csc322.heroku.com)
+**Live Demo**: (http://csc322.heroku.com)
 
-Local Demo:
+**Local Demo**:
 
 1. Install Node.js 0.8.x and MongoDB 2.x.
 2. Inside project folder type `npm install`
