@@ -6,8 +6,19 @@ How to use
 ==========
 
 To access admin dashboard use the following account:
-`username: syalkabov762`
-`password: password`
+
+`username: syalkabov762` and `password: password`
+
+Project Structure
+=================
+
+**server.js** - main file that contains application logic, routes, database schema.
+**views/jade files** - view templates (sort of like HTML files)
+**public/css** - stylesheets folder
+**public/img** - images folder
+**public/js** - javascripts folder
+**screenshots** - screenshots of the web application
+
 
 Infrastructure
 ==============
@@ -20,11 +31,11 @@ Infrastructure
 7. **jsdom** - used to parse a website
 8. **underscore.js** - utility functions for javascript
 9. **underscore.strin** - utility functions for javaScript strings
-10. **emailjs** = sends e-mail via designated SMTP server
+10. **emailjs** = sends e-mail via a designated SMTP server
 
 Tools
 =====
-1. JetBrains IntelliJ IDEA
+1. JetBrains IntelliJ IDEA 12
 2. GitHub
 
 Design and Front-end
