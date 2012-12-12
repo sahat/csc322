@@ -2,6 +2,13 @@
 ![Mongo](http://www.mongodb.org/download/attachments/132305/logo-mongodb-onwhite.png)
 ![Redis](http://redis.io/images/redis-300dpi.png)
 
+How to use
+==========
+
+To access admin dashboard use the following account:
+`username: syalkabov762`
+`password: password`
+
 Infrastructure
 ==============
 1. **node.js** - application server
