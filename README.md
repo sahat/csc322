@@ -2,6 +2,36 @@
 ![Mongo](http://www.mongodb.org/download/attachments/132305/logo-mongodb-onwhite.png)
 ![Redis](http://redis.io/images/redis-300dpi.png)
 
+How to use
+==========
+
+**Live Demo**: (http://csc322.heroku.com)
+
+**Local Demo**:
+
+1. Install Node.js 0.8.x and MongoDB 2.x.
+2. Inside project folder type `npm install`
+3. Run `node server.js` command
+4. Open the browser at the following URL: `http://localhost:3000`
+
+*Note*: Local demo still requires an internet connect because our game database is located on **mongolab.com**.
+
+To access admin dashboard use the following account:
+
+- `username: syalkabov762`
+- `password: password`
+
+Project Structure
+=================
+
+- **server.js** - main file that contains application logic, routes, database schema.
+- **views/jade files** - view templates (sort of like HTML files)
+- **public/css** - stylesheets folder
+- **public/img** - images folder
+- **public/js** - javascripts folder
+- **screenshots** - screenshots of the web application
+
+
 Infrastructure
 ==============
 1. **node.js** - application server
@@ -13,11 +43,11 @@ Infrastructure
 7. **jsdom** - used to parse a website
 8. **underscore.js** - utility functions for javascript
 9. **underscore.strin** - utility functions for javaScript strings
-10. **emailjs** = sends e-mail via designated SMTP server
+10. **emailjs** = sends e-mail via a designated SMTP server
 
 Tools
 =====
-1. JetBrains IntelliJ IDEA
+1. JetBrains IntelliJ IDEA 12
 2. GitHub
 
 Design and Front-end
