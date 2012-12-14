@@ -298,7 +298,7 @@ app.post('/add', function (req, res) {
           });
 
           // Save game object into database as a document of db.games collection
-          game.save(function (err) {
+          gamem.save(function (err) {
             if (err) {
               res.send(500, 'Unable to add the game to database');
             }
